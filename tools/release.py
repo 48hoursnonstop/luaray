@@ -48,6 +48,7 @@ with tempfile.TemporaryDirectory(prefix='clean-release-',dir=ROOT/'.dev') as tem
         env['LUA_CPATH']=str(clean/'build/?.so')+';;'
         subprocess.run(['lua5.4','examples/writing98.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
         subprocess.run(['lua5.4','examples/masked_writes99.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
+        subprocess.run(['lua5.4','examples/take100.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
 report=dict(version=VERSION,archive=archive.name,sha256=digest,source_files=len(files),
             manifest_entries=len(files)-1,clean_build='passed',clean_log=log.name,
             differential_fixture_files=len(list((ROOT/'tests').glob('*_differential_generated.lua'))),

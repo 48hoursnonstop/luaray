@@ -1,3 +1,16 @@
+## LuaRay 0.100.0-dev — native indexed gathering
+
+`np.take(input, indices, axis_or_options)` and `input:take(...)` gather through
+the C ndarray engine, with one-based Lua coordinates, axes, bounds modes,
+scalar results and actual out/overlap/error semantics. String conversion now
+preserves a failed ASCII output cell and embedded NUL data.
+
+Read the [English take reference](docs/en/take.md) or
+[referencia de take en español](docs/es/take.md). New evidence: **6,704 NumPy
+2.5.3 cases / 324,615 checks**, 63 Lua checks and native tests. Full regression:
+**117 fixture files**. Three deliberate empty-axis hang-class rejections remain
+outside parity counts. No Python runtime is used.
+
 ## LuaRay 0.99.1-dev — float32 numerical portability
 
 Correct inverse-exponential rounding across older/newer libm versions without

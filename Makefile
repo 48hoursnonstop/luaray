@@ -852,3 +852,22 @@ sanitize-memory99: $(BUILD)/lua_runner $(BUILD)/luaray_core.so
 
 $(BUILD)/ln_take.o: src/ln_take.c src/ln_take.h src/ln_write.h src/ln_mapping.h | $(BUILD)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -fPIC -c $< -o $@
+
+$(BUILD)/test_take100_main.o: tests/test_take100_core.c src/ln_take.h | $(BUILD)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/test_take100_core: $(BUILD)/test_take100_main.o $(BUILD)/ln_take.o $(BUILD)/test_core
+	$(CXX) $(LDFLAGS) $(BUILD)/test_take100_main.o $(filter-out %_san.o,$(wildcard $(BUILD)/ln_*.o)) -lm $(BLAS_LIBS) $(LAPACK_LIBS) -o $@
+
+take100-test: $(BUILD)/test_take100_core $(BUILD)/lua_runner
+	./$(BUILD)/test_take100_core
+	./$(BUILD)/lua_runner tests/take100_regression.lua
+	./$(BUILD)/lua_runner tests/take100_differential_generated.lua
+
+full-test: take100-test
+.PHONY: take100-test
+
+sanitize-take100: $(BUILD)/lua_runner $(BUILD)/luaray_core.so
+	python3 tools/sanitize_write98.py --memory99 --libm-fix --take100
+
+.PHONY: sanitize-take100

@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.99.1-dev')
+assert(np._version=='0.100.0-dev')
 local r=np.random.default_rng(42)
 local a=r:standard_gamma(2,{2,3},'float32')
 local b=r:gamma(2,3,{2,3})

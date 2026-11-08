@@ -234,12 +234,18 @@ int ln_string_cast_one(const char *src,const ln_dtype_descr *sdt,char *dst,const
     if(sdt->type_num==LN_UNICODE&&ddt->type_num==LN_UNICODE){memset(dst,0,ddt->elsize);size_t n=ln_string_nchars(sdt),m=ln_string_nchars(ddt),k=n<m?n:m;for(size_t i=0;i<k;i++)store_u32(dst+i*4,load_u32(src+i*4,sdt->byteorder),ddt->byteorder);return 0;}
     if(sdt->type_num==LN_STRING&&ddt->type_num==LN_UNICODE){
         /* NumPy legacy S->U decodes byte strings as ASCII. */
-        memset(dst,0,ddt->elsize);size_t sn=sdt->elsize;while(sn&&src[sn-1]=='\0')sn--;size_t m=ln_string_nchars(ddt),k=sn<m?sn:m;
-        for(size_t i=0;i<k;i++){unsigned char c=(unsigned char)src[i];if(c>=128){serr(err,"'ascii' codec can't decode byte string");return -1;}store_u32(dst+i*4,c,ddt->byteorder);}return 0;
+        size_t sn=sdt->elsize;while(sn&&src[sn-1]=='\0')sn--;
+        for(size_t i=0;i<sn;i++)if((unsigned char)src[i]>=128){serr(err,"'ascii' codec can't decode byte string");return -1;}
+        memset(dst,0,ddt->elsize);size_t m=ln_string_nchars(ddt),k=sn<m?sn:m;
+        for(size_t i=0;i<k;i++)store_u32(dst+i*4,(unsigned char)src[i],ddt->byteorder);
+        return 0;
     }
     /* U->S is unsafe in NumPy and effectively ASCII encoding for legacy cast. */
-    memset(dst,0,ddt->elsize);size_t n=ln_string_nchars(sdt),m=ddt->elsize,k=n<m?n:m;
-    for(size_t i=0;i<k;i++){uint32_t cp=load_u32(src+i*4,sdt->byteorder);if(cp==0)break;if(cp>=128){serr(err,"'ascii' codec can't encode unicode string");return -1;}dst[i]=(char)cp;}return 0;
+    size_t n=ln_string_nchars(sdt),m=ddt->elsize,k=n<m?n:m;
+    for(size_t i=0;i<n;i++)if(load_u32(src+i*4,sdt->byteorder)>=128){serr(err,"'ascii' codec can't encode unicode string");return -1;}
+    memset(dst,0,ddt->elsize);
+    for(size_t i=0;i<k;i++)dst[i]=(char)load_u32(src+i*4,sdt->byteorder);
+    return 0;
 }
 
 int ln_string_compare_one(const char *a,const ln_dtype_descr *adt,const char *b,const ln_dtype_descr *bdt,int *cmp,ln_error *err){

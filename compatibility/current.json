@@ -1,31 +1,32 @@
 {
-  "version": "0.99.1-dev",
+  "version": "0.100.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
-  "new_reference_cases": {},
-  "new_numeric_checks": 4,
-  "new_lua_regression_checks": 4,
+  "new_reference_cases": {
+    "take": 6704
+  },
+  "new_numeric_checks": 324615,
+  "new_lua_regression_checks": 63,
   "blocked_original_states": 40,
+  "deliberate_difference_variants": 3,
   "status": "implemented_partial",
+  "apis": {
+    "numpy.take": "implemented_partial",
+    "numpy.ndarray.take": "implemented_partial"
+  },
   "evidence": [
-    "tests/exponential_regression.lua",
-    "tests/exponential_differential_generated.lua",
-    "tools/probe_libm.py"
+    "tests/take100_differential_generated.lua",
+    "tests/take100_regression.lua",
+    "tests/test_take100_core.c",
+    "tests/take100_reference_differences.lua",
+    "tools/probe_take100_hang.py"
   ],
   "limits": [
     "Non-native numeric dtype descriptors remain unavailable",
-    "Object and structured dtypes are unavailable",
+    "Object, structured and variable-width StringDType arrays are unavailable",
     "Python exception-class and complete warning fidelity are not claimed",
+    "Rejects upstream empty-axis wrap hang; three variants outside parity, only representative executed upstream",
     "Reference comparisons establish tested operations and environment, not full NumPy compatibility"
   ],
-  "reference_checks": {
-    "exponential": 17376
-  },
-  "remote_ci": {
-    "run_id": 42526947924,
-    "commit": "965203bfbd085b8f75b1c669f392a817238e33e5",
-    "result": "passed",
-    "platform": "Ubuntu 24.04"
-  },
-  "sanitizers": "Directed audit: ln_write, ln_dtype_transfer, lua_module and ln_random; two native suites and twelve Lua suites; other dependencies uninstrumented; leaks disabled"
+  "sanitizers": "Directed audit: ln_take, ln_string, ln_write, ln_dtype_transfer, lua_module and ln_random; three native suites and fourteen Lua suites; other dependencies uninstrumented; leaks disabled"
 }

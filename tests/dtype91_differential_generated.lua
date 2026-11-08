@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.99.1-dev')
+assert(np._version=='0.100.0-dev')
 local count=0
 local function eq(a,b) assert(a==b, 'case '..count..' '..tostring(a)..' ~= '..tostring(b)) count=count+1 end
 eq(np.promote_types("bool","bool"),"bool")

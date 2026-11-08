@@ -1,3 +1,23 @@
+## 0.100.0-dev verification (executed)
+
+- `make -j4 full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'`:
+  **117/117 frozen differential fixture files**, native and Lua suites passed.
+- `take100-test`: native suite passed; **63 Lua checks** passed; **6,704 original
+  NumPy 2.5.3 cases / 324,615 value and metadata checks** passed. Shapes, strides,
+  dtype, independent-copy/output identity and actual post-error backing states
+  are checked. Prior frozen references retain their recorded provenance.
+- Regeneration of both take fixture/difference files was byte-for-byte exact.
+- Directed ASan/UBSan passed **six instrumented C units**: ln_take, ln_string,
+  ln_write, ln_dtype_transfer, lua_module and ln_random. Three native and 14 Lua
+  suites passed; other linked dependencies uninstrumented, leaks disabled.
+- Actual public `require('luaray')` take example passed through Lua 5.4/module.
+- Separate NumPy 2.5.3 subprocess reached the representative empty-axis wrap
+  call then timed out at three seconds. Three retained Lua variants reject it;
+  they are not counted as parity and were not individually executed upstream.
+- Final archive extraction/build/regression/examples/manifest results are
+  recorded by tools/release.py in its versioned verification JSON and log.
+  Remote 0.100 CI is tracked separately; no older run proves this version.
+
 ## 0.94.0-dev verification (executed)
 
 - `np.issubdtype`: **1,849/1,849** NumPy 2.3.5 comparisons; `min_scalar_type` Unicode: **94/94**, total **1,943**; five invalid-input checks passed.

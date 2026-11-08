@@ -7464,10 +7464,10 @@ static int np_take(lua_State *L) {
     ln_array *indices=write98_arg(L,2,ln_dtype_by_name(sizeof(ln_intp)==8?"int64":"int32"),LN_SAME_KIND_CASTING);
     ln_error err={{0}};ln_array *result=ln_array_take(input,indices,axis,mode,out?out->a:NULL,&err);
     if(!result)return fail(L,&err);
-    if(result->nd==0) {
-        int ret=push_scalar_at(L,result,NULL);if(!out)ln_array_free(result);return ret;
-    }
     if(out){lua_getfield(L,3,"out");return 1;}
+    if(result->nd==0) {
+        int ret=push_scalar_at(L,result,NULL);ln_array_free(result);return ret;
+    }
     return push_array(L,result);
 }
 static int np_putmask(lua_State *L) {
@@ -7532,7 +7532,7 @@ int luaopen_luaray_core(lua_State*L){
     for(int i=0;names[i];i++){lua_pushstring(L,names[i]);lua_setfield(L,-2,names[i]);}
     push_index_token(L,LN_INDEX_NEWAXIS);lua_setfield(L,-2,"newaxis");
     push_index_token(L,LN_INDEX_ELLIPSIS);lua_setfield(L,-2,"ellipsis");
-    lua_pushstring(L,"0.99.1-dev");lua_setfield(L,-2,"_version");
+    lua_pushstring(L,"0.100.0-dev");lua_setfield(L,-2,"_version");
     lua_pushstring(L,"286e698f1dcf601648b165f48485ceaeec9c6231");lua_setfield(L,-2,"_numpy_upstream_commit");
     return 1;
 }

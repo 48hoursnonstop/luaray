@@ -41,3 +41,4 @@ jobs:
         run: |
           lua5.4 examples/writing98.lua
           lua5.4 examples/masked_writes99.lua
+          lua5.4 examples/take100.lua

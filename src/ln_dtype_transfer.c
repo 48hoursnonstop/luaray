@@ -442,6 +442,9 @@ parse_string_to_numeric(const char *src, const ln_dtype *src_dtype,
     if (strip_numeric_underscores(s, &clean, err) < 0) { free(s); return -1; }
     free(s); s = clean;
     char *trimmed = trim_ascii_space_inplace(s);
+    if (!*trimmed) {
+        free(s); set_transfer_error(err,"cannot convert empty string to numeric dtype"); return -1;
+    }
     char *end = NULL; errno = 0;
     switch (dst_dtype->type_num) {
         case LN_BYTE: { long long v=strtoll(trimmed,&end,10); if(errno||!end||*end||v<INT8_MIN||v>INT8_MAX) goto badint; {int8_t q=(int8_t)v;memcpy(dst,&q,sizeof(q));} break; }
@@ -587,7 +590,7 @@ cast_string_to_temporal(const char *src,const ln_dtype *src_dtype,
     int64_t v=0;
     if(dst_dtype->type_num==LN_DATETIME){const ln_dtype_descr *pd=NULL;int tz=0;if(ln_datetime_parse_iso8601(s,dst_dtype,&pd,&v,&tz,err)<0){free(s);return -1;}}
     else {
-        if(strcmp(s,"NaT")==0)v=LN_DATETIME_NAT;
+        if(!*s || strcmp(s,"NaT")==0)v=LN_DATETIME_NAT;
         else {char *clean=NULL;if(strip_numeric_underscores(s,&clean,err)<0){free(s);return -1;}char *end=NULL;errno=0;long long q=strtoll(clean,&end,10);if(errno||!end||*end){free(clean);free(s);set_transfer_error(err,"could not convert string to NumPy timedelta");return -1;}v=(int64_t)q;free(clean);}
     }
     free(s);memcpy(dst,&v,8);return 0;

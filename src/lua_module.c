@@ -2,6 +2,7 @@
 #include "ln_random.h"
 #include "ln_multivariate_normal.h"
 #include "ln_mapping.h"
+#include "ln_write.h"
 #include "ln_matmul.h"
 #include "ln_dot.h"
 #include "ln_join.h"
@@ -63,6 +64,7 @@ typedef struct {
 } parsed_index;
 
 static int np_searchsorted(lua_State *L);
+static int np_put(lua_State *L);
 static int np_var(lua_State *L);
 static int np_count_nonzero(lua_State *L);
 static int np_any(lua_State *L);
@@ -1252,7 +1254,7 @@ static int push_nested(lua_State*L,const ln_array*a,int depth,ln_intp*idx){if(de
 static int array_tolist(lua_State*L){lua_array*u=check_array(L,1);ln_intp idx[LN_MAXDIMS]={0};return push_nested(L,u->a,0,idx);} 
 
 static int array_index(lua_State*L){lua_array*u=check_array(L,1);int t=lua_type(L,2);if(t==LUA_TNUMBER){if(u->a->nd==0)return luaL_error(L,"too many indices for array: array is 0-dimensional");ln_intp ix; if(read_lua_index(L,2,u->a->dimensions[0],&ix))return 0;if(u->a->nd==1){ln_intp idx[]={ix};return push_scalar_at(L,u->a,idx);}ln_error e={{0}};ln_array*v=ln_array_view(u->a,u->a->nd-1,u->a->dimensions+1,u->a->strides+1,u->a->data+ix*u->a->strides[0],&e);if(!v)return fail(L,&e);
-    return push_array(L,v);}if(t==LUA_TUSERDATA && (test_index_spec(L,2)||test_array(L,2)))return array_get(L);const char*k=lua_tostring(L,2);if(!k){lua_pushnil(L);return 1;}if(strcmp(k,"shape")==0)return array_shape(L);if(strcmp(k,"strides")==0)return array_strides(L);if(strcmp(k,"ndim")==0){lua_pushinteger(L,u->a->nd);return 1;}if(strcmp(k,"size")==0){lua_pushinteger(L,(lua_Integer)ln_array_size(u->a));return 1;}if(strcmp(k,"dtype")==0){lua_pushstring(L,u->a->descr->name);return 1;}if(strcmp(k,"get")==0){lua_pushcfunction(L,array_get);return 1;}if(strcmp(k,"set")==0){lua_pushcfunction(L,array_set);return 1;}if(strcmp(k,"reshape")==0){lua_pushcfunction(L,array_reshape);return 1;}if(strcmp(k,"transpose")==0||strcmp(k,"T")==0){if(strcmp(k,"T")==0){lua_settop(L,1);return array_transpose(L);}lua_pushcfunction(L,array_transpose);return 1;}if(strcmp(k,"swapaxes")==0){lua_pushcfunction(L,np_swapaxes);return 1;}if(strcmp(k,"moveaxis")==0){lua_pushcfunction(L,np_moveaxis);return 1;}if(strcmp(k,"squeeze")==0){lua_pushcfunction(L,np_squeeze);return 1;}if(strcmp(k,"flip")==0){lua_pushcfunction(L,np_flip);return 1;}if(strcmp(k,"tile")==0){lua_pushcfunction(L,np_tile);return 1;}if(strcmp(k,"roll")==0){lua_pushcfunction(L,np_roll);return 1;}if(strcmp(k,"rollaxis")==0){lua_pushcfunction(L,np_rollaxis);return 1;}if(strcmp(k,"repeat_elements")==0||strcmp(k,"repeat")==0){lua_pushcfunction(L,np_repeat_elements);return 1;}if(strcmp(k,"tolist")==0){lua_pushcfunction(L,array_tolist);return 1;}if(strcmp(k,"astype")==0){lua_pushcfunction(L,np_astype);return 1;}if(strcmp(k,"count_nonzero")==0){lua_pushcfunction(L,np_count_nonzero);return 1;}if(strcmp(k,"any")==0){lua_pushcfunction(L,np_any);return 1;}if(strcmp(k,"all")==0){lua_pushcfunction(L,np_all);return 1;}if(strcmp(k,"sum")==0){lua_pushcfunction(L,np_sum);return 1;}if(strcmp(k,"nansum")==0){lua_pushcfunction(L,np_nansum);return 1;}if(strcmp(k,"nanprod")==0){lua_pushcfunction(L,np_nanprod);return 1;}if(strcmp(k,"cumsum")==0){lua_pushcfunction(L,np_cumsum);return 1;}if(strcmp(k,"cumprod")==0){lua_pushcfunction(L,np_cumprod);return 1;}if(strcmp(k,"nancumsum")==0){lua_pushcfunction(L,np_nancumsum);return 1;}if(strcmp(k,"nancumprod")==0){lua_pushcfunction(L,np_nancumprod);return 1;}if(strcmp(k,"nanmean")==0){lua_pushcfunction(L,np_nanmean);return 1;}if(strcmp(k,"nanvar")==0){lua_pushcfunction(L,np_nanvar);return 1;}if(strcmp(k,"nanstd")==0){lua_pushcfunction(L,np_nanstd);return 1;}if(strcmp(k,"prod")==0){lua_pushcfunction(L,np_prod);return 1;}if(strcmp(k,"mean")==0){lua_pushcfunction(L,np_mean);return 1;}if(strcmp(k,"var")==0){lua_pushcfunction(L,np_var);return 1;}if(strcmp(k,"std")==0){lua_pushcfunction(L,np_std);return 1;}if(strcmp(k,"nanmin")==0){lua_pushcfunction(L,np_nanmin);return 1;}if(strcmp(k,"nanmax")==0){lua_pushcfunction(L,np_nanmax);return 1;}if(strcmp(k,"nanargmin")==0){lua_pushcfunction(L,np_nanargmin);return 1;}if(strcmp(k,"nanargmax")==0){lua_pushcfunction(L,np_nanargmax);return 1;}if(strcmp(k,"min")==0||strcmp(k,"amin")==0){lua_pushcfunction(L,np_amin);return 1;}if(strcmp(k,"max")==0||strcmp(k,"amax")==0){lua_pushcfunction(L,np_amax);return 1;}if(strcmp(k,"argmin")==0){lua_pushcfunction(L,np_argmin);return 1;}if(strcmp(k,"argmax")==0){lua_pushcfunction(L,np_argmax);return 1;}if(strcmp(k,"ptp")==0){lua_pushcfunction(L,np_ptp);return 1;}if(strcmp(k,"median")==0){lua_pushcfunction(L,np_median);return 1;}if(strcmp(k,"nanmedian")==0){lua_pushcfunction(L,np_nanmedian);return 1;}if(strcmp(k,"matmul")==0){lua_pushcfunction(L,np_matmul);return 1;}if(strcmp(k,"dot")==0){lua_pushcfunction(L,np_dot);return 1;}if(strcmp(k,"sort")==0){lua_pushcfunction(L,array_sort_inplace);return 1;}if(strcmp(k,"argsort")==0){lua_pushcfunction(L,np_argsort);return 1;}if(strcmp(k,"partition")==0){lua_pushcfunction(L,array_partition_inplace);return 1;}if(strcmp(k,"argpartition")==0){lua_pushcfunction(L,np_argpartition);return 1;}if(strcmp(k,"searchsorted")==0){lua_pushcfunction(L,np_searchsorted);return 1;}lua_pushnil(L);return 1;}
+    return push_array(L,v);}if(t==LUA_TUSERDATA && (test_index_spec(L,2)||test_array(L,2)))return array_get(L);const char*k=lua_tostring(L,2);if(!k){lua_pushnil(L);return 1;}if(strcmp(k,"shape")==0)return array_shape(L);if(strcmp(k,"strides")==0)return array_strides(L);if(strcmp(k,"ndim")==0){lua_pushinteger(L,u->a->nd);return 1;}if(strcmp(k,"size")==0){lua_pushinteger(L,(lua_Integer)ln_array_size(u->a));return 1;}if(strcmp(k,"dtype")==0){lua_pushstring(L,u->a->descr->name);return 1;}if(strcmp(k,"get")==0){lua_pushcfunction(L,array_get);return 1;}if(strcmp(k,"set")==0){lua_pushcfunction(L,array_set);return 1;}if(strcmp(k,"put")==0){lua_pushcfunction(L,np_put);return 1;}if(strcmp(k,"reshape")==0){lua_pushcfunction(L,array_reshape);return 1;}if(strcmp(k,"transpose")==0||strcmp(k,"T")==0){if(strcmp(k,"T")==0){lua_settop(L,1);return array_transpose(L);}lua_pushcfunction(L,array_transpose);return 1;}if(strcmp(k,"swapaxes")==0){lua_pushcfunction(L,np_swapaxes);return 1;}if(strcmp(k,"moveaxis")==0){lua_pushcfunction(L,np_moveaxis);return 1;}if(strcmp(k,"squeeze")==0){lua_pushcfunction(L,np_squeeze);return 1;}if(strcmp(k,"flip")==0){lua_pushcfunction(L,np_flip);return 1;}if(strcmp(k,"tile")==0){lua_pushcfunction(L,np_tile);return 1;}if(strcmp(k,"roll")==0){lua_pushcfunction(L,np_roll);return 1;}if(strcmp(k,"rollaxis")==0){lua_pushcfunction(L,np_rollaxis);return 1;}if(strcmp(k,"repeat_elements")==0||strcmp(k,"repeat")==0){lua_pushcfunction(L,np_repeat_elements);return 1;}if(strcmp(k,"tolist")==0){lua_pushcfunction(L,array_tolist);return 1;}if(strcmp(k,"astype")==0){lua_pushcfunction(L,np_astype);return 1;}if(strcmp(k,"count_nonzero")==0){lua_pushcfunction(L,np_count_nonzero);return 1;}if(strcmp(k,"any")==0){lua_pushcfunction(L,np_any);return 1;}if(strcmp(k,"all")==0){lua_pushcfunction(L,np_all);return 1;}if(strcmp(k,"sum")==0){lua_pushcfunction(L,np_sum);return 1;}if(strcmp(k,"nansum")==0){lua_pushcfunction(L,np_nansum);return 1;}if(strcmp(k,"nanprod")==0){lua_pushcfunction(L,np_nanprod);return 1;}if(strcmp(k,"cumsum")==0){lua_pushcfunction(L,np_cumsum);return 1;}if(strcmp(k,"cumprod")==0){lua_pushcfunction(L,np_cumprod);return 1;}if(strcmp(k,"nancumsum")==0){lua_pushcfunction(L,np_nancumsum);return 1;}if(strcmp(k,"nancumprod")==0){lua_pushcfunction(L,np_nancumprod);return 1;}if(strcmp(k,"nanmean")==0){lua_pushcfunction(L,np_nanmean);return 1;}if(strcmp(k,"nanvar")==0){lua_pushcfunction(L,np_nanvar);return 1;}if(strcmp(k,"nanstd")==0){lua_pushcfunction(L,np_nanstd);return 1;}if(strcmp(k,"prod")==0){lua_pushcfunction(L,np_prod);return 1;}if(strcmp(k,"mean")==0){lua_pushcfunction(L,np_mean);return 1;}if(strcmp(k,"var")==0){lua_pushcfunction(L,np_var);return 1;}if(strcmp(k,"std")==0){lua_pushcfunction(L,np_std);return 1;}if(strcmp(k,"nanmin")==0){lua_pushcfunction(L,np_nanmin);return 1;}if(strcmp(k,"nanmax")==0){lua_pushcfunction(L,np_nanmax);return 1;}if(strcmp(k,"nanargmin")==0){lua_pushcfunction(L,np_nanargmin);return 1;}if(strcmp(k,"nanargmax")==0){lua_pushcfunction(L,np_nanargmax);return 1;}if(strcmp(k,"min")==0||strcmp(k,"amin")==0){lua_pushcfunction(L,np_amin);return 1;}if(strcmp(k,"max")==0||strcmp(k,"amax")==0){lua_pushcfunction(L,np_amax);return 1;}if(strcmp(k,"argmin")==0){lua_pushcfunction(L,np_argmin);return 1;}if(strcmp(k,"argmax")==0){lua_pushcfunction(L,np_argmax);return 1;}if(strcmp(k,"ptp")==0){lua_pushcfunction(L,np_ptp);return 1;}if(strcmp(k,"median")==0){lua_pushcfunction(L,np_median);return 1;}if(strcmp(k,"nanmedian")==0){lua_pushcfunction(L,np_nanmedian);return 1;}if(strcmp(k,"matmul")==0){lua_pushcfunction(L,np_matmul);return 1;}if(strcmp(k,"dot")==0){lua_pushcfunction(L,np_dot);return 1;}if(strcmp(k,"sort")==0){lua_pushcfunction(L,array_sort_inplace);return 1;}if(strcmp(k,"argsort")==0){lua_pushcfunction(L,np_argsort);return 1;}if(strcmp(k,"partition")==0){lua_pushcfunction(L,array_partition_inplace);return 1;}if(strcmp(k,"argpartition")==0){lua_pushcfunction(L,np_argpartition);return 1;}if(strcmp(k,"searchsorted")==0){lua_pushcfunction(L,np_searchsorted);return 1;}lua_pushnil(L);return 1;}
 
 static const char *
 registered_binary_name(ln_binary_op op)
@@ -7351,6 +7353,94 @@ static int np_copyto(lua_State *L) {
 }
 /* NumPy putmask: both mask and values are flattened in C order, and the
  * values index advances with the destination position, not with true masks. */
+/* Python scalars/sequences are converted directly to the requested descriptor,
+ * whereas ndarray operands obey the selected casting rule. Preserve that
+ * distinction and keep every temporary rooted on Lua's stack across errors. */
+static void write98_check_lua_bounds(lua_State *L, int arg, const ln_dtype *dtype, int depth) {
+    arg=lua_absindex(L,arg);
+    if(depth>LN_MAXDIMS)luaL_error(L,"maximum supported dimension exceeded");
+    if(lua_type(L,arg)==LUA_TTABLE) {
+        for(size_t i=1;i<=lua_rawlen(L,arg);++i) {
+            lua_geti(L,arg,(lua_Integer)i);write98_check_lua_bounds(L,-1,dtype,depth+1);lua_pop(L,1);
+        }
+    }
+    else if(dtype->kind=='i' || dtype->kind=='u') {
+        if(lua_isinteger(L,arg) && !mem97_scalar_integer_fits((int64_t)lua_tointegerx(L,arg,NULL),dtype))
+            luaL_error(L,"integer scalar out of bounds for destination dtype");
+        if(lua_type(L,arg)==LUA_TNUMBER && !lua_isinteger(L,arg) && !isfinite(lua_tonumberx(L,arg,NULL)))
+            luaL_error(L,"cannot convert nonfinite Lua number to integer");
+    }
+}
+static void write98_fill(lua_State *L,int arg,ln_array *a,int depth,ln_intp *indices) {
+    arg=lua_absindex(L,arg);
+    if(depth<a->nd) {
+        luaL_checktype(L,arg,LUA_TTABLE);
+        if((ln_intp)lua_rawlen(L,arg)!=a->dimensions[depth])luaL_error(L,"inhomogeneous array shape");
+        for(size_t i=1;i<=lua_rawlen(L,arg);++i) {
+            indices[depth]=(ln_intp)i-1;lua_geti(L,arg,(lua_Integer)i);
+            write98_fill(L,-1,a,depth+1,indices);lua_pop(L,1);
+        }
+    }
+    else if(lua_type(L,arg)==LUA_TSTRING && !ln_string_is_dtype(a->descr) && a->descr->kind!='M') {
+        size_t n=0;const char *s=lua_tolstring(L,arg,&n);ln_error err={{0}};
+        if(a->descr->kind=='b') {
+            if(ln_array_pack_number(a,indices,0,n!=0,1,&err)<0)fail(L,&err);
+        }
+        else if(a->descr->kind=='m' && n==0) {
+            if(ln_array_pack_number(a,indices,0,LN_DATETIME_NAT,1,&err)<0)fail(L,&err);
+        }
+        else {
+            const char *nonspace=s;while(*nonspace && isspace((unsigned char)*nonspace))++nonspace;
+            if(!*nonspace)luaL_error(L,"cannot convert empty string to numeric dtype");
+            const ln_dtype *str=ln_string_make_dtype(0,n,'=',&err);
+            if(!str || ln_cast_strided_numeric(s,0,str,array_ptr_local(a,indices),0,a->descr,1,&err)<0)fail(L,&err);
+        }
+    }
+    else fill_table(L,arg,a,depth,indices);
+}
+static ln_array *write98_arg(lua_State *L,int arg,const ln_dtype *dtype,ln_casting casting) {
+    lua_array *u=test_array(L,arg);
+    if(u) {
+        if(u->a->descr==dtype && (u->a->flags&LN_ARRAY_C_CONTIGUOUS))return u->a;
+        ln_error err={{0}};ln_array *a=array_cast_new(u->a,dtype,casting,'C',&err);
+        if(!a){fail(L,&err);return NULL;}
+        push_array(L,a);return a;
+    }
+    write98_check_lua_bounds(L,arg,dtype,0);
+    ln_intp dims[LN_MAXDIMS],indices[LN_MAXDIMS]={0};int nd=0;
+    for(int d=0;d<LN_MAXDIMS;++d)dims[d]=-1;
+    infer_table_shape(L,arg,0,dims,&nd);
+    ln_error err={{0}};ln_array *a=ln_array_new(nd,dims,dtype,0,0,&err);
+    if(!a){fail(L,&err);return NULL;}
+    push_array(L,a);write98_fill(L,arg,a,0,indices);return a;
+}
+static int np_put(lua_State *L) {
+    ln_array *dst=check_array(L,1)->a;
+    if(lua_gettop(L)<3 || lua_type(L,2)==LUA_TNIL || lua_type(L,3)==LUA_TNIL)return luaL_error(L,"put requires indices and values");
+    if(!(dst->flags&LN_ARRAY_WRITEABLE))return luaL_error(L,"put destination is read-only");
+    ln_put_mode mode=LN_PUT_RAISE;
+    if(lua_gettop(L)>=4 && lua_type(L,4)!=LUA_TNIL) {
+        luaL_checktype(L,4,LUA_TSTRING);const char *name=lua_tostring(L,4);
+        if(strcmp(name,"wrap")==0)mode=LN_PUT_WRAP;
+        else if(strcmp(name,"clip")==0)mode=LN_PUT_CLIP;
+        else if(strcmp(name,"raise")!=0)return luaL_error(L,"put mode must be 'raise', 'wrap' or 'clip'");
+    }
+    ln_array *indices=write98_arg(L,2,ln_dtype_by_name(sizeof(ln_intp)==8?"int64":"int32"),LN_SAFE_CASTING);
+    if(ln_array_size(indices)>0 && !ln_array_size(dst))return luaL_error(L,"cannot replace elements of an empty array");
+    ln_array *values=write98_arg(L,3,dst->descr,LN_UNSAFE_CASTING);
+    ln_error err={{0}};
+    return ln_array_put(dst,indices,values,mode,&err)<0?fail(L,&err):0;
+}
+static int np_place(lua_State *L) {
+    ln_array *dst=check_array(L,1)->a;
+    if(lua_gettop(L)<3 || lua_type(L,2)==LUA_TNIL || lua_type(L,3)==LUA_TNIL)return luaL_error(L,"place requires mask and values");
+    if(!(dst->flags&LN_ARRAY_WRITEABLE))return luaL_error(L,"place destination is read-only");
+    ln_array *mask=write98_arg(L,2,ln_dtype_by_num(LN_BOOL),LN_UNSAFE_CASTING);
+    if(ln_array_size(mask)!=ln_array_size(dst))return luaL_error(L,"place mask and data must be the same size");
+    ln_array *values=write98_arg(L,3,dst->descr,LN_SAFE_CASTING);
+    ln_error err={{0}};
+    return ln_array_place(dst,mask,values,&err)<0?fail(L,&err):0;
+}
 static int np_putmask(lua_State *L) {
     ln_array *dst=check_array(L,1)->a;
     if(!(dst->flags&LN_ARRAY_WRITEABLE))return luaL_error(L,"destination is read-only");
@@ -7385,7 +7475,7 @@ static int np_putmask(lua_State *L) {
     }
     free(values);free(selection);return 0;
 }
-static const luaL_Reg module_funcs[]={{"complex",complex_ctor},{"datetime64",np_datetime64},{"timedelta64",np_timedelta64},{"datetime_as_string",np_datetime_as_string},{"array",np_array},{"append",np_append},{"delete",np_delete},{"insert",np_insert},{"concatenate",np_concatenate},{"stack",np_stack},{"hstack",np_hstack},{"vstack",np_vstack},{"row_stack",np_vstack},{"dstack",np_dstack},{"column_stack",np_column_stack},{"split",np_split},{"array_split",np_array_split},{"hsplit",np_hsplit},{"vsplit",np_vsplit},{"dsplit",np_dsplit},{"astype",np_astype},{"shares_memory",np_shares_memory},{"may_share_memory",np_may_share_memory},{"copyto",np_copyto},{"putmask",np_putmask},{"can_cast",np_can_cast},{"promote_types",np_promote_types},{"result_type",np_result_type},{"min_scalar_type",np_min_scalar_type},{"issubdtype",np_issubdtype},{"zeros",np_zeros},{"ones",np_ones},{"empty",np_empty},{"arange",np_arange},{"mean",np_mean},{"average",np_average},{"var",np_var},{"std",np_std},{"cumsum",np_cumsum},{"cumprod",np_cumprod},{"nancumsum",np_nancumsum},{"nancumprod",np_nancumprod},{"nansum",np_nansum},{"nanprod",np_nanprod},{"nanmean",np_nanmean},{"nanvar",np_nanvar},{"nanstd",np_nanstd},{"min",np_amin},{"amin",np_amin},{"max",np_amax},{"amax",np_amax},{"argmin",np_argmin},{"argmax",np_argmax},{"nanmin",np_nanmin},{"nanmax",np_nanmax},{"nanargmin",np_nanargmin},{"nanargmax",np_nanargmax},{"ptp",np_ptp},{"median",np_median},{"quantile",np_quantile},{"percentile",np_percentile},{"nanmedian",np_nanmedian},{"nanquantile",np_nanquantile},{"nanpercentile",np_nanpercentile},{"sum",np_sum},{"prod",np_prod},{"any",np_any},{"all",np_all},{"count_nonzero",np_count_nonzero},{"add",np_add},{"subtract",np_subtract},{"multiply",np_multiply},{"true_divide",np_true_divide},{"divide",np_true_divide},{"equal",np_equal},{"not_equal",np_not_equal},{"less",np_less},{"less_equal",np_less_equal},{"greater",np_greater},{"greater_equal",np_greater_equal},{"logical_and",np_logical_and},{"logical_or",np_logical_or},{"logical_xor",np_logical_xor},{"maximum",np_maximum},{"minimum",np_minimum},{"floor_divide",np_floor_divide},{"remainder",np_remainder},{"mod",np_remainder},{"power",np_power},{"bitwise_and",np_bitwise_and},{"bitwise_or",np_bitwise_or},{"bitwise_xor",np_bitwise_xor},{"fmax",np_fmax},{"fmin",np_fmin},{"copysign",np_copysign},{"negative",np_negative},{"absolute",np_absolute},{"abs",np_absolute},{"positive",np_positive},{"sign",np_sign},{"logical_not",np_logical_not},{"isnan",np_isnan},{"isinf",np_isinf},{"isfinite",np_isfinite},{"isnat",np_isnat},{"signbit",np_signbit},{"sqrt",np_sqrt},{"exp",np_exp},{"log",np_log},{"sin",np_sin},{"cos",np_cos},{"tan",np_tan},{"sinh",np_sinh},{"cosh",np_cosh},{"tanh",np_tanh},{"exp2",np_exp2},{"log2",np_log2},{"log10",np_log10},{"expm1",np_expm1},{"log1p",np_log1p},{"cbrt",np_cbrt},{"arcsin",np_arcsin},{"asin",np_arcsin},{"arccos",np_arccos},{"acos",np_arccos},{"arctan",np_arctan},{"atan",np_arctan},{"arcsinh",np_arcsinh},{"asinh",np_arcsinh},{"arccosh",np_arccosh},{"acosh",np_arccosh},{"arctanh",np_arctanh},{"atanh",np_arctanh},{"arctan2",np_arctan2},{"atan2",np_arctan2},{"hypot",np_hypot},{"frexp",np_frexp},{"modf",np_modf},{"divmod",np_divmod},{"ldexp",np_ldexp},{"matmul",np_matmul},{"dot",np_dot},{"inner",np_inner},{"outer",np_outer},{"sort",np_sort},{"argsort",np_argsort},{"partition",np_partition},{"argpartition",np_argpartition},{"searchsorted",np_searchsorted},{"add_accumulate",np_add_accumulate},{"multiply_accumulate",np_multiply_accumulate},{"add_reduceat",np_add_reduceat},{"multiply_reduceat",np_multiply_reduceat},{"reshape",np_reshape},{"transpose",np_transpose},{"swapaxes",np_swapaxes},{"moveaxis",np_moveaxis},{"expand_dims",np_expand_dims},{"squeeze",np_squeeze},{"flip",np_flip},{"flipud",np_flipud},{"fliplr",np_fliplr},{"rot90",np_rot90},{"atleast_1d",np_atleast_1d},{"atleast_2d",np_atleast_2d},{"atleast_3d",np_atleast_3d},{"broadcast_to",np_broadcast_to},{"broadcast_arrays",np_broadcast_arrays},{"broadcast_shapes",np_broadcast_shapes},{"tile",np_tile},{"roll",np_roll},{"rollaxis",np_rollaxis},{"repeat",np_repeat_elements},{"repeat_elements",np_repeat_elements},{"slice",np_slice},{"s",np_slice},{NULL,NULL}};
+static const luaL_Reg module_funcs[]={{"complex",complex_ctor},{"datetime64",np_datetime64},{"timedelta64",np_timedelta64},{"datetime_as_string",np_datetime_as_string},{"array",np_array},{"append",np_append},{"delete",np_delete},{"insert",np_insert},{"concatenate",np_concatenate},{"stack",np_stack},{"hstack",np_hstack},{"vstack",np_vstack},{"row_stack",np_vstack},{"dstack",np_dstack},{"column_stack",np_column_stack},{"split",np_split},{"array_split",np_array_split},{"hsplit",np_hsplit},{"vsplit",np_vsplit},{"dsplit",np_dsplit},{"astype",np_astype},{"shares_memory",np_shares_memory},{"may_share_memory",np_may_share_memory},{"copyto",np_copyto},{"putmask",np_putmask},{"put",np_put},{"place",np_place},{"can_cast",np_can_cast},{"promote_types",np_promote_types},{"result_type",np_result_type},{"min_scalar_type",np_min_scalar_type},{"issubdtype",np_issubdtype},{"zeros",np_zeros},{"ones",np_ones},{"empty",np_empty},{"arange",np_arange},{"mean",np_mean},{"average",np_average},{"var",np_var},{"std",np_std},{"cumsum",np_cumsum},{"cumprod",np_cumprod},{"nancumsum",np_nancumsum},{"nancumprod",np_nancumprod},{"nansum",np_nansum},{"nanprod",np_nanprod},{"nanmean",np_nanmean},{"nanvar",np_nanvar},{"nanstd",np_nanstd},{"min",np_amin},{"amin",np_amin},{"max",np_amax},{"amax",np_amax},{"argmin",np_argmin},{"argmax",np_argmax},{"nanmin",np_nanmin},{"nanmax",np_nanmax},{"nanargmin",np_nanargmin},{"nanargmax",np_nanargmax},{"ptp",np_ptp},{"median",np_median},{"quantile",np_quantile},{"percentile",np_percentile},{"nanmedian",np_nanmedian},{"nanquantile",np_nanquantile},{"nanpercentile",np_nanpercentile},{"sum",np_sum},{"prod",np_prod},{"any",np_any},{"all",np_all},{"count_nonzero",np_count_nonzero},{"add",np_add},{"subtract",np_subtract},{"multiply",np_multiply},{"true_divide",np_true_divide},{"divide",np_true_divide},{"equal",np_equal},{"not_equal",np_not_equal},{"less",np_less},{"less_equal",np_less_equal},{"greater",np_greater},{"greater_equal",np_greater_equal},{"logical_and",np_logical_and},{"logical_or",np_logical_or},{"logical_xor",np_logical_xor},{"maximum",np_maximum},{"minimum",np_minimum},{"floor_divide",np_floor_divide},{"remainder",np_remainder},{"mod",np_remainder},{"power",np_power},{"bitwise_and",np_bitwise_and},{"bitwise_or",np_bitwise_or},{"bitwise_xor",np_bitwise_xor},{"fmax",np_fmax},{"fmin",np_fmin},{"copysign",np_copysign},{"negative",np_negative},{"absolute",np_absolute},{"abs",np_absolute},{"positive",np_positive},{"sign",np_sign},{"logical_not",np_logical_not},{"isnan",np_isnan},{"isinf",np_isinf},{"isfinite",np_isfinite},{"isnat",np_isnat},{"signbit",np_signbit},{"sqrt",np_sqrt},{"exp",np_exp},{"log",np_log},{"sin",np_sin},{"cos",np_cos},{"tan",np_tan},{"sinh",np_sinh},{"cosh",np_cosh},{"tanh",np_tanh},{"exp2",np_exp2},{"log2",np_log2},{"log10",np_log10},{"expm1",np_expm1},{"log1p",np_log1p},{"cbrt",np_cbrt},{"arcsin",np_arcsin},{"asin",np_arcsin},{"arccos",np_arccos},{"acos",np_arccos},{"arctan",np_arctan},{"atan",np_arctan},{"arcsinh",np_arcsinh},{"asinh",np_arcsinh},{"arccosh",np_arccosh},{"acosh",np_arccosh},{"arctanh",np_arctanh},{"atanh",np_arctanh},{"arctan2",np_arctan2},{"atan2",np_arctan2},{"hypot",np_hypot},{"frexp",np_frexp},{"modf",np_modf},{"divmod",np_divmod},{"ldexp",np_ldexp},{"matmul",np_matmul},{"dot",np_dot},{"inner",np_inner},{"outer",np_outer},{"sort",np_sort},{"argsort",np_argsort},{"partition",np_partition},{"argpartition",np_argpartition},{"searchsorted",np_searchsorted},{"add_accumulate",np_add_accumulate},{"multiply_accumulate",np_multiply_accumulate},{"add_reduceat",np_add_reduceat},{"multiply_reduceat",np_multiply_reduceat},{"reshape",np_reshape},{"transpose",np_transpose},{"swapaxes",np_swapaxes},{"moveaxis",np_moveaxis},{"expand_dims",np_expand_dims},{"squeeze",np_squeeze},{"flip",np_flip},{"flipud",np_flipud},{"fliplr",np_fliplr},{"rot90",np_rot90},{"atleast_1d",np_atleast_1d},{"atleast_2d",np_atleast_2d},{"atleast_3d",np_atleast_3d},{"broadcast_to",np_broadcast_to},{"broadcast_arrays",np_broadcast_arrays},{"broadcast_shapes",np_broadcast_shapes},{"tile",np_tile},{"roll",np_roll},{"rollaxis",np_rollaxis},{"repeat",np_repeat_elements},{"repeat_elements",np_repeat_elements},{"slice",np_slice},{"s",np_slice},{NULL,NULL}};
 
 int luaopen_luaray_core(lua_State*L){
     if(luaL_newmetatable(L,GENERATOR_MT)){
@@ -7436,7 +7526,7 @@ int luaopen_luaray_core(lua_State*L){
     for(int i=0;names[i];i++){lua_pushstring(L,names[i]);lua_setfield(L,-2,names[i]);}
     push_index_token(L,LN_INDEX_NEWAXIS);lua_setfield(L,-2,"newaxis");
     push_index_token(L,LN_INDEX_ELLIPSIS);lua_setfield(L,-2,"ellipsis");
-    lua_pushstring(L,"0.97.0-dev");lua_setfield(L,-2,"_version");
+    lua_pushstring(L,"0.98.0-dev");lua_setfield(L,-2,"_version");
     lua_pushstring(L,"286e698f1dcf601648b165f48485ceaeec9c6231");lua_setfield(L,-2,"_numpy_upstream_commit");
     return 1;
 }

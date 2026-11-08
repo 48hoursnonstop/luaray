@@ -1,0 +1,7 @@
+/.dev/
+/artifacts/
+/build/
+/build-*/
+/releases/
+__pycache__/
+*.pyc

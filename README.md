@@ -1,3 +1,19 @@
+## LuaRay 0.98.0-dev — indexed and selected writes
+
+Native `np.put(a, indices, values, mode)` / `a:put(...)` and
+`np.place(a, mask, values)` now execute through the actual ndarray engine.
+They preserve C-order traversal, cyclic values, views, conversion rules and
+upstream alias/error behavior. Positive indices are Lua one-based; zero is
+invalid. No Python runtime is used.
+
+Read the [English writing guide](docs/en/writing.md) or
+[guía de escritura en español](docs/es/writing.md) for contracts and limits.
+`make write98-test` runs the native core, Lua regressions, original NumPy 2.5.3
+put/place fixtures and explicitly separated blocked byte-order cases.
+
+The Makefile now discovers an installed CBLAS library through pkg-config,
+including Arch's separate `libcblas`; it does not install dependencies.
+
 ## LuaRay 0.97.0-dev — masked writes and memory checks
 
 New native API: `np.copyto`, `np.putmask`, `np.shares_memory`, and

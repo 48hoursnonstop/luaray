@@ -1,3 +1,21 @@
+## 0.98 — NumPy 2.5.3 indexed and selected writes
+
+`src/ln_write.c` derives from `PyArray_PutTo` in
+`numpy/_core/src/multiarray/item_selection.c` and `arr_place` in
+`numpy/_core/src/multiarray/compiled_base.c`. Public wrappers in
+`numpy/_core/fromnumeric.py` and `numpy/lib/_function_base_impl.py` and their
+upstream tests were inspected. Conversion source anchors are dtype_transfer.c
+and lowlevel_strided_loops.c.src. Eight actual file hashes are pinned in
+`NUMPY_2_5_3_WRITE98_FILE_HASHES.sha256` and the NumPy license is retained.
+
+This version uses **NumPy 2.5.3 for both source and the executable oracle**.
+It does not relabel prior frozen fixtures generated using NumPy 2.3.5.
+Positive index translation is the documented Lua adaptation. Forty unavailable
+numeric-byte-order states retain their original outputs and are classified
+separately from supported put/place comparisons. Live place aliasing and put's
+partial/discarded error mutation are preserved rather than replaced by idealized
+snapshot expectations.
+
 ## 0.94 — NumPy 2.5.3 scalar subtype hierarchy and Unicode scalars
 
 - `numpy/_core/numerictypes.py`: public `issubdtype` class/type coercion semantics.

@@ -1170,6 +1170,29 @@ ASan+UBSan were run over the native modules and adapter with the unchanged
 PocketFFT object linked uninstrumented; this limitation prevents claiming
 that PocketFFT or *all* linked code was sanitizer-clean. The 2.5.3 source
 archive, not an installed executable NumPy 2.5.3, supplied source semantics.
+## 0.98 — native put/place and assignment conversions (2026-11-08)
+
+- Imported 0.97 archive matched the supplied SHA-256 and all 603 source hashes.
+  The recovered baseline passed 112 differential fixture files on this machine.
+- New `make full-test` passed **114/114 fixture files** and existing/new C/Lua
+  regressions after correcting discovery of Arch's already-installed CBLAS.
+- Real **NumPy 2.5.3** generated **1,002 put + 733 place cases**, with **42,754
+  actual Lua comparisons**. Additional targeted Lua regression: **94 checks**;
+  native C tests and the public dynamic-module example passed.
+- Covers dtype conversions, arrays versus Lua scalars/tables, repetition,
+  error-state mutation, C-order traversal, inverted/transposed/strided/shared
+  zero-stride views, aliased indices/values/masks, scalars and empty inputs.
+- Forty original non-native numeric-byte-order cases are retained separately
+  and blocked at descriptor construction; they are excluded from passing totals.
+- Directed ASan/UBSan passed all three changed C translation units plus native
+  test and seven Lua suites. Other native objects were not instrumented; leak
+  detection disabled. Full sanitizer scope is recorded by tools/sanitize_write98.py.
+- Regeneration compared the fixtures byte-for-byte. Final source integrity,
+  extraction, fresh compilation, complete test and public example outcomes
+  are recorded in the release verification JSON and clean-build log.
+- Historical tests' release-version assertions now require 0.98. Their numerical
+  reference outputs were preserved, alongside the original oracle provenance.
+
 The 0.31 internal version-string bug was fixed to `0.32.0-dev`.
 
 ## 0.33 zero-copy broadcasting validation

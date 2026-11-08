@@ -1,6 +1,6 @@
 -- Independent NumPy 2.3.5 fixture (generated; no Python at runtime)
 local np=require('luaray_core')
-assert(np._version=='0.97.0-dev')
+assert(np._version=='0.98.0-dev')
 local count=0
 local function eq(a,b)
  if type(a)~=type(b) then return false end

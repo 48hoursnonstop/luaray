@@ -1,3 +1,24 @@
+## 0.104 — NumPy2.5.3 where/select and API availability
+
+ln_select follows multiarraymodule.c:PyArray_Where and _function_base_impl.py:
+select. The existing generic iterator supplies where's KEEPORDER and cast
+buffering; nontrivial element widths convert selected values only. Select
+preserves separate condition/value broadcasting, default unsafe fill, reversed
+same-kind masked writes and C-output. Shape folding follows _stride_tricks_impl's
+batches so many conditions do not inherit the legacy64-operand limit.
+
+Shared dtype preparation retains weak numeric values. Temporal common dtype
+now rejects uint64 as the inspected promotion semantics require. Ndarray
+sequence items retain strong0-D views, including choose's1-D choices. Original
+cases exposed these defects; no reference expectations were altered to hide them.
+Twelve inspected source/test hashes are pinned in
+NUMPY_2_5_3_SELECT104_FILE_HASHES.sha256. Source and executable oracle are2.5.3.
+
+The new API inventory introspects pinned NumPy public callable names and queries
+an actual compiled Lua module/prototypes. It measures direct name availability,
+classifies every available binding as partial, and separately justifies the
+Python exception-class/Lua-error adaptation. It is not full behavioral coverage.
+
 ## 0.103 — NumPy 2.5.3 nonzero and condition selection
 
 ln_condition follows item_selection.c:PyArray_Nonzero and PyArray_Compress,

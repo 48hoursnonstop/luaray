@@ -24,7 +24,11 @@ static const ln_dtype_descr *dt_default(const ln_dtype_class *c){return c==&dt_c
 static const ln_dtype_class *dt_common_class(const ln_dtype_class *a,const ln_dtype_class *b){
     if((a==&dt_cls||a==&td_cls)&&(b==&dt_cls||b==&td_cls)) return (a==&dt_cls||b==&dt_cls)?&dt_cls:&td_cls;
     /* NumPy promotes timedelta with integer, but not datetime with numeric. */
-    if(a==&td_cls && b && (b->kind=='i'||b->kind=='u'||b->kind=='b')) return &td_cls;
+    if(a==&td_cls && b && (b->kind=='i'||b->kind=='u'||b->kind=='b')) {
+        const ln_dtype_descr *numeric=ln_dtype_default_descr(b);
+        if(b->kind=='u' && (!numeric || numeric->elsize>=sizeof(int64_t)))return NULL;
+        return &td_cls;
+    }
     return NULL;
 }
 static uint64_t gcd64(uint64_t a,uint64_t b){while(b){uint64_t t=a%b;a=b;b=t;}return a;}
@@ -50,8 +54,8 @@ static const ln_dtype_descr *dt_common_instance(const ln_dtype_descr *a,const ln
     if(!a||!b)return NULL;
     int at=(a->type_num==LN_DATETIME||a->type_num==LN_TIMEDELTA);
     int bt=(b->type_num==LN_DATETIME||b->type_num==LN_TIMEDELTA);
-    if(at && !bt){return a->type_num==LN_TIMEDELTA && (b->kind=='i'||b->kind=='u'||b->kind=='b') ? a : NULL;}
-    if(bt && !at){return b->type_num==LN_TIMEDELTA && (a->kind=='i'||a->kind=='u'||a->kind=='b') ? b : NULL;}
+    if(at && !bt){return a->type_num==LN_TIMEDELTA && (b->kind=='i'||b->kind=='u'||b->kind=='b') && !(b->kind=='u' && b->elsize>=sizeof(int64_t)) ? a : NULL;}
+    if(bt && !at){return b->type_num==LN_TIMEDELTA && (a->kind=='i'||a->kind=='u'||a->kind=='b') && !(a->kind=='u' && a->elsize>=sizeof(int64_t)) ? b : NULL;}
     if(!at||!bt)return NULL;
     ln_datetime_meta out; ln_error e={{0}}; const ln_datetime_meta *ma=ln_datetime_metadata(a),*mb=ln_datetime_metadata(b);
     if(ln_datetime_metadata_gcd(ma,mb,a->type_num==LN_TIMEDELTA,b->type_num==LN_TIMEDELTA,&out,&e)<0)return NULL;

@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.103.0-dev')
+assert(np._version=='0.104.0-dev')
 local rng=np.random.default_rng(42)
 local data=rng:zipf(2.0,{2,3})
 assert(data.dtype=='int64' and data.shape[1]==2 and data.shape[2]==3)

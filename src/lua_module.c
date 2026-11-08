@@ -7,6 +7,7 @@
 #include "ln_along.h"
 #include "ln_choose.h"
 #include "ln_condition.h"
+#include "ln_select.h"
 #include "ln_matmul.h"
 #include "ln_dot.h"
 #include "ln_join.h"
@@ -7508,6 +7509,33 @@ static int np_put_along_axis(lua_State *L) {
     ln_error err={{0}};
     return ln_array_put_along_axis(input,indices,values,axis,&err)<0?fail(L,&err):0;
 }
+/* Shared NEP50 common-dtype preparation for selection operations. Preserve
+ * numeric Lua scalars as weak values; bool/string/table inputs become arrays. */
+static const ln_dtype *selection_common_dtype(lua_State *L,int *positions,size_t n) {
+    int weak=0,non_numeric=0;
+    for(size_t j=0;j<n;++j) {
+        int pos=positions[j];
+        if(lua_type(L,pos)==LUA_TNUMBER || test_complex(L,pos))weak=1;
+        else {
+            const ln_array *a=broadcast_arg(L,pos);
+            if(a->descr->kind=='S' || a->descr->kind=='U' || a->descr->kind=='M')non_numeric=1;
+            if(!test_array(L,pos))positions[j]=lua_gettop(L);
+        }
+    }
+    if(weak && non_numeric && n>1)luaL_error(L,"weak numeric values have no common string/datetime dtype");
+    lua_pushcfunction(L,np_result_type);
+    for(size_t j=0;j<n;++j)lua_pushvalue(L,positions[j]);
+    if(lua_pcall(L,(int)n,1,0)!=LUA_OK)luaL_error(L,"selection dtype: %s",lua_tostring(L,-1));
+    const ln_dtype *dtype=ln_dtype_by_name(lua_tostring(L,-1));lua_pop(L,1);
+    if(!dtype)luaL_error(L,"selection dtype could not be resolved");
+    return dtype;
+}
+/* Sequence iteration over an ndarray keeps scalar items as strong 0-D views. */
+static ln_array *selection_array_item(const ln_array *array,size_t j,ln_error *err) {
+    char *data=array->data;
+    if(ln_array_size(array)>0)data+=(ln_intp)j*array->strides[0];
+    return ln_array_view(array,array->nd-1,array->dimensions+1,array->strides+1,data,err);
+}
 static int np_choose(lua_State *L) {
     int nargs=lua_gettop(L);
     if(nargs<2 || nargs>3)return luaL_error(L,"choose expects indices, choices and optional mode/options");
@@ -7532,31 +7560,18 @@ static int np_choose(lua_State *L) {
         (luaL_checktype(L,2,LUA_TTABLE),lua_rawlen(L,2));
     if(!n || n>=64)return luaL_error(L,"choose requires between 1 and 63 choices");
     luaL_checkstack(L,(int)n*3+16,"too many choose operands");
-    int positions[63],weak=0,non_numeric=0;
+    int positions[63];
     const ln_array *choices[63];
     for(size_t j=0;j<n;++j) {
         if(outer) {
-            ln_error err={{0}};ln_array *view=ln_array_index_axis0(outer->a,(ln_intp)j+1,&err);
+            ln_error err={{0}};ln_array *view=selection_array_item(outer->a,j,&err);
             if(!view)return fail(L,&err);
             push_array(L,view);
         }
         else lua_geti(L,2,(lua_Integer)j+1);
-        int pos=lua_gettop(L);
-        int numeric=lua_type(L,pos)==LUA_TNUMBER || test_complex(L,pos)!=NULL;
-        if(numeric) { weak=1;positions[j]=pos; }
-        else {
-            const ln_array *a=broadcast_arg(L,pos);
-            if(a->descr->kind=='S' || a->descr->kind=='U' || a->descr->kind=='M')non_numeric=1;
-            if(test_array(L,pos))positions[j]=pos;
-            else positions[j]=lua_gettop(L);
-        }
+        positions[j]=lua_gettop(L);
     }
-    if(weak && non_numeric && n>1)return luaL_error(L,"weak numeric choices have no common string/datetime dtype");
-    lua_pushcfunction(L,np_result_type);
-    for(size_t j=0;j<n;++j)lua_pushvalue(L,positions[j]);
-    if(lua_pcall(L,(int)n,1,0)!=LUA_OK)return luaL_error(L,"choose dtype: %s",lua_tostring(L,-1));
-    const ln_dtype *dtype=ln_dtype_by_name(lua_tostring(L,-1));lua_pop(L,1);
-    if(!dtype)return luaL_error(L,"choose dtype could not be resolved");
+    const ln_dtype *dtype=selection_common_dtype(L,positions,n);
     for(size_t j=0;j<n;++j) {
         if(lua_type(L,positions[j])==LUA_TNUMBER || test_complex(L,positions[j])) {
             const ln_array *scalar=broadcast_arg(L,positions[j]);
@@ -7635,6 +7650,65 @@ static int np_extract(lua_State *L) {
     if(!result)return fail(L,&err);
     return push_array(L,result);
 }
+static int np_where(lua_State *L) {
+    int nargs=lua_gettop(L);
+    if(nargs==1)return np_nonzero(L);
+    if(nargs!=3)return luaL_error(L,"where requires either one or three operands");
+    const ln_array *condition=broadcast_arg(L,1);
+    int positions[]={2,3};
+    const ln_dtype *dtype=selection_common_dtype(L,positions,2);
+    const ln_array *values[2];
+    for(int j=0;j<2;++j) {
+        if(lua_type(L,positions[j])==LUA_TNUMBER || test_complex(L,positions[j]))
+            values[j]=write98_arg(L,positions[j],dtype,LN_UNSAFE_CASTING);
+        else values[j]=broadcast_arg(L,positions[j]);
+    }
+    ln_error err={{0}};ln_array *result=ln_array_where(condition,values[0],values[1],dtype,&err);
+    if(!result)return fail(L,&err);
+    return push_array(L,result);
+}
+static size_t selection_sequence_length(lua_State *L,int arg) {
+    lua_array *outer=test_array(L,arg);
+    if(outer) {
+        if(outer->a->nd==0)luaL_error(L,"selection lists must have at least one dimension");
+        return (size_t)outer->a->dimensions[0];
+    }
+    luaL_checktype(L,arg,LUA_TTABLE);return lua_rawlen(L,arg);
+}
+static int selection_sequence_item(lua_State *L,int arg,size_t j) {
+    lua_array *outer=test_array(L,arg);
+    if(outer) {
+        ln_error err={{0}};ln_array *view=selection_array_item(outer->a,j,&err);
+        if(!view)return fail(L,&err);
+        push_array(L,view);
+    }
+    else lua_geti(L,arg,(lua_Integer)j+1);
+    return lua_gettop(L);
+}
+static int np_select(lua_State *L) {
+    int nargs=lua_gettop(L);
+    if(nargs<2 || nargs>3)return luaL_error(L,"select expects condition list, choice list and optional default");
+    size_t n=selection_sequence_length(L,1);
+    if(!n || selection_sequence_length(L,2)!=n)return luaL_error(L,"select requires equal nonempty condition and choice lists");
+    if(n>(INT_MAX-64)/6)return luaL_error(L,"select operand list is too large");
+    luaL_checkstack(L,(int)n*6+64,"too many select operands");
+    if(nargs==2)lua_pushinteger(L,0);
+    int *positions=lua_newuserdatauv(L,(n+1)*sizeof(int),0);
+    const ln_array **conditions=lua_newuserdatauv(L,n*sizeof(*conditions),0);
+    const ln_array **choices=lua_newuserdatauv(L,n*sizeof(*choices),0);
+    for(size_t j=0;j<n;++j) {
+        int cpos=selection_sequence_item(L,1,j);
+        conditions[j]=broadcast_arg(L,cpos);
+        positions[j]=selection_sequence_item(L,2,j);
+    }
+    positions[n]=3;
+    const ln_dtype *dtype=selection_common_dtype(L,positions,n+1);
+    for(size_t j=0;j<n;++j)choices[j]=broadcast_arg(L,positions[j]);
+    const ln_array *default_value=broadcast_arg(L,positions[n]);
+    ln_error err={{0}};ln_array *result=ln_array_select(conditions,choices,(int)n,default_value,dtype,&err);
+    if(!result)return fail(L,&err);
+    return push_array(L,result);
+}
 static int np_putmask(lua_State *L) {
     /* Values advance by destination position, unlike place's selected count. */
     ln_array *dst=check_array(L,1)->a;
@@ -7646,7 +7720,7 @@ static int np_putmask(lua_State *L) {
     ln_error err={{0}};
     return ln_array_putmask(dst,mask,values,&err)<0?fail(L,&err):0;
 }
-static const luaL_Reg module_funcs[]={{"complex",complex_ctor},{"datetime64",np_datetime64},{"timedelta64",np_timedelta64},{"datetime_as_string",np_datetime_as_string},{"array",np_array},{"append",np_append},{"delete",np_delete},{"insert",np_insert},{"concatenate",np_concatenate},{"stack",np_stack},{"hstack",np_hstack},{"vstack",np_vstack},{"row_stack",np_vstack},{"dstack",np_dstack},{"column_stack",np_column_stack},{"split",np_split},{"array_split",np_array_split},{"hsplit",np_hsplit},{"vsplit",np_vsplit},{"dsplit",np_dsplit},{"astype",np_astype},{"shares_memory",np_shares_memory},{"may_share_memory",np_may_share_memory},{"copyto",np_copyto},{"putmask",np_putmask},{"put",np_put},{"take",np_take},{"choose",np_choose},{"nonzero",np_nonzero},{"flatnonzero",np_flatnonzero},{"compress",np_compress},{"extract",np_extract},{"take_along_axis",np_take_along_axis},{"put_along_axis",np_put_along_axis},{"place",np_place},{"can_cast",np_can_cast},{"promote_types",np_promote_types},{"result_type",np_result_type},{"min_scalar_type",np_min_scalar_type},{"issubdtype",np_issubdtype},{"zeros",np_zeros},{"ones",np_ones},{"empty",np_empty},{"arange",np_arange},{"mean",np_mean},{"average",np_average},{"var",np_var},{"std",np_std},{"cumsum",np_cumsum},{"cumprod",np_cumprod},{"nancumsum",np_nancumsum},{"nancumprod",np_nancumprod},{"nansum",np_nansum},{"nanprod",np_nanprod},{"nanmean",np_nanmean},{"nanvar",np_nanvar},{"nanstd",np_nanstd},{"min",np_amin},{"amin",np_amin},{"max",np_amax},{"amax",np_amax},{"argmin",np_argmin},{"argmax",np_argmax},{"nanmin",np_nanmin},{"nanmax",np_nanmax},{"nanargmin",np_nanargmin},{"nanargmax",np_nanargmax},{"ptp",np_ptp},{"median",np_median},{"quantile",np_quantile},{"percentile",np_percentile},{"nanmedian",np_nanmedian},{"nanquantile",np_nanquantile},{"nanpercentile",np_nanpercentile},{"sum",np_sum},{"prod",np_prod},{"any",np_any},{"all",np_all},{"count_nonzero",np_count_nonzero},{"add",np_add},{"subtract",np_subtract},{"multiply",np_multiply},{"true_divide",np_true_divide},{"divide",np_true_divide},{"equal",np_equal},{"not_equal",np_not_equal},{"less",np_less},{"less_equal",np_less_equal},{"greater",np_greater},{"greater_equal",np_greater_equal},{"logical_and",np_logical_and},{"logical_or",np_logical_or},{"logical_xor",np_logical_xor},{"maximum",np_maximum},{"minimum",np_minimum},{"floor_divide",np_floor_divide},{"remainder",np_remainder},{"mod",np_remainder},{"power",np_power},{"bitwise_and",np_bitwise_and},{"bitwise_or",np_bitwise_or},{"bitwise_xor",np_bitwise_xor},{"fmax",np_fmax},{"fmin",np_fmin},{"copysign",np_copysign},{"negative",np_negative},{"absolute",np_absolute},{"abs",np_absolute},{"positive",np_positive},{"sign",np_sign},{"logical_not",np_logical_not},{"isnan",np_isnan},{"isinf",np_isinf},{"isfinite",np_isfinite},{"isnat",np_isnat},{"signbit",np_signbit},{"sqrt",np_sqrt},{"exp",np_exp},{"log",np_log},{"sin",np_sin},{"cos",np_cos},{"tan",np_tan},{"sinh",np_sinh},{"cosh",np_cosh},{"tanh",np_tanh},{"exp2",np_exp2},{"log2",np_log2},{"log10",np_log10},{"expm1",np_expm1},{"log1p",np_log1p},{"cbrt",np_cbrt},{"arcsin",np_arcsin},{"asin",np_arcsin},{"arccos",np_arccos},{"acos",np_arccos},{"arctan",np_arctan},{"atan",np_arctan},{"arcsinh",np_arcsinh},{"asinh",np_arcsinh},{"arccosh",np_arccosh},{"acosh",np_arccosh},{"arctanh",np_arctanh},{"atanh",np_arctanh},{"arctan2",np_arctan2},{"atan2",np_arctan2},{"hypot",np_hypot},{"frexp",np_frexp},{"modf",np_modf},{"divmod",np_divmod},{"ldexp",np_ldexp},{"matmul",np_matmul},{"dot",np_dot},{"inner",np_inner},{"outer",np_outer},{"sort",np_sort},{"argsort",np_argsort},{"partition",np_partition},{"argpartition",np_argpartition},{"searchsorted",np_searchsorted},{"add_accumulate",np_add_accumulate},{"multiply_accumulate",np_multiply_accumulate},{"add_reduceat",np_add_reduceat},{"multiply_reduceat",np_multiply_reduceat},{"reshape",np_reshape},{"transpose",np_transpose},{"swapaxes",np_swapaxes},{"moveaxis",np_moveaxis},{"expand_dims",np_expand_dims},{"squeeze",np_squeeze},{"flip",np_flip},{"flipud",np_flipud},{"fliplr",np_fliplr},{"rot90",np_rot90},{"atleast_1d",np_atleast_1d},{"atleast_2d",np_atleast_2d},{"atleast_3d",np_atleast_3d},{"broadcast_to",np_broadcast_to},{"broadcast_arrays",np_broadcast_arrays},{"broadcast_shapes",np_broadcast_shapes},{"tile",np_tile},{"roll",np_roll},{"rollaxis",np_rollaxis},{"repeat",np_repeat_elements},{"repeat_elements",np_repeat_elements},{"slice",np_slice},{"s",np_slice},{NULL,NULL}};
+static const luaL_Reg module_funcs[]={{"complex",complex_ctor},{"datetime64",np_datetime64},{"timedelta64",np_timedelta64},{"datetime_as_string",np_datetime_as_string},{"array",np_array},{"append",np_append},{"delete",np_delete},{"insert",np_insert},{"concatenate",np_concatenate},{"stack",np_stack},{"hstack",np_hstack},{"vstack",np_vstack},{"row_stack",np_vstack},{"dstack",np_dstack},{"column_stack",np_column_stack},{"split",np_split},{"array_split",np_array_split},{"hsplit",np_hsplit},{"vsplit",np_vsplit},{"dsplit",np_dsplit},{"astype",np_astype},{"shares_memory",np_shares_memory},{"may_share_memory",np_may_share_memory},{"copyto",np_copyto},{"putmask",np_putmask},{"put",np_put},{"take",np_take},{"choose",np_choose},{"nonzero",np_nonzero},{"flatnonzero",np_flatnonzero},{"compress",np_compress},{"extract",np_extract},{"where",np_where},{"select",np_select},{"take_along_axis",np_take_along_axis},{"put_along_axis",np_put_along_axis},{"place",np_place},{"can_cast",np_can_cast},{"promote_types",np_promote_types},{"result_type",np_result_type},{"min_scalar_type",np_min_scalar_type},{"issubdtype",np_issubdtype},{"zeros",np_zeros},{"ones",np_ones},{"empty",np_empty},{"arange",np_arange},{"mean",np_mean},{"average",np_average},{"var",np_var},{"std",np_std},{"cumsum",np_cumsum},{"cumprod",np_cumprod},{"nancumsum",np_nancumsum},{"nancumprod",np_nancumprod},{"nansum",np_nansum},{"nanprod",np_nanprod},{"nanmean",np_nanmean},{"nanvar",np_nanvar},{"nanstd",np_nanstd},{"min",np_amin},{"amin",np_amin},{"max",np_amax},{"amax",np_amax},{"argmin",np_argmin},{"argmax",np_argmax},{"nanmin",np_nanmin},{"nanmax",np_nanmax},{"nanargmin",np_nanargmin},{"nanargmax",np_nanargmax},{"ptp",np_ptp},{"median",np_median},{"quantile",np_quantile},{"percentile",np_percentile},{"nanmedian",np_nanmedian},{"nanquantile",np_nanquantile},{"nanpercentile",np_nanpercentile},{"sum",np_sum},{"prod",np_prod},{"any",np_any},{"all",np_all},{"count_nonzero",np_count_nonzero},{"add",np_add},{"subtract",np_subtract},{"multiply",np_multiply},{"true_divide",np_true_divide},{"divide",np_true_divide},{"equal",np_equal},{"not_equal",np_not_equal},{"less",np_less},{"less_equal",np_less_equal},{"greater",np_greater},{"greater_equal",np_greater_equal},{"logical_and",np_logical_and},{"logical_or",np_logical_or},{"logical_xor",np_logical_xor},{"maximum",np_maximum},{"minimum",np_minimum},{"floor_divide",np_floor_divide},{"remainder",np_remainder},{"mod",np_remainder},{"power",np_power},{"bitwise_and",np_bitwise_and},{"bitwise_or",np_bitwise_or},{"bitwise_xor",np_bitwise_xor},{"fmax",np_fmax},{"fmin",np_fmin},{"copysign",np_copysign},{"negative",np_negative},{"absolute",np_absolute},{"abs",np_absolute},{"positive",np_positive},{"sign",np_sign},{"logical_not",np_logical_not},{"isnan",np_isnan},{"isinf",np_isinf},{"isfinite",np_isfinite},{"isnat",np_isnat},{"signbit",np_signbit},{"sqrt",np_sqrt},{"exp",np_exp},{"log",np_log},{"sin",np_sin},{"cos",np_cos},{"tan",np_tan},{"sinh",np_sinh},{"cosh",np_cosh},{"tanh",np_tanh},{"exp2",np_exp2},{"log2",np_log2},{"log10",np_log10},{"expm1",np_expm1},{"log1p",np_log1p},{"cbrt",np_cbrt},{"arcsin",np_arcsin},{"asin",np_arcsin},{"arccos",np_arccos},{"acos",np_arccos},{"arctan",np_arctan},{"atan",np_arctan},{"arcsinh",np_arcsinh},{"asinh",np_arcsinh},{"arccosh",np_arccosh},{"acosh",np_arccosh},{"arctanh",np_arctanh},{"atanh",np_arctanh},{"arctan2",np_arctan2},{"atan2",np_arctan2},{"hypot",np_hypot},{"frexp",np_frexp},{"modf",np_modf},{"divmod",np_divmod},{"ldexp",np_ldexp},{"matmul",np_matmul},{"dot",np_dot},{"inner",np_inner},{"outer",np_outer},{"sort",np_sort},{"argsort",np_argsort},{"partition",np_partition},{"argpartition",np_argpartition},{"searchsorted",np_searchsorted},{"add_accumulate",np_add_accumulate},{"multiply_accumulate",np_multiply_accumulate},{"add_reduceat",np_add_reduceat},{"multiply_reduceat",np_multiply_reduceat},{"reshape",np_reshape},{"transpose",np_transpose},{"swapaxes",np_swapaxes},{"moveaxis",np_moveaxis},{"expand_dims",np_expand_dims},{"squeeze",np_squeeze},{"flip",np_flip},{"flipud",np_flipud},{"fliplr",np_fliplr},{"rot90",np_rot90},{"atleast_1d",np_atleast_1d},{"atleast_2d",np_atleast_2d},{"atleast_3d",np_atleast_3d},{"broadcast_to",np_broadcast_to},{"broadcast_arrays",np_broadcast_arrays},{"broadcast_shapes",np_broadcast_shapes},{"tile",np_tile},{"roll",np_roll},{"rollaxis",np_rollaxis},{"repeat",np_repeat_elements},{"repeat_elements",np_repeat_elements},{"slice",np_slice},{"s",np_slice},{NULL,NULL}};
 
 int luaopen_luaray_core(lua_State*L){
     if(luaL_newmetatable(L,GENERATOR_MT)){
@@ -7697,7 +7771,7 @@ int luaopen_luaray_core(lua_State*L){
     for(int i=0;names[i];i++){lua_pushstring(L,names[i]);lua_setfield(L,-2,names[i]);}
     push_index_token(L,LN_INDEX_NEWAXIS);lua_setfield(L,-2,"newaxis");
     push_index_token(L,LN_INDEX_ELLIPSIS);lua_setfield(L,-2,"ellipsis");
-    lua_pushstring(L,"0.103.0-dev");lua_setfield(L,-2,"_version");
+    lua_pushstring(L,"0.104.0-dev");lua_setfield(L,-2,"_version");
     lua_pushstring(L,"286e698f1dcf601648b165f48485ceaeec9c6231");lua_setfield(L,-2,"_numpy_upstream_commit");
     return 1;
 }

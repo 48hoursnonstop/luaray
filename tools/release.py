@@ -15,6 +15,10 @@ RELEASES=ROOT/'releases';RELEASES.mkdir(exist_ok=True)
 (ROOT/'.dev').mkdir(exist_ok=True)
 coverage=json.loads((ROOT/'compatibility/current.json').read_text())
 assert coverage['version']==VERSION,'release compatibility record has stale version'
+inventory_path=ROOT/'compatibility/api_inventory.json'
+if inventory_path.exists():
+    inventory=json.loads(inventory_path.read_text())
+    assert inventory['lua_version']==VERSION,'release API inventory has stale runtime version'
 assert not (RELEASES/(NAME+'-verification.json')).exists(),'verified release already exists; preserve immutable archives'
 EXCLUDED={'.git','.dev','artifacts','releases','build','__pycache__','.pytest_cache'}
 files=[]
@@ -52,6 +56,7 @@ with tempfile.TemporaryDirectory(prefix='clean-release-',dir=ROOT/'.dev') as tem
         subprocess.run(['lua5.4','examples/along101.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
         subprocess.run(['lua5.4','examples/choose102.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
         subprocess.run(['lua5.4','examples/condition103.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
+        subprocess.run(['lua5.4','examples/select104.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
 report=dict(version=VERSION,archive=archive.name,sha256=digest,source_files=len(files),
             manifest_entries=len(files)-1,clean_build='passed',clean_log=log.name,
             differential_fixture_files=len(list((ROOT/'tests').glob('*_differential_generated.lua'))),

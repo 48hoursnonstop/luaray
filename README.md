@@ -1,3 +1,18 @@
+## LuaRay 0.104.0-dev — conditional values and measured API availability
+
+Native `np.where` / `np.select` now support strong/weak dtype resolution,
+broadcasting, memory order and actual selected/unselected conversion semantics.
+Select preserves first-match precedence and executes beyond64 conditions.
+Shared fixes reject uint64/timedelta promotion and retain strong scalar ndarray
+items, including one-dimensional choices in choose.
+
+Read [English selection contracts](docs/en/selection.md) or
+[contratos en español](docs/es/selection.md). **3,448 original NumPy2.5.3 cases /
+79,676 checks**,65 Lua checks and native tests passed; full regression has
+**126 fixture files**. The [availability inventory](docs/en/api_inventory.md)
+observes297/675 scoped callable names; it declares no complete APIs and is
+separate from behavioral compatibility.
+
 ## LuaRay 0.103.0-dev — nonzero and condition-based extraction
 
 Native `nonzero`, `flatnonzero`, `compress` and `extract` now provide C-order

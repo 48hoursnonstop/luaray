@@ -1,3 +1,93 @@
+# Current checkpoint — selection0.104 release gate
+
+Active /mnt/datos/luaray/.dev/select104, branch select104, VERSION0.104.
+where/select native C, scalar views and timedelta/u64 correction are implemented.
+Actual NumPy2.5.3:where1487/59988 checks,select1961/19688;65Lua checks and native
+suite passed. Full-test126/126 files passed, including oldchoose3481cases.
+13-unit ASan/UBSan seven native/29Lua passed (deps uninstrumented, leaks off).
+Both fixtures/inventory reproduced. Public module example passed. EN/ES docs,
+compatibility record and source hash pins updated. Older checkpoints historical.
+
+Next: clean source extraction/rebuild/full tests/seven examples, commit/integrate,
+publish0.104, actual Ubuntu CI. Then FFT inventory gaps (fftfreq/rfftfreq/shifts/
+hfft/ihfft), with strict original references. User requests work past releases.
+Inventory675 names:297 callable,377 missing direct bindings,1 justified Lua
+exception-class adaptation,0 declared complete. It is availability, not overall
+behavior/completion. Keep immutable verified archives; luanimath unfinished.
+
+0.103 published at d688125 with SHA
+3c4c5c290a93d966c0dbc2af8c87147644d68cd6b97e96e6be49f90740507dfd;
+690files/689manifest, clean124 suites/six examples, ten-unit ASan6native26Lua passed.
+Exact Ubuntu CI42534239743 SUCCESS; public asset hash and Downloads verified.
+
+# Latest select104 execution checkpoint
+
+Native where/select, grouped broadcasting and shared dtype fixes compile.
+Read artifacts/where104.log,select104.log,select104-generation.log for newest
+expanded original counts and pass/fail. Last known where1487/59988 passed.
+select additionally exposed ndarray scalar sequence items being rejected by the
+old ln_array_index_axis0 helper. New selection_array_item creates strong 0-D
+views (also fixes choose ndarray1-D choices), preserving dtype and valid empty
+pointers. New ndarray-list references added. Old choose3481 cases rerun.
+
+Before any release: C/Lua direct tests (including choose1-D strong dtype), all
+old regression, sanitizer with ln_select/ln_nditer_multi/ln_datetime added to
+old ten-unit scope, refresh inventory after VERSION0.104, docs EN/ES, reproducible
+fixtures and clean tarball verification. Runtime remains0.103 at this checkpoint.
+
+# Updated active checkpoint — select104
+
+Native ln_select.{c,h} and Lua np.where/np.select now compile and execute real
+examples. Common selection dtype preparation was factored from choose; all3481
+choose cases still pass. Initial where1324 cases passed. Expanded current corpus
+files/logs in artifacts:where104.log/select104.log and select104-generation.log.
+Inspect actual logs for latest counts/result; no release yet. Runtime still0.103.
+
+Original source tests exposed uint64+timedelta promotion accepted incorrectly;
+src/ln_datetime.c now rejects unsigned64 at common-class/descriptor resolution.
+select also needed batched shape broadcasting instead of legacy64-operand bound;
+ln_select.c folds groups of63 plus a carry shape, without changing core's legacy
+limit. Many-condition/bidirectional/layout/binary-string tests added.
+
+Next: finish expanded original corpus, C/Lua tests and full regression (including
+shared dtype fix), sanitizer scope should include ln_select, ln_nditer_multi,
+ln_datetime in addition to prior ten units. Add docs EN/ES, inventory refresh
+once runtime advances0.104, reproducibility and source-release gates. Explicitly
+classify API inventory as availability (baseline295/675) rather than completeness.
+
+# Current checkpoint — selection 0.104 work
+
+Active worktree /mnt/datos/luaray/.dev/select104, branch select104. Runtime still
+0.103 until new features are verified. tools/inventory_api.py implemented and
+executed against exact condition103/build native module:675 scoped public
+callable names,295 available, all marked partial or missing. It does NOT infer
+behavioral/full compatibility. Scope excludes properties/constants/all submodules;
+aliases and callable Python types are included. compatibility/api_inventory.json
+is the observed baseline; refresh after new public APIs are implemented. Probe
+uses real Lua functions/callable userdata, ndarray/RNG/ufunc prototypes.
+
+Upstream where/select source was inspected. Next implement native ln_select:
+where uses existing generalized NpyIter with condition/X/Y and KEEPORDER; power-
+of-two common itemsize1/2/4/8/16 buffers both operands, other sizes cast selected
+values only. It returns an ndarray even for0-D; unary where returns nonzero table.
+Weak numeric where operands must pack into resolved dtype with overflow checks,
+distinct from choose's unsafe weak conversion. select resolves dtype with weak
+choices/default, separately broadcasts condition/choice groups, bool-only masks,
+C-output filled with default UNSAFE then reverse-order SAME_KIND copyto. Preserve
+broadcast rank so scalar preconversion/error behavior follows actual upstream.
+
+A reusable common-dtype helper can factor choose's existing verified logic but
+must retain its behavior; rerun old choose3481 cases after changes. No new where/
+select code or tests implemented yet. Add original NumPy differentials, real Lua
+example, C/Lua regression, sanitizers, full suite and bilingual docs before release.
+
+0.103 is published at d688125, SHA
+3c4c5c290a93d966c0dbc2af8c87147644d68cd6b97e96e6be49f90740507dfd.
+690files/689manifest, clean124 suites/six examples, ten-unit ASan6native26Lua passed.
+Exact Ubuntu CI42534239743 SUCCESS; public asset hash/Downloads verified. Keep
+archives immutable. User requests work beyond releases until complete/usage out.
+Old checkpoint sections below are historical. luanimath goal remains unfinished.
+
 # Current checkpoint — condition selection 0.103 release gate
 
 Active /mnt/datos/luaray/.dev/condition103 branch condition103 VERSION0.103.

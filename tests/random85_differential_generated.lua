@@ -1,6 +1,6 @@
 -- Frozen NumPy 2.3.5 independent reference for noncentral vectorization
 local np=require('luaray_core')
-assert(np._version=='0.103.0-dev')
+assert(np._version=='0.104.0-dev')
 local count=0
 local function eq(a,b)
  if type(a)~=type(b) then return false end

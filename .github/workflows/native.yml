@@ -45,3 +45,4 @@ jobs:
           lua5.4 examples/along101.lua
           lua5.4 examples/choose102.lua
           lua5.4 examples/condition103.lua
+          lua5.4 examples/select104.lua

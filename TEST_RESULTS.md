@@ -1,3 +1,23 @@
+## 0.104.0-dev verification (executed)
+
+- Final full native/Lua regression passed **126/126 frozen fixture files**.
+- Original NumPy2.5.3 where: **1,487 cases /59,988 checks**; select: **1,961 /
+  19,688**. New total **3,448 /79,676**. Values, shape, dtype, strides and where
+  input states are checked; scalar ndarray output, weak values, binary strings,
+  layouts and many-condition batches are included.
+- New C suite and **65 Lua checks** passed. Public module example passed.
+  All3,481 existing choose cases passed after shared dtype/item-view changes.
+- Both new fixtures and actual runtime API inventory regenerated exactly.
+- Directed ASan/UBSan passed **13 C units**, **7 native /29 Lua suites**, including
+  new selection, generic iterator and temporal promotion. Other dependencies
+  uninstrumented, leak detection off. Full scope in compatibility/current.json.
+- Inventory: **297 callable names observed /675 scoped names**,377 missing direct
+  bindings and one justified Lua exception-class adaptation. Available entries
+  remain partial; inventory itself verifies no complete behavioral API.
+- Final source extraction/rebuild/full regression/seven public examples and SHA
+  manifest are recorded by the versioned release JSON/log. Remote CI is separate.
+  Earlier explicit differences and blocked states retain their classifications.
+
 ## 0.103.0-dev verification (executed)
 
 - Full native/Lua regression passed **124/124 frozen fixture files**.

@@ -1,15 +1,13 @@
 {
-  "version": "0.103.0-dev",
+  "version": "0.104.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "nonzero": 168,
-    "flatnonzero": 168,
-    "compress": 2061,
-    "extract": 692
+    "where": 1487,
+    "select": 1961
   },
-  "new_numeric_checks": 121704,
-  "new_lua_regression_checks": 95,
+  "new_numeric_checks": 79676,
+  "new_lua_regression_checks": 65,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -17,27 +15,31 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.nonzero": "implemented_partial",
-    "numpy.ndarray.nonzero": "implemented_partial",
-    "numpy.flatnonzero": "implemented_partial",
-    "numpy.compress": "implemented_partial",
-    "numpy.ndarray.compress": "implemented_partial",
-    "numpy.extract": "implemented_partial"
+    "numpy.where": "implemented_partial",
+    "numpy.select": "implemented_partial"
   },
   "evidence": [
-    "tests/nonzero103_differential_generated.lua",
-    "tests/flatnonzero103_differential_generated.lua",
-    "tests/compress103_differential_generated.lua",
-    "tests/extract103_differential_generated.lua",
-    "tests/condition103_regression.lua",
-    "tests/test_condition103_core.c"
+    "tests/where104_differential_generated.lua",
+    "tests/select104_differential_generated.lua",
+    "tests/select104_regression.lua",
+    "tests/test_select104_core.c",
+    "compatibility/api_inventory.json",
+    "tools/inventory_api.py"
   ],
+  "availability_inventory": {
+    "scoped_names": 675,
+    "available_callables": 297,
+    "missing_bindings": 377,
+    "not_applicable_to_lua": 1,
+    "complete_apis_declared": 0,
+    "scope": "Direct public callable names; not overall compatibility"
+  },
   "limits": [
     "Object, structured and variable-width StringDType arrays remain unavailable",
     "Non-native numeric endian remains unavailable",
-    "Python subclasses, complete exception-class and warning fidelity are not claimed",
-    "Coordinate tuple is a Lua table and positions are one-based",
-    "Earlier take/choose deliberate differences remain separate; all NumPy API parity is not claimed"
+    "Python subclasses, complete warnings and exception-class fidelity are not claimed",
+    "Availability inventory alone verifies no full behavior; alternate Lua spellings can exist",
+    "Earlier take/choose differences remain separate; full NumPy parity is not claimed"
   ],
-  "sanitizers": "Directed audit: ln_condition, ln_choose, ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string, ln_along and ln_mapping; six native and twenty-six Lua suites; other dependencies uninstrumented; leaks disabled"
+  "sanitizers": "Directed audit: ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string, ln_along, ln_mapping, ln_choose, ln_condition, ln_select, ln_nditer_multi, ln_datetime; seven native and twenty-nine Lua suites; other dependencies uninstrumented; leaks disabled"
 }

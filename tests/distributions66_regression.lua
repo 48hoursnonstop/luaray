@@ -1,5 +1,5 @@
 local np=require("luaray_core")
-assert(np._version=="0.102.0-dev")
+assert(np._version=="0.103.0-dev")
 local rng=np.random.default_rng(42)
 local result=rng:hypergeometric(15,15,15,{2,3})
 assert(result.dtype=="int64")

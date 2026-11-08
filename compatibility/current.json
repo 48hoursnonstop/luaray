@@ -1,12 +1,15 @@
 {
-  "version": "0.102.0-dev",
+  "version": "0.103.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "choose": 3481
+    "nonzero": 168,
+    "flatnonzero": 168,
+    "compress": 2061,
+    "extract": 692
   },
-  "new_numeric_checks": 101519,
-  "new_lua_regression_checks": 69,
+  "new_numeric_checks": 121704,
+  "new_lua_regression_checks": 95,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -14,22 +17,27 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.choose": "implemented_partial",
-    "numpy.ndarray.choose": "implemented_partial"
+    "numpy.nonzero": "implemented_partial",
+    "numpy.ndarray.nonzero": "implemented_partial",
+    "numpy.flatnonzero": "implemented_partial",
+    "numpy.compress": "implemented_partial",
+    "numpy.ndarray.compress": "implemented_partial",
+    "numpy.extract": "implemented_partial"
   },
   "evidence": [
-    "tests/choose102_differential_generated.lua",
-    "tests/choose102_regression.lua",
-    "tests/test_choose102_core.c",
-    "tests/choose102_reference_differences.lua",
-    "tools/generate_choose102_differential.py"
+    "tests/nonzero103_differential_generated.lua",
+    "tests/flatnonzero103_differential_generated.lua",
+    "tests/compress103_differential_generated.lua",
+    "tests/extract103_differential_generated.lua",
+    "tests/condition103_regression.lua",
+    "tests/test_condition103_core.c"
   ],
   "limits": [
-    "Reject direct output spans exceeding their owning buffer; two variants outside parity, unsafe upstream calls not executed",
-    "Extreme native wrap uses modulo; upstream repeated subtraction not executed for huge values",
-    "Non-native numeric endian, object, structured and variable-width StringDType remain unavailable",
-    "General mixed slice/fancy subspace buffering remains incomplete",
-    "Complete Python warnings, exception classes, subclasses and all NumPy API parity are not claimed"
+    "Object, structured and variable-width StringDType arrays remain unavailable",
+    "Non-native numeric endian remains unavailable",
+    "Python subclasses, complete exception-class and warning fidelity are not claimed",
+    "Coordinate tuple is a Lua table and positions are one-based",
+    "Earlier take/choose deliberate differences remain separate; all NumPy API parity is not claimed"
   ],
-  "sanitizers": "Directed audit: ln_choose, ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string, ln_along and ln_mapping; five native and twenty-one Lua suites; other dependencies uninstrumented; leaks disabled"
+  "sanitizers": "Directed audit: ln_condition, ln_choose, ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string, ln_along and ln_mapping; six native and twenty-six Lua suites; other dependencies uninstrumented; leaks disabled"
 }

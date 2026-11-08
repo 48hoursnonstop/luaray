@@ -1,6 +1,6 @@
 -- Generated with NumPy 2.3.5; generated fixture needs no Python
 local np=require('luaray_core')
-assert(np._version=='0.102.0-dev')
+assert(np._version=='0.103.0-dev')
 local cases=0
 local function eq(a,b) assert(a==b, tostring(a)..' ~= '..tostring(b));cases=cases+1 end
 do local r=np.random.default_rng(0);local v=r:lognormal(0.0,1.0,nil)

@@ -1,3 +1,15 @@
+## LuaRay 0.103.0-dev — nonzero and condition-based extraction
+
+Native `nonzero`, `flatnonzero`, `compress` and `extract` now provide C-order
+coordinates and selected values through a dedicated condition subsystem and
+the tested take engine. Nonzero preserves interleaved coordinate strides;
+method forms and advanced-index composition are executed through the Lua API.
+
+Read the [English condition reference](docs/en/condition_selection.md) or
+[referencia en español](docs/es/condition_selection.md). **3,089 NumPy 2.5.3
+cases / 121,704 checks**, 95 Lua checks and native tests passed. Full regression
+contains **124 fixture files**; runtime remains Lua/native C/C++.
+
 ## LuaRay 0.102.0-dev — native array selection
 
 `np.choose` / `ndarray:choose` now broadcast selectors and choices through a

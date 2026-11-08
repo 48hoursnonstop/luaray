@@ -19,6 +19,7 @@ parser.add_argument('--libm-fix',action='store_true',help='also instrument the c
 parser.add_argument('--take100',action='store_true',help='also instrument and execute native take')
 parser.add_argument('--along101',action='store_true',help='instrument along-axis operations and MapIter')
 parser.add_argument('--choose102',action='store_true',help='instrument native choose and execute its suites')
+parser.add_argument('--condition103',action='store_true',help='instrument nonzero and conditional extraction')
 options=parser.parse_args()
 
 def run(args,**kwargs):
@@ -34,6 +35,7 @@ if options.libm_fix:changed.append('ln_random')
 if options.take100:changed+=['ln_take','ln_string']
 if options.along101:changed+=['ln_along','ln_mapping']
 if options.choose102:changed.append('ln_choose')
+if options.condition103:changed.append('ln_condition')
 for name in changed:
     run(cc+flags+['-c',f'src/{name}.c','-o',BUILD/f'{name}.o'])
 normal=sorted(p for p in (ROOT/'build').glob('ln_*.o') if p.stem not in changed and not p.stem.endswith('_san'))
@@ -43,6 +45,7 @@ if options.libm_fix:core_objects.append(BUILD/'ln_random.o')
 if options.take100:core_objects+=[BUILD/'ln_take.o',BUILD/'ln_string.o']
 if options.along101:core_objects+=[BUILD/'ln_along.o',BUILD/'ln_mapping.o']
 if options.choose102:core_objects.append(BUILD/'ln_choose.o')
+if options.condition103:core_objects.append(BUILD/'ln_condition.o')
 link=['-fsanitize=address,undefined']
 native_libs=['-lm']+libs('cblas',['-lblas'])+libs('lapack',['-llapack'])
 run(cxx+link+['-shared']+core_objects+[BUILD/'lua_module.o']+
@@ -68,6 +71,10 @@ if options.choose102:
     run(cc+flags+['-c','tests/test_choose102_core.c','-o',BUILD/'test_choose102.o'])
     run(cxx+link+[BUILD/'test_choose102.o']+core_objects+native_libs+['-o',BUILD/'test_choose102'])
     run([BUILD/'test_choose102'],env=env)
+if options.condition103:
+    run(cc+flags+['-c','tests/test_condition103_core.c','-o',BUILD/'test_condition103.o'])
+    run(cxx+link+[BUILD/'test_condition103.o']+core_objects+native_libs+['-o',BUILD/'test_condition103'])
+    run([BUILD/'test_condition103'],env=env)
 asan=subprocess.check_output(cc+['-print-file-name=libasan.so'],text=True).strip()
 env['LD_PRELOAD']=asan;env['LUA_CPATH']=str(BUILD/'?.so')+';;'
 tests=['write98_regression','put98_differential_generated','place98_differential_generated',
@@ -78,6 +85,7 @@ if options.libm_fix:tests+=['exponential_regression','exponential_differential_g
 if options.take100:tests+=['take100_regression','take100_differential_generated']
 if options.along101:tests+=['along101_regression','take_along101_differential_generated','put_along101_differential_generated','advanced_indexing_differential_generated','advanced_assignment_differential_generated']
 if options.choose102:tests+=['choose102_regression','choose102_differential_generated']
+if options.condition103:tests+=['condition103_regression','nonzero103_differential_generated','flatnonzero103_differential_generated','compress103_differential_generated','extract103_differential_generated']
 for test in tests:
     run(['lua5.4',f'tests/{test}.lua'],env=env)
 print('PASS: changed '+', '.join(changed)+' instrumented; other dependencies uninstrumented; leak detection disabled')

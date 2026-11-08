@@ -1,6 +1,6 @@
 -- Frozen independent NumPy 2.3.5 random84 reference
 local np=require('luaray_core')
-assert(np._version=='0.102.0-dev')
+assert(np._version=='0.103.0-dev')
 local cases=0
 local function eq(a,b)
  if type(a)~=type(b) then return false end

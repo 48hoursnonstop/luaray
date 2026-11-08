@@ -1,5 +1,5 @@
 local np = require('luaray_core')
-assert(np._version=='0.102.0-dev')
+assert(np._version=='0.103.0-dev')
 local function eq(a,b) assert(a==b,tostring(a)..' ~= '..tostring(b)) end
 local function rejects(fn) assert(not pcall(fn),'invalid broadcast accepted') end
 local a=np.array({3,5,7},'int64')

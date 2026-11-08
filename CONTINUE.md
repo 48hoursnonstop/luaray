@@ -1,3 +1,24 @@
+# Current checkpoint — condition selection 0.103 release gate
+
+Active /mnt/datos/luaray/.dev/condition103 branch condition103 VERSION0.103.
+New native nonzero/flatnonzero/compress/extract and methods execute correctly.
+Actual NumPy2.5.3:168/10188,168/7126,2061/83059,692/21331 cases/checks;
+total3089/121704. Native suite and95Lua checks passed. Full-test124/124 files
+passed. Ten-unit ASan/UBSan: six native/26Lua passed (dependencies uninstrumented,
+leaks off). All four fixtures reproduced; public example passed. Bilingual docs
+and compatibility record are updated. Older checkpoint text below is historical.
+
+Next: clean source extraction/rebuild/full tests/six examples, commit/integrate,
+publish0.103 and actual Ubuntu CI. Then where/select plus broader measured API
+inventory. User requests sustained work beyond releases; luanimath unfinished.
+Keep immutable old archives; do not infer full NumPy parity from fixture counts.
+
+0.102 is published at eb1937a. SHA
+ a806e125200e169f2bba038f23e98e6d75f987ba8d4f5c0fec30f32e9da9c6da.
+676files/675manifest, clean120 suites/five examples, nine-unit ASan5native21Lua
+passed. Exact Ubuntu CI42533073659 on eb1937a SUCCESS; public asset hash and
+Downloads source/checksum verified. Prior deliberate/blocked states remain.
+
 # Current checkpoint — choose 0.102 release gate
 
 Active /mnt/datos/luaray/.dev/choose102 branch choose102, VERSION0.102. Native

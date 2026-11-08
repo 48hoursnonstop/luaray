@@ -1,3 +1,21 @@
+## 0.103 — NumPy 2.5.3 nonzero and condition selection
+
+ln_condition follows item_selection.c:PyArray_Nonzero and PyArray_Compress,
+numeric.py:flatnonzero and _function_base_impl.py:extract. Coordinate storage
+is an owned (count,ndim) integer array with per-axis strided views, including
+valid shared empty data and rank-64 metadata. C-order coordinates are adapted
+to positive Lua indices; the returned Python tuple becomes a Lua table.
+
+Compress snapshots nonzero condition positions before calling the verified
+raise-mode take engine. Extract flattens condition/source independently. Short
+conditions and overlong false tails retain upstream behavior; no extra exact-
+length requirement is imposed. Raw Lua compress conditions are packed to bool;
+strong arrays use supported dtype truth conversion. Methods and public wrapper
+semantics were inspected together with relevant numeric/multiarray/function-
+base tests. Eight source/test hashes are pinned in
+NUMPY_2_5_3_CONDITION103_FILE_HASHES.sha256. Source and executable oracle are
+2.5.3; older frozen fixture provenance is unchanged.
+
 ## 0.102 — NumPy 2.5.3 choose and temporal dtype transfer
 
 ln_choose follows item_selection.c:PyArray_Choose / legacy MultiIter C traversal,

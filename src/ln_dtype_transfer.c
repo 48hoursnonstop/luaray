@@ -579,6 +579,28 @@ cast_one_to_string(const char *src,const ln_dtype *src_dtype,
         n=format_temporal_ascii(src,src_dtype,buf,sizeof(buf),err);
     else n=format_numeric_ascii(src,src_dtype,buf,sizeof(buf),err);
     if(n<0)return -1;
+    if(src_dtype->type_num==LN_DATETIME) {
+        /* datetime_to_string writes a fixed-size ISO buffer, not a truncating
+         * numeric cast. Unicode uses an intermediate ASCII buffer and commits
+         * only after success. Preserve the direct S failed-cell prefix too. */
+        size_t width=ln_string_nchars(dst_dtype),year=0;
+        int nat=n==3 && memcmp(buf,"NaT",3)==0;
+        if(!nat) {
+            if(buf[year]=='-')++year;
+            while(buf[year]>='0' && buf[year]<='9')++year;
+        }
+        if(width<(size_t)n) {
+            if(dst_dtype->type_num==LN_STRING) {
+                memset(dst,0,width);
+                size_t prefix=nat?0:width<=year?(width?width-1:0):width;
+                if(prefix)memcpy(dst,buf,prefix);
+            }
+            set_transfer_error(err,"datetime output string too short");return -1;
+        }
+        /* NumPy's fixed-width year snprintf accepts equal capacity, leaving
+         * its final character as NUL on the Linux reference platform. */
+        if(!nat && width==year && (size_t)n==year){buf[year-1]=0;--n;}
+    }
     return ln_string_pack_utf8(dst_dtype,dst,buf,(size_t)n,err);
 }
 
@@ -932,6 +954,27 @@ ln_cast_strided_numeric(const char *src, ln_intp src_stride,
         return 0;
     }
 
+    if(src_dtype->type_num==LN_DATETIME && dst_dtype->type_num==LN_UNICODE) {
+        /* dtype_transfer.c:get_datetime_to_unicode_transfer_function stages
+         * the ASCII formatter in 128-element chunks before Unicode writeback. */
+        ln_intp capacity=count<128?count:128;
+        size_t width=dst_dtype->elsize;
+        if(width && (size_t)capacity>SIZE_MAX/width) {
+            set_transfer_error(err,"datetime Unicode buffer is too large");return -1;
+        }
+        char *buffer=malloc((size_t)capacity*(width?width:1));
+        if(!buffer){set_transfer_error(err,"could not allocate datetime Unicode buffer");return -1;}
+        for(ln_intp start=0;start<count;) {
+            ln_intp block=count-start<capacity?count-start:capacity;
+            for(ln_intp k=0;k<block;++k)if(cast_one_to_string(
+                    src+k*src_stride,src_dtype,buffer+(size_t)k*width,dst_dtype,err)<0) {
+                free(buffer);return -1;
+            }
+            for(ln_intp k=0;k<block;++k)if(width)memcpy(dst+k*dst_stride,buffer+(size_t)k*width,width);
+            src+=block*src_stride;dst+=block*dst_stride;start+=block;
+        }
+        free(buffer);return 0;
+    }
     if (ln_string_is_dtype(src_dtype) || ln_string_is_dtype(dst_dtype)) {
         for (ln_intp i=0;i<count;++i,src+=src_stride,dst+=dst_stride) {
             if (ln_string_is_dtype(src_dtype) && ln_string_is_dtype(dst_dtype)) {
@@ -974,6 +1017,12 @@ ln_cast_strided_numeric(const char *src, ln_intp src_stride,
 
     if ((src_dtype->type_num==LN_DATETIME||src_dtype->type_num==LN_TIMEDELTA) &&
         (dst_dtype->type_num==LN_DATETIME||dst_dtype->type_num==LN_TIMEDELTA)) {
+        /* Cross-kind datetime/timedelta unsafe casts preserve integer ticks;
+         * unit conversion applies only within the same temporal kind. */
+        if(src_dtype->type_num!=dst_dtype->type_num) {
+            for(ln_intp i=0;i<count;++i,src+=src_stride,dst+=dst_stride)memmove(dst,src,8);
+            return 0;
+        }
         const ln_datetime_meta *sm=ln_datetime_metadata(src_dtype), *dm=ln_datetime_metadata(dst_dtype);
         if(!sm||!dm){set_transfer_error(err,"invalid datetime metadata");return -1;}
         for(ln_intp i=0;i<count;++i,src+=src_stride,dst+=dst_stride){

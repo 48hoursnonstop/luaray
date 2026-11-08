@@ -1,33 +1,35 @@
 {
-  "version": "0.101.0-dev",
+  "version": "0.102.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "take_along_axis": 2061,
-    "put_along_axis": 3599
+    "choose": 3481
   },
-  "new_numeric_checks": 540651,
-  "new_lua_regression_checks": 85,
+  "new_numeric_checks": 101519,
+  "new_lua_regression_checks": 69,
   "blocked_original_states": 40,
-  "deliberate_difference_variants": 3,
+  "deliberate_difference_variants": {
+    "take_hang": 3,
+    "choose_unsafe_span": 2
+  },
   "status": "implemented_partial",
   "apis": {
-    "numpy.take_along_axis": "implemented_partial",
-    "numpy.put_along_axis": "implemented_partial"
+    "numpy.choose": "implemented_partial",
+    "numpy.ndarray.choose": "implemented_partial"
   },
   "evidence": [
-    "tests/take_along101_differential_generated.lua",
-    "tests/put_along101_differential_generated.lua",
-    "tests/along101_regression.lua",
-    "tests/test_along101_core.c",
-    "tools/generate_along101_differential.py"
+    "tests/choose102_differential_generated.lua",
+    "tests/choose102_regression.lua",
+    "tests/test_choose102_core.c",
+    "tests/choose102_reference_differences.lua",
+    "tools/generate_choose102_differential.py"
   ],
   "limits": [
-    "Non-native numeric endian descriptors, object, structured and variable-width StringDType arrays remain unavailable",
-    "General mixed slice/fancy subspace buffering remains a separate compatibility area",
-    "Python subclass semantics, exception-class and complete warning fidelity are not claimed",
-    "Earlier take empty-axis hang rejection remains deliberate and outside parity",
-    "References establish tested operations and environment, not full NumPy compatibility"
+    "Reject direct output spans exceeding their owning buffer; two variants outside parity, unsafe upstream calls not executed",
+    "Extreme native wrap uses modulo; upstream repeated subtraction not executed for huge values",
+    "Non-native numeric endian, object, structured and variable-width StringDType remain unavailable",
+    "General mixed slice/fancy subspace buffering remains incomplete",
+    "Complete Python warnings, exception classes, subclasses and all NumPy API parity are not claimed"
   ],
-  "sanitizers": "Directed audit: ln_along, ln_mapping, lua_module, ln_write, ln_dtype_transfer, ln_random, ln_take and ln_string; four native and nineteen Lua suites; other dependencies uninstrumented; leaks disabled"
+  "sanitizers": "Directed audit: ln_choose, ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string, ln_along and ln_mapping; five native and twenty-one Lua suites; other dependencies uninstrumented; leaks disabled"
 }

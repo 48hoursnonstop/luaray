@@ -1,5 +1,5 @@
 local np = require('luaray_core')
-assert(np._version == '0.101.0-dev')
+assert(np._version == '0.102.0-dev')
 local function eq(x,y)
  if type(x)=='table' then assert(type(y)=='table' and #x==#y); for i=1,#x do eq(x[i],y[i]) end
  else assert(x==y,tostring(x)..' != '..tostring(y)) end

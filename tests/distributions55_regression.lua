@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.101.0-dev')
+assert(np._version=='0.102.0-dev')
 local r=np.random.default_rng(42)
 assert(r:lognormal()==1.3562412406168636)
 assert(r:raw_hex()=='705a5661a791ffc1')

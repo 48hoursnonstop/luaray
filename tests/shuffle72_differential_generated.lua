@@ -1,6 +1,6 @@
 -- Frozen real-oracle expectations from NumPy 2.3.5
 local np=require("luaray_core")
-assert(np._version=="0.101.0-dev")
+assert(np._version=="0.102.0-dev")
 local checks=0
 local function deep(a,b)
     assert(type(a)==type(b),"type mismatch at check "..checks)

@@ -1,3 +1,23 @@
+## 0.102 — NumPy 2.5.3 choose and temporal dtype transfer
+
+ln_choose follows item_selection.c:PyArray_Choose / legacy MultiIter C traversal,
+common writable-contiguous choices, safe intp selectors, staged raise/dtype/
+choice-overlap output and raw linear direct-output writes. Lua positions are
+explicitly one-based; negative raise choices remain invalid. Weak numeric
+choice conversion follows PyArray_ConvertToCommonType, including uint8 wrapping.
+
+Actual source-derived differences are retained: unsafe direct-output spans are
+rejected before modifying memory, and extreme wrap uses modulo rather than
+repeated subtraction. Unsafe upstream overruns were not executed. Safe spans
+and resulting unexpected logical-view backing states are original references.
+
+Shared datetime conversion follows dtype_transfer.c and datetime_strings.c:
+fixed ISO capacity errors, partial ASCII cells, buffered Unicode, NaT and Linux
+year snprintf capacity behavior. Cross-kind date/delta unsafe casts preserve
+raw ticks; same-kind unit conversion remains distinct. Ten source/test/header
+hashes are pinned in NUMPY_2_5_3_CHOOSE102_FILE_HASHES.sha256. Executable oracle and
+source are NumPy 2.5.3; historical oracle metadata remains unchanged.
+
 ## 0.101 — NumPy 2.5.3 along-axis functions and MapIter
 
 `ln_along.{c,h}` follows numpy/lib/_shape_base_impl.py's take_along_axis,

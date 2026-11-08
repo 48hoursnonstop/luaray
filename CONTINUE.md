@@ -1,3 +1,48 @@
+# Current checkpoint — choose 0.102 release gate
+
+Active /mnt/datos/luaray/.dev/choose102 branch choose102, VERSION0.102. Native
+choose, shared date/delta casts and binary-safe output guard implemented.
+Final original NumPy2.5.3 corpus3481cases/101519checks, C suite and69Lua checks
+passed. Final full-test all120 frozen files passed. Nine-unit ASan/UBSan passed
+five native/21Lua suites (dependencies uninstrumented, leaks off). Fixture
+regenerated exactly, public choose example passed. English/Spanish docs and
+compatibility record updated. Earlier checkpoint text below is historical.
+
+Next: review, clean source extraction/rebuild/full tests/five examples, commit,
+integrate, publish0.102, verify actual Ubuntu CI. Then continue compress/extract;
+user requests sustained dependency completion. No overall percentage justified.
+Two unsafe-span variants stay outside parity, unsafe source calls not executed;
+three earlier take hang variants and40 blocked endian states remain separate.
+Keep all verified old archives immutable. luanimath goal remains unfinished.
+
+# Current checkpoint — choose 0.102 differential audit
+
+Active worktree /mnt/datos/luaray/.dev/choose102, branch choose102. Runtime VERSION
+still0.101 until the full feature gates finish. Native ln_choose.{c,h}, np.choose
+and ndarray:choose compile; actual public example passed. First original NumPy
+2.5.3 corpus:1530 cases passed; read artifacts/choose102-differential.log for
+actual check count. Need expand dtype/broadcast/out/alias/readonly/empty/index
+cases, native/Lua regression, ASan, full regression, bilingual docs and release.
+
+Native output preserves upstream direct linear writes for safe in-owner spans,
+but guards against owner overrun for reversed/zero-stride insufficient-tail out.
+Unsafe upstream memory-corrupting spans have NOT been executed. Retain explicit
+non-parity records/tests for the guard. Original in-bounds strided/transposed/
+negative out states are frozen and passed. choose negative indices reject in
+raise, wrap modulo and clip first; positive Lua positions are one-based.
+
+Corpus caught shared datetime->Unicode too-short formatting: ln_dtype_transfer
+now rejects instead of silently truncating. Direct S failed-prefix and Linux
+fixed-year equal-capacity behavior follow inspected source/probes; need freeze
+expanded width/unit/NaT cases and rerun all previous suites before completion.
+
+0.101 is published at5dbdaa9 with source SHA
+8e720711efd20963d485ab98f2ec3f6ee5044c1d95ca33871f27dd9213e815a4.
+664files/663manifest, clean119 suites/four examples, eight-unit ASan4native19Lua
+passed. Exact Ubuntu CI42531596071 SUCCESS. Downloads/source public hash verified.
+Older checkpoint sections below are historical. User requests continuing past
+release milestones until complete or usage exhausted; luanimath goal unfinished.
+
 # Current checkpoint — 0.101 along-axis release gate
 
 Active worktree /mnt/datos/luaray/.dev/along101, branch along101. VERSION0.101.

@@ -220,6 +220,9 @@ int ln_array_copyto(ln_array *dst,const ln_array *input,const ln_array *where,
     nd=k+1;
     int buffered=(src->descr->kind=='S'||src->descr->kind=='U'||dst->descr->kind=='S'||dst->descr->kind=='U') &&
                  (!raw_aligned(src)||!raw_aligned(dst));
+    /* datetime->ASCII has its own unaligned strided loop, without the legacy
+     * numeric/string wrapper's 128-element output buffering. */
+    if(src->descr->type_num==LN_DATETIME && dst->descr->type_num==LN_STRING)buffered=0;
     size_t width=dst->descr->elsize;
     if(buffered) {
         size_t capacity=(size_t)(shape[0]<128?shape[0]:128);

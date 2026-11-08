@@ -54,6 +54,7 @@ extern lua_Integer luaL_checkinteger(lua_State *L, int arg);
 extern lua_Number luaL_checknumber(lua_State *L, int arg);
 extern const char *luaL_checklstring(lua_State *L, int arg, size_t *l);
 extern void luaL_checktype(lua_State *L, int arg, int t);
+extern void luaL_checkstack(lua_State *L, int size, const char *message);
 extern void *luaL_checkudata(lua_State *L, int ud, const char *tname);
 extern void *luaL_testudata(lua_State *L, int ud, const char *tname);
 extern int luaL_newmetatable(lua_State *L, const char *tname);

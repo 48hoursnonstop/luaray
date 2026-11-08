@@ -1,3 +1,15 @@
+## LuaRay 0.102.0-dev — native array selection
+
+`np.choose` / `ndarray:choose` now broadcast selectors and choices through a
+native C engine, with weak/strong dtype resolution, modes and real output/alias
+semantics. Shared date casts now preserve short-buffer errors and ASCII/Unicode
+error boundaries; cross-kind temporal casts preserve integer ticks.
+
+Read the [English choose reference](docs/en/choose.md) or
+[referencia de choose en español](docs/es/choose.md). **3,481 NumPy 2.5.3 cases /
+101,519 checks**, 69 Lua checks and native tests passed; full regression contains
+**120 fixture files**. Two owning-buffer guard variants remain outside parity.
+
 ## LuaRay 0.101.0-dev — gather and assign along an axis
 
 `np.take_along_axis` and `np.put_along_axis` now use native orthogonal advanced

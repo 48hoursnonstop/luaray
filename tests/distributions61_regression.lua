@@ -1,5 +1,5 @@
 local np=require("luaray_core")
-assert(np._version=="0.101.0-dev")
+assert(np._version=="0.102.0-dev")
 local rng=np.random.default_rng(42)
 local a=rng:poisson(4,{2,3})
 assert(a.dtype=="int64" and a.shape[1]==2 and a.shape[2]==3)

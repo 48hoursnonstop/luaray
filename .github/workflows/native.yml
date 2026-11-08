@@ -43,3 +43,4 @@ jobs:
           lua5.4 examples/masked_writes99.lua
           lua5.4 examples/take100.lua
           lua5.4 examples/along101.lua
+          lua5.4 examples/choose102.lua

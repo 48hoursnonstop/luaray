@@ -255,7 +255,10 @@ double ln_pcg64_standard_exponential_inv(ln_pcg64 *rng)
 float ln_pcg64_standard_exponential_inv_f(ln_pcg64 *rng)
 {
     float u = (float)(ln_pcg64_next32(rng) >> 8) * (1.0f / 16777216.0f);
-    return -log1pf(-u);
+    /* Older libm log1pf implementations differ by one float32 ULP for these
+     * exact 24-bit uniforms. Evaluate in double before the final float32
+     * rounding; keep the input and PCG64 consumption identical. */
+    return (float)-log1p(-(double)u);
 }
 
 /* NumPy 2.5.3 distributions.c algorithms. All draws consume the existing

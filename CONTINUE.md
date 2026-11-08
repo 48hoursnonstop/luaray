@@ -1,5 +1,52 @@
 # Active dependency work
 
+## Latest checkpoint — 0.99 published
+
+0.99 is published at https://github.com/48hoursnonstop/luaray/releases/tag/v0.99.0-dev
+(commit 1953e26). SHA-256:
+a556554d0fbdf9a231951bd9be409d6efbcce39baf2adff8bf1de5fdf396c6df.
+635 source files/634 manifest entries. Clean extraction, rebuild, all 116 frozen
+fixture files and both dynamic-module examples passed. Three changed C units
+passed ASan/UBSan: two native and ten Lua suites; dependencies uninstrumented,
+leaks off. Downloads copy plus checksum are present. Preserve immutable archives.
+
+0.99 copyto: 4914 original cases/138217 checks; putmask: 1481/36893;
+77 Lua regressions. Core now follows destination-stride raw iteration, mask-run
+scanning/live aliasing, source overlap direction, weak scalars and alignment-
+dependent 128-element text cast buffers. Fix memcpy overlap detected by ASan,
+identity string self-copy and complex temporal conversion. Read PROGRESS_0_99.md,
+docs/{en,es}/masked_writes.md, compatibility/current.json. Historical .98/.97
+fixtures remain; the .98 generator was refactored under main() and reproduced
+original fixtures byte-for-byte. No full NumPy parity is claimed.
+
+GitHub native CI run 42526293798 was started on 1953e26; check its actual result
+before claiming remote success. Workflow runs Ubuntu native/frozen tests, no
+Python/NumPy runtime. 0.99 original source/test hashes have a dedicated manifest.
+
+Continue 0.100 indexing: upstream take/take_along_axis/put_along_axis inspected,
+but NO take code has been written yet. Start with genuine take (axis, shape,
+raise/wrap/clip, dtype/strides, scalar results and real out aliases). Important
+source facts: take casts indices using SAME_KIND (put uses SAFE); source is made
+C-contiguous; raise-mode out always uses a temporary; wrap/clip out may read
+aliased indices live. Different-dtype out is preconverted to source dtype before
+taking and unsafe-cast back. Scalar output should use existing push_scalar_at.
+Along-axis helpers require integer indices and matching rank with non-axis
+broadcasting. Lua positive indices/axes are one-based, zero rejected; document
+and translate the oracle consistently. Proposed Lua take interface:
+np.take(a,indices,axis_or_options), options={axis=...,mode=...,out=...}, nil/false
+axis flattens; ndarray:take shares it. Resolve ordinary API details autonomously.
+
+Check the edge empty source axis plus zero trailing chunk before testing wrap:
+upstream fasttake has while loops with max_item==0 that may hang (inference only,
+NOT executed/confirmed). Use a subprocess timeout to investigate if needed;
+never launch an unbounded reference call or claim this inference as proven.
+
+User asked to continue dependency work rather than stop at a release; keep
+working until actual completion or available usage exhaustion. Latest telemetry
+49 percent weekly used/51 remaining (old 50-percent restriction revoked).
+
+## Earlier checkpoint — 0.98
+
 Workspace: /mnt/datos/luaray. Imported verified 0.97 source from Downloads;
 the original tarball remains unchanged. Git baseline e6239fd preserves it.
 User explicitly requested continuing LuaRay 0.98 put/place first, before more

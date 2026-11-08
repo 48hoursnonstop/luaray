@@ -1,0 +1,7 @@
+local np=require('luaray_core')
+local r=np.random.default_rng(42)
+local normal=np.zeros({2,3},'float32')
+assert(rawequal(r:standard_normal(nil,'float32',normal),normal))
+local exponentials=np.transpose(np.zeros({3,2},'float64'))
+assert(rawequal(r:standard_exponential(nil,'float64','inv',exponentials),exponentials))
+print('normal:',normal:tolist()[1][1], 'exponential:',exponentials:tolist()[1][1])

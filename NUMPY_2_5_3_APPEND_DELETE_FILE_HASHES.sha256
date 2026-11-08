@@ -1,0 +1,4 @@
+000d045b739c89974bfd9bae66beaa35bfd97ea7a06d13378aa234153a3b6116  numpy-2.5.3/numpy/lib/_function_base_impl.py
+2e30d2947f624b672c13f34d29bc9d70105802f0b3d41fa7a6fbb9d4ece4c43a  numpy-2.5.3/numpy/lib/tests/test_function_base.py
+feb150554b4879d4df7bd0a4ab7b1a6b818de7ba994ed0c73583fee177533417  numpy-2.5.3/numpy/_core/numeric.py
+301adc5258511108eb3d9ea47d14c3aa41b9e6644a0eb3e4f5f6397fd2d4424c  numpy-2.5.3/numpy/_core/tests/test_numeric.py

@@ -1,0 +1,22 @@
+local np=require('luaray_core')
+assert(np._version=='0.97.0-dev')
+local rng=np.random.default_rng(42)
+local data=rng:zipf(2.0,{2,3})
+assert(data.dtype=='int64' and data.shape[1]==2 and data.shape[2]==3)
+for i=1,2 do for j=1,3 do assert(data:get(i,j)>=1) end end
+local a=np.random.default_rng(42)
+local b=np.random.default_rng(42)
+local z=a:zipf(2.0,{0})
+assert(z.shape[1]==0 and a:raw_hex()==b:raw_hex())
+local c=np.random.default_rng(42)
+local bc=np.random.default_rng(42)
+assert(c:zipf(1025)==1 and c:raw_hex()==bc:raw_hex())
+local d=np.random.default_rng(7)
+assert(d:zipf(3.0,{}) .dtype=='int64')
+for _,bad in ipairs({0,1,-1,-math.huge}) do
+  local r=np.random.default_rng(42)
+  local base=np.random.default_rng(42)
+  assert(not pcall(function() r:zipf(bad) end))
+  assert(r:raw_hex()==base:raw_hex())
+end
+print('distributions65 Lua regression passed')

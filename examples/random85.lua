@@ -1,0 +1,7 @@
+local np=require('luaray_core')
+local rng=np.random.default_rng(85)
+local x=rng:noncentral_chisquare({{.5},{2.}},{{0.,1.,20.}})
+local y=rng:noncentral_f({{.5},{2.}},{{4.,8.,16.}},{{.1,1.,20.}})
+print('noncentral_chisquare broadcast shape:',x.shape[1],x.shape[2])
+print('noncentral_f broadcast shape:',y.shape[1],y.shape[2])
+print('next PCG64:',rng:raw_hex())

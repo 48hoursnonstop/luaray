@@ -1,0 +1,4 @@
+dc98bee5d646083c0ba15fbab0f30afffd86b3b56b66e83db65a014a52efe45a  numpy/_core/src/multiarray/ctors.c
+8e02810a64c7560711892547e9785696edbba9c9df0a9e2044f785976fb12e44  numpy/_core/src/multiarray/methods.c
+111c70b6b2c0b01b76808b7d9ae56093fd2c150bf05f27a5c2b127d1480c0ebe  numpy/_core/src/multiarray/can_cast_table.h
+4c4dba0c4313399305bedabb7b4e40c30370eab78edf543de224f93c186288a8  numpy/_core/src/multiarray/convert_datatype.c

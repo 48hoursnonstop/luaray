@@ -1,0 +1,3 @@
+27e173c29676e458871e6704af74ce9d3ff0ab8d47a8531e8189200d683b20c6  numpy/random/_generator.pyx
+291d105e0199eec38f41dd958b9027dc227127182b3df81525254e148e367aed  numpy/random/src/distributions/distributions.c
+21fdfe42947deb332cc2aaa870b44136d4ae23db4bdd19ef5ba7ffed4dc92718  numpy/random/src/pcg64/pcg64.c

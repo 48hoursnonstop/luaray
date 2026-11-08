@@ -1,0 +1,32 @@
+local np=require('luaray_core')
+assert(np._version=='0.97.0-dev')
+local function same(a,b)
+ if type(b)=='table' then assert(type(a)=='table' and #a==#b) for i=1,#b do same(a[i],b[i]) end
+ else assert(a==b,tostring(a)..' ~= '..tostring(b)) end
+end
+same(np.hstack({{1,2},{3,4}}):tolist(),{1,2,3,4})
+same(np.vstack({{1,2},{3,4}}):tolist(),{{1,2},{3,4}})
+same(np.row_stack({{1,2},{3,4}}):tolist(),{{1,2},{3,4}})
+same(np.dstack({{1,2},{3,4}}):tolist(),{{{1,3},{2,4}}})
+same(np.column_stack({{1,2},{3,4}}):tolist(),{{1,3},{2,4}})
+same(np.hstack({1,2,3}):tolist(),{1,2,3})
+same(np.vstack({1,2}):tolist(),{{1},{2}})
+same(np.column_stack({1,2}):tolist(),{{1,2}})
+same(np.dstack({1,2}):tolist(),{{{1,2}}})
+local a=np.array({1,2,3},'int32')
+local b=np.flip(np.array({4,5,6},'int32'))
+local c=np.column_stack({a,b})
+same(c:tolist(),{{1,6},{2,5},{3,4}})
+a[1]=99;b[1]=88
+same(c:tolist(),{{1,6},{2,5},{3,4}}) -- output must be a copy
+local unicode=np.hstack({np.array({'東'},'U2'),np.array({'界'},'U3')})
+assert(unicode.dtype=='<U3');same(unicode:tolist(),{'東','界'})
+local one=np.vstack({np.array({},'float64'),np.array({},'float64')})
+same(one.shape,{2,0})
+assert(not pcall(function()np.hstack({})end))
+assert(not pcall(function()np.vstack({np.zeros({2,2}),np.zeros({3,3})})end))
+assert(not pcall(function()np.dstack({np.zeros({2,2}),np.zeros({3,2})})end))
+assert(not pcall(function()np.column_stack({np.zeros({2,2}),np.zeros({3,2})})end))
+assert(not pcall(function()np.hstack({np.array({1,2},'int32'),np.array({3.5},'float64')},{dtype='int32',casting='safe'})end))
+same(np.hstack({np.array({1,2},'int32'),np.array({3.5},'float64')},{dtype='float64'}):tolist(),{1,2,3.5})
+print('shape stack regression: ok')

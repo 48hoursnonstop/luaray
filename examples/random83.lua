@@ -1,0 +1,7 @@
+local np=require('luaray_core')
+local rng=np.random.default_rng(83)
+local g=rng:geometric({{.2},{.8}},{2,3})
+local p=rng:poisson(np.array({1,5,20}),{2,3})
+assert(g.dtype=='int64' and g.shape[1]==2 and g.shape[2]==3)
+assert(p.dtype=='int64' and p.shape[1]==2 and p.shape[2]==3)
+print('geometric:',g:tolist()[1][1], 'poisson:',p:tolist()[1][1], 'next PCG64:',rng:raw_hex())

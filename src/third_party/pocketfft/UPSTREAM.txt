@@ -1,0 +1,17 @@
+Repository: https://github.com/mreineck/pocketfft
+Commit pinned by NumPy 286e698f1dcf601648b165f48485ceaeec9c6231:
+33ae5dc94c9cdc7f1c78346504a85de87cadaa12
+
+pocketfft_hdronly.h git blob:
+66eea0680817e09fb1331ce9729490115dd225a6
+SHA-256:
+50f4ddbe60432325f560c706b6f1c49f9e0949fc7f20ae6499f2299e37d9790c
+
+LICENSE.md git blob:
+c3a4c06a92d024e12ab76ce6b20eae815979552e
+README.md git blob:
+9b9058954f7f2e27a5396db47ee570e71d6d820f
+
+GitHub Download ZIP omits submodule payloads. These files were copied from the
+uploaded official NumPy 2.5.3 source distribution only after verifying that
+their Git blob IDs match the exact submodule commit pinned by NumPy main.

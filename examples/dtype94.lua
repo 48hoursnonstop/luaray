@@ -1,0 +1,8 @@
+local np = require('luaray_core')
+assert(np.issubdtype('int64', 'integer'))
+assert(np.issubdtype('float16', 'inexact'))
+assert(np.issubdtype('timedelta64[ns]', 'signedinteger'))
+assert(not np.issubdtype('bool', 'number'))
+assert(np.min_scalar_type('mañana') == '<U6')
+assert(np.min_scalar_type('🐈') == '<U1')
+print('dtype94 example: ok')

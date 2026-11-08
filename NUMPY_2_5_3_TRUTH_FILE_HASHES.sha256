@@ -1,0 +1,4 @@
+09b04d56271fa78c43f6aca66ec06c802b0b22b026ae2fa6153575459b6dab53  numpy-2.5.3/numpy/_core/fromnumeric.py
+724facf7e63c5b8fcc2fac14bf31a02cb048d9e28f516d86502ba5077a425476  numpy-2.5.3/numpy/_core/_methods.py
+1bfda5658c09101dd6557fcb6f235ed63b0f57cdf01b07fb9e3166a25f724c64  numpy-2.5.3/numpy/_core/src/multiarray/multiarraymodule.c
+751f299688875e7bd871ae9fd527d3a114d34c2b13fef8faa3a49671c8302380  numpy-2.5.3/numpy/_core/src/multiarray/compiled_base.c

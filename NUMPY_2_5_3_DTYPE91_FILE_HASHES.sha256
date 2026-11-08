@@ -1,0 +1,3 @@
+738b9f8541c0f865ad34535b81772ce39c179e2da1f46afbf1edb83b71871cfd  numpy/_core/src/multiarray/common_dtype.c
+4c4dba0c4313399305bedabb7b4e40c30370eab78edf543de224f93c186288a8  numpy/_core/src/multiarray/convert_datatype.c
+8d7d834ac7e7c56ef22c801ba84066acfae21b37be5889869d68318584a027bf  numpy/_core/src/multiarray/array_coercion.c

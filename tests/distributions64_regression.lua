@@ -1,0 +1,25 @@
+local np=require('luaray_core')
+assert(np._version=='0.97.0-dev')
+local r=np.random.default_rng(42)
+local a=r:geometric(0.35,{2,3})
+assert(a.dtype=='int64' and a.shape[1]==2 and a.shape[2]==3)
+for i=1,2 do for j=1,3 do assert(math.type(a:get(i,j))=='integer' and a:get(i,j)>=1) end end
+assert(math.type(r:geometric(1))=='integer')
+local x=np.random.default_rng(42)
+local y=np.random.default_rng(42)
+local empty=x:geometric(0.1,{0})
+assert(empty.dtype=='int64' and empty.shape[1]==0 and x:raw_hex()==y:raw_hex())
+local z=np.random.default_rng(42)
+local ones=z:geometric(1,{6})
+for i=1,6 do assert(ones:get(i)==1) end
+assert(z:raw_hex()~=y:raw_hex())
+for _,prob in ipairs({-1,0,1.01,math.huge,-math.huge}) do
+    local rng=np.random.default_rng(42)
+    local ref=np.random.default_rng(42)
+    assert(not pcall(function() rng:geometric(prob) end))
+    assert(rng:raw_hex()==ref:raw_hex())
+end
+local q=np.random.default_rng(8)
+local t=q:geometric(0.25,{})
+assert(t.dtype=='int64' and #t.shape==0 and t:get()>=1)
+print('distributions64 Lua regression passed')

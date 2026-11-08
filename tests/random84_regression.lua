@@ -1,0 +1,57 @@
+local np=require('luaray_core')
+assert(np._version=='0.97.0-dev')
+local checked=0
+local function rejected(f)
+ local r=np.random.default_rng(840084)
+ local reference=np.random.default_rng(840084)
+ local ok=pcall(function()f(r)end)
+ assert(not ok,('expected failure %d'):format(checked+1))
+ assert(r:raw_hex()==reference:raw_hex(),'invalid argument consumed PCG64')
+ checked=checked+1
+end
+-- Bad probabilities, counts, broadcast shapes, floats in integer ndarrays.
+rejected(function(r)r:binomial({1,2},{.5,-.2})end)
+rejected(function(r)r:binomial({1,2},{.5,1.2})end)
+rejected(function(r)r:binomial({1,2},{.5,0/0})end)
+rejected(function(r)r:binomial({1,2},{.5,1/0})end)
+rejected(function(r)r:binomial({1,2},{.5,-1/0})end)
+rejected(function(r)r:binomial({1,-2},{.5,.5})end)
+rejected(function(r)r:binomial({1,1e13},{.5,.5})end)
+rejected(function(r)r:binomial({1,2},{.5,.5},{0,3})end)
+rejected(function(r)r:binomial({1,2,3},{.5,.5})end)
+rejected(function(r)r:binomial(np.array({1.,2.},'float64'),.5)end)
+rejected(function(r)r:binomial(np.array(1.,'float32'),.5)end)
+rejected(function(r)r:binomial({1,2},nil)end)
+rejected(function(r)r:binomial(nil,{.5,.5})end)
+rejected(function(r)r:negative_binomial({1,-2},.5)end)
+rejected(function(r)r:negative_binomial({1,0},.5)end)
+rejected(function(r)r:negative_binomial({1,1/0},.5)end)
+rejected(function(r)r:negative_binomial({1,0/0},.5)end)
+rejected(function(r)r:negative_binomial({1,2},{.5,.0001})end)
+rejected(function(r)r:negative_binomial({1,2},{.5,1.2})end)
+rejected(function(r)r:negative_binomial({1,2},{.5,0/0})end)
+rejected(function(r)r:negative_binomial({1,1e7},.5)end)
+rejected(function(r)r:negative_binomial({1,2},{.5,.5},{0,3})end)
+rejected(function(r)r:negative_binomial({1,2,3},{.5,.5})end)
+rejected(function(r)r:negative_binomial({1,2},nil)end)
+rejected(function(r)r:negative_binomial(nil,{.5,.5})end)
+-- No-size broadcast, transposed and reversed integer-parameter arrays.
+local r=np.random.default_rng(84)
+local b=r:binomial(np.transpose(np.array({{5,10,20}},'int64')),{{.1,.5,.9}})
+assert(b.dtype=='int64' and b.shape[1]==3 and b.shape[2]==3)
+local neg=r:negative_binomial(np.flip(np.array({1.5,2.5,3.5}),1), {.2,.5,.99})
+assert(neg.dtype=='int64' and neg.shape[1]==3)
+local zero=r:binomial({0,5},{.1,.9},{0,2})
+assert(zero.dtype=='int64' and zero.shape[1]==0 and zero.shape[2]==2)
+assert(type(r:negative_binomial(np.array(2.5),np.array(.6)))=='number')
+assert(type(r:binomial(np.array(8,'int64'),np.array(.6)))=='number')
+-- Empirical checks complement differential tests; do not replace them.
+local vals=np.random.default_rng(840):binomial(100,.3,{20000}):tolist()
+local sum=0
+for i=1,#vals do assert(vals[i]>=0 and vals[i]<=100);sum=sum+vals[i]end
+assert(math.abs(sum/#vals-30)<.5)
+local vals2=np.random.default_rng(841):negative_binomial(10,.5,{20000}):tolist()
+local sum2=0
+for i=1,#vals2 do assert(vals2[i]>=0);sum2=sum2+vals2[i]end
+assert(math.abs(sum2/#vals2-10)<.5)
+print('random84 regressions: '..checked..' invalid cases, 40000 statistical samples, shape/view checks passed')

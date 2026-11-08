@@ -1,0 +1,11 @@
+local np=require('luaray_core')
+local rng=np.random.default_rng(2026)
+local loc=np.array({{0},{5}},'float64')
+local sigma=np.array({{0.2,0.5,1.0}},'float64')
+local samples=rng:lognormal(loc,sigma)
+assert(samples.shape[1]==2 and samples.shape[2]==3)
+print('lognormal, 2 centers x 3 sigmas:')
+for _,row in ipairs(samples:tolist()) do print(table.concat(row,', ')) end
+local a=rng:weibull(np.flip(np.array({.5,1,2},'float64'),1),{2,3})
+assert(a.shape[1]==2 and a.shape[2]==3)
+print('weibull with reverse-stride parameter:',table.concat(a:tolist()[1],', '))

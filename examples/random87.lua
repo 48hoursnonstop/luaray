@@ -1,0 +1,8 @@
+local np=require('luaray_core')
+local rng=np.random.default_rng(87)
+local zipf=rng:zipf({{1.5},{3},{10}}, {3,4})
+local h=rng:hypergeometric({{5},{10}},{{20,40,60}},3)
+print('zipf dtype '..zipf.dtype..' shape '..table.concat(zipf.shape,','))
+print('hypergeometric dtype '..h.dtype..' shape '..table.concat(h.shape,','))
+assert(zipf.shape[1]==3 and zipf.shape[2]==4)
+assert(h.shape[1]==2 and h.shape[2]==3)

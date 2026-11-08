@@ -1,3 +1,21 @@
+## 0.100 — NumPy 2.5.3 take and legacy string conversion
+
+The native ln_take subsystem follows item_selection.c's PyArray_TakeFrom and
+npy_fasttake_impl: axis shape replacement, same-kind index conversion,
+C-contiguous source, staged/typed output, preconversion and per-index chunk
+loads. Lua coordinates are explicitly adapted. Public methods/wrappers and
+reference tests were inspected; hashes are pinned in
+NUMPY_2_5_3_TAKE100_FILE_HASHES.sha256. Legacy string conversion was additionally
+checked with actual NumPy astype/copyback behavior for truncation errors,
+failed-cell preservation and embedded NUL characters.
+
+The wrap algorithm uses modulo instead of repeated addition/subtraction.
+The empty-axis zero-trailing-chunk infinite loop is deliberately rejected;
+one actual NumPy subprocess timeout confirms the representative call. Three
+retained variants remain outside the 6,704 original parity cases. NumPy source
+and executable oracle are both 2.5.3; earlier 2.3.5 fixtures are unchanged.
+No Python implementation is executed in the normal Lua runtime.
+
 ## 0.99.1 — inverse-exponential precision on older libm
 
 The same NumPy distributions.c inverse-CDF expression is evaluated in double

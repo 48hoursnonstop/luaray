@@ -1,3 +1,20 @@
+# Current checkpoint — 0.100 native take release gate
+
+0.99.1 is published (d6b7778); exact versioned Ubuntu CI 42527745200 passed.
+Active worktree .dev/take100 branch take100 has VERSION 0.100.0-dev, native
+np.take/ndarray:take, six-unit sanitizer audit and bilingual API reference.
+All 117 frozen fixture files passed; new take 6,704 cases/324,615 checks,
+63 Lua checks, C tests, reproducibility and public example passed. ASan/UBSan:
+three native and fourteen Lua suites, linked dependencies uninstrumented,
+leaks disabled. Older checkpoint sections below are historical.
+
+Next gate: inspect diff, commit, clean source packaging/rebuild/full tests,
+merge into main, public tag/release/Downloads artifact and actual Ubuntu CI.
+Do not claim 0.100 published until those actions finish. Keep immutable older
+archives. Then continue take_along_axis/put_along_axis and dependency parity;
+user explicitly requested sustained work. luanimath remains unfinished at
+/mnt/datos/luanimath. No overall completion percentage is justified.
+
 # Active dependency work
 
 ## Confirmed latest published release

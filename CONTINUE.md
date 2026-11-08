@@ -1,5 +1,31 @@
 # Active dependency work
 
+## Confirmed latest published release
+
+0.99.1-dev is published at
+https://github.com/48hoursnonstop/luaray/releases/tag/v0.99.1-dev (d6b7778).
+Source SHA 8ac7d2dc604feabb42c0f260ee9da4e8c62c8dddb4ef29ca58ebd4c576ac70fe;
+639 source files, 638 manifest entries, clean rebuild/full 116 suites/examples
+passed. Four-unit ASan/UBSan passed (2 native, 12 Lua suites). Public asset and
+Downloads source/checksum are present. Exact versioned CI run 42527745200 passed
+on Ubuntu 24.04. Earlier corrected-code run 42526947924 also passed.
+
+Active development is now in worktree .dev/take100, branch take100, merged main
+through the patch release. The native take implementation compiles and real Lua
+examples pass. Generated NumPy corpus has 6584 cases, NOT yet all passed: Lua's
+32767 local-variable compiler limit required splitting fixture functions (fixed),
+and empty NumPy shapes such as (0,3) need explicit reshape after Lua construction
+(fixture harness correction in progress). Assertions remain strict. No take
+release/parity claim yet. Current runtime version in that worktree is still0.99.1.
+
+NumPy 2.5.3 take on np.empty((3,0,0)), indices=[0], axis=1, mode='wrap' was
+executed in a bounded subprocess; it printed version/entered and timed out after
+3 seconds. Three hang-class variants are retained outside original parity in
+tests/take100_reference_differences.lua; only the representative was actually
+executed upstream. Lua core raises a real error on these inputs. Keep diagnostics
+separate. Out scalar identity was checked against NumPy and fixed to return the
+actual out ndarray even for zero-dimensional output.
+
 ## Current — 0.99.1 portability correction
 
 Ubuntu native CI initially failed inverse-exponential float32 rounding; direct

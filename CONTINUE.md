@@ -12,10 +12,16 @@ Directed ASan/UBSan instruments all three changed C units, dependencies excluded
 leaks disabled. Forty original numeric-endian states are explicitly blocked,
 retained and diagnosed, never counted as parity.
 
-Next steps: finalize source release with make release, verify/extract/rebuild,
-SHA-256, publish the authorized public GitHub milestone and provide a Downloads
-copy. Then continue the next dependency subsystem; do not stop just at a release.
-Next technical audit: copyto/putmask conversion and empty values/masks, followed
+0.98 is now clean-verified and publicly published at
+https://github.com/48hoursnonstop/luaray/releases/tag/v0.98.0-dev (tag commit 3e9e2d9).
+Archive SHA-256: add9ff27c360878b3a86d346bdcc1ccba58d88ff8ec85f130c9c50874be2c9c8.
+GitHub asset digest matches, and the Downloads copy is
+/home/yhwh/Downloads/LuaRay-0.98.0-dev-source-20261108.tar.gz with its checksum.
+623 source files, 622 manifest entries, actual clean full-test and example passed.
+Immutable archive/reports/logs are preserved under releases/.
+
+Continue the next dependency subsystem; do not stop just at a release.
+Current 0.99 technical audit: copyto/putmask conversion and empty values/masks, followed
 by more indexing/assignment and numeric descriptor prerequisites.
 
 Development oracle: .dev/venv has NumPy 2.5.3; pinned source .dev/numpy-2.5.3.

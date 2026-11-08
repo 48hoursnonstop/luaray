@@ -1,3 +1,16 @@
+## 0.99.1 — inverse-exponential precision on older libm
+
+The same NumPy distributions.c inverse-CDF expression is evaluated in double
+before float32 rounding to avoid observed glibc 2.39 log1pf errors. Uniform input
+precision and PCG64 consumption are unchanged. This is an explicit numerical
+evaluation difference from a direct platform log1pf call, verified against the
+existing exact oracle and 80-digit arithmetic. No cross-platform bit guarantee
+for all functions is inferred. The official diagnostic package metadata is at
+https://packages.ubuntu.com/noble/amd64/libc6/download ; tested archive SHA-256
+ff5557d99b51f761c4b7c92368b9cc45565eda17df9bf9eb4b134d09825008be.
+The library was extracted locally and only diagnostic functions loaded; actual
+Ubuntu full-suite results come from remote CI 42526947924.
+
 ## 0.99 — NumPy 2.5.3 raw masked assignment
 
 `ln_write.c` follows array_assign_array.c, array_assign_scalar.c, shape.c's

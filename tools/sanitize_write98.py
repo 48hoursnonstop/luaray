@@ -15,6 +15,7 @@ flags=['-O1','-g','-std=c11','-Wall','-Wextra','-Wpedantic','-fPIC',
        '-fsanitize=address,undefined','-fno-omit-frame-pointer','-Isrc']
 parser=argparse.ArgumentParser()
 parser.add_argument('--memory99',action='store_true',help='also execute 0.99 native and Lua suites')
+parser.add_argument('--libm-fix',action='store_true',help='also instrument the changed random sampler and run exponential suites')
 options=parser.parse_args()
 
 def run(args,**kwargs):
@@ -26,11 +27,13 @@ def libs(package,fallback):
     return shlex.split(result.stdout) if result.returncode==0 else fallback
 
 changed=['ln_write','ln_dtype_transfer','lua_module']
+if options.libm_fix:changed.append('ln_random')
 for name in changed:
     run(cc+flags+['-c',f'src/{name}.c','-o',BUILD/f'{name}.o'])
 normal=sorted(p for p in (ROOT/'build').glob('ln_*.o') if p.stem not in changed and not p.stem.endswith('_san'))
 assert normal,'build normal native objects before running this tool'
 core_objects=normal+[BUILD/'ln_write.o',BUILD/'ln_dtype_transfer.o']
+if options.libm_fix:core_objects.append(BUILD/'ln_random.o')
 link=['-fsanitize=address,undefined']
 native_libs=['-lm']+libs('cblas',['-lblas'])+libs('lapack',['-llapack'])
 run(cxx+link+['-shared']+core_objects+[BUILD/'lua_module.o']+
@@ -50,6 +53,7 @@ tests=['write98_regression','put98_differential_generated','place98_differential
              'write98_blocked','memory97_regression','memory97_differential_generated',
              'overlap97_differential_generated']
 if options.memory99:tests+=['memory99_regression','copyto99_differential_generated','putmask99_differential_generated']
+if options.libm_fix:tests+=['exponential_regression','exponential_differential_generated']
 for test in tests:
     run(['lua5.4',f'tests/{test}.lua'],env=env)
-print('PASS: changed ln_write, ln_dtype_transfer and lua_module instrumented; other dependencies uninstrumented; leak detection disabled')
+print('PASS: changed '+', '.join(changed)+' instrumented; other dependencies uninstrumented; leak detection disabled')

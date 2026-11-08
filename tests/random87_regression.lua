@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.99.0-dev')
+assert(np._version=='0.99.1-dev')
 local invalid_count=0
 local function invalid(fn)
   local r=np.random.default_rng(870087)

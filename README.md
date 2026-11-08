@@ -1,3 +1,11 @@
+## LuaRay 0.99.1-dev — float32 numerical portability
+
+Correct inverse-exponential rounding across older/newer libm versions without
+changing PCG64 consumption or weakening exact reference checks. See the
+[English portability record](docs/en/portability.md) and
+[registro de portabilidad en español](docs/es/portability.md). All 116 native
+fixture files passed on Ubuntu CI and locally on Arch with the correction.
+
 ## LuaRay 0.99.0-dev — source-derived masked assignment
 
 `copyto` now follows weak-scalar dtype rules, literal/array mask conversion,

@@ -1,3 +1,16 @@
+## LuaRay 0.99.0-dev — source-derived masked assignment
+
+`copyto` now follows weak-scalar dtype rules, literal/array mask conversion,
+destination-stride traversal, live shared masks, overlap direction, leading
+singleton source dimensions and conversion/error boundaries. `putmask` accepts
+numeric/complex/string masks and distinguishes empty Lua values from strong
+array casting. Protected writeback remains distinct from place's live values.
+
+See [English masked-write contracts](docs/en/masked_writes.md) and
+[contratos de escritura con máscara en español](docs/es/masked_writes.md).
+`make memory99-test` executes the new NumPy 2.5.3 corpus. Complete NumPy parity
+is not claimed; numeric byte-order descriptors remain pending.
+
 ## LuaRay 0.98.0-dev — indexed and selected writes
 
 Native `np.put(a, indices, values, mode)` / `a:put(...)` and

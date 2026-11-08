@@ -1,5 +1,5 @@
 local np = require('luaray_core')
-assert(np._version == '0.98.0-dev')
+assert(np._version == '0.99.0-dev')
 local function same(a,b)
   if type(a)=='table' then
     assert(type(b)=='table' and #a==#b)

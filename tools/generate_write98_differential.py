@@ -55,8 +55,8 @@ end
 """
 
 class Suite:
-    def __init__(self, name):
-        self.name, self.lines, self.count = name, [HEADER], 0
+    def __init__(self, name, generator='generate_write98_differential.py'):
+        self.name, self.lines, self.count = name, [HEADER.replace('generate_write98_differential.py',generator)], 0
 
     def case(self, label, base, view, op, selector, values, *, mode='raise',
              selector_expr=None, values_expr=None, method=False, setup=None):
@@ -80,8 +80,10 @@ class Suite:
                         raw = np.asarray(selector, dtype=np.intp)
                         translated = np.where(raw > 0, raw-1, raw) if np.any(raw>0) else raw
                     np.put(a, translated, values, mode=mode)
+                elif op == 'copyto':
+                    np.copyto(a, values, casting=mode, where=selector)
                 else:
-                    np.place(a, selector, values)
+                    getattr(np,op)(a, selector, values)
         except (ValueError, TypeError, IndexError, OverflowError) as error:
             caught = type(error).__name__
         if not original.dtype.isnative and original.dtype.kind not in 'SU':
@@ -103,7 +105,9 @@ class Suite:
         self.lines.extend(setup or [])
         self.lines.extend([f'local selector={s_expr}', f'local values={v_expr}'])
         call = f'a:put(selector,values,{lua(mode)})' if method else (
-            f'np.put(a,selector,values,{lua(mode)})' if op == 'put' else 'np.place(a,selector,values)')
+            f'np.put(a,selector,values,{lua(mode)})' if op == 'put' else
+            f'np.copyto(a,values,{lua(mode)},selector)' if op == 'copyto' else
+            f'np.{op}(a,selector,values)')
         self.lines.append(f'local ok,result=pcall(function() return {call} end)')
         self.lines.append(f'assert(ok=={str(caught is None).lower()},{lua(label + ": acceptance")})')
         self.lines.append(f'if ok then assert(result==nil,{lua(label + ": return")}) end')
@@ -145,116 +149,120 @@ def vals_array(dtype, n):
     if kind == 'f': a = a + .25
     return a.astype(dtype)
 
-put = Suite('put98')
-place = Suite('place98')
-for dtype in DTYPES:
-    for view_name, view in VIEWS.items():
-        size = view(base_array(dtype))[0].size
-        for n in [1,2,7]:
-            values = vals_array(dtype,n)
-            for mode in ['raise','wrap','clip']:
-                raw = [1, size, -1, 2, 2, -size]
-                if mode != 'raise': raw += [size+4, -size-3]
-                put.case(f'{dtype}/{view_name}/{n}/{mode}', base_array(dtype), view, 'put',
-                         np.array(raw,dtype=np.int64).reshape(2,-1),values,mode=mode,method=n==2)
-            for step in [2,3]:
-                a = view(base_array(dtype))[0]
-                mask = np.arange(size).reshape(a.shape)%step==0
-                place.case(f'{dtype}/{view_name}/{n}/step{step}',base_array(dtype),view,'place',mask,values)
+def main():
+    put = Suite('put98')
+    place = Suite('place98')
+    for dtype in DTYPES:
+        for view_name, view in VIEWS.items():
+            size = view(base_array(dtype))[0].size
+            for n in [1,2,7]:
+                values = vals_array(dtype,n)
+                for mode in ['raise','wrap','clip']:
+                    raw = [1, size, -1, 2, 2, -size]
+                    if mode != 'raise': raw += [size+4, -size-3]
+                    put.case(f'{dtype}/{view_name}/{n}/{mode}', base_array(dtype), view, 'put',
+                             np.array(raw,dtype=np.int64).reshape(2,-1),values,mode=mode,method=n==2)
+                for step in [2,3]:
+                    a = view(base_array(dtype))[0]
+                    mask = np.arange(size).reshape(a.shape)%step==0
+                    place.case(f'{dtype}/{view_name}/{n}/step{step}',base_array(dtype),view,'place',mask,values)
 
-# Scalar/list conversion differs from strong ndarray casting.
-for dtype in ['uint8','int32','float32','bool','complex64']:
-    for values in [1,1.5,[3,4],[[3],[4]],np.array([2.5]),np.array([3],dtype='int16'),
-                   np.array([],dtype='float64'),[],[300],300,np.array([300]),float('nan')]:
-        label = f'conversion/{dtype}/{type(values).__name__}/{repr(values)}'
-        put.case(label,base_array(dtype),VIEWS['plain'],'put',[1,4,-1],values)
-        place.case(label,base_array(dtype),VIEWS['plain'],'place',np.arange(12)%3==0,values)
+    # Scalar/list conversion differs from strong ndarray casting.
+    for dtype in ['uint8','int32','float32','bool','complex64']:
+        for values in [1,1.5,[3,4],[[3],[4]],np.array([2.5]),np.array([3],dtype='int16'),
+                       np.array([],dtype='float64'),[],[300],300,np.array([300]),float('nan')]:
+            label = f'conversion/{dtype}/{type(values).__name__}/{repr(values)}'
+            put.case(label,base_array(dtype),VIEWS['plain'],'put',[1,4,-1],values)
+            place.case(label,base_array(dtype),VIEWS['plain'],'place',np.arange(12)%3==0,values)
 
-# Values and selectors sharing the actual backing array. Original references
-# retain upstream live place reads rather than substituting a snapshot oracle.
-for view_name,view in VIEWS.items():
-    for dtype in ['int32','bool','float64']:
-        base = base_array(dtype)
-        values = base.reshape(-1)
-        size = view(base)[0].size
-        put.case(f'alias-values/{dtype}/{view_name}',base,view,'put',[size,1,2,3],values,values_expr='base:reshape({12})')
-        base = base_array(dtype)
-        values = base.reshape(-1)
-        place.case(f'alias-values/{dtype}/{view_name}',base,view,'place',np.arange(size)%3!=1,values,values_expr='base:reshape({12})')
-        if dtype == 'bool':
-            base=base_array(dtype)
-            mask=view(base)[0]
-            place.case(f'alias-mask/{view_name}',base,view,'place',mask,[False,True],selector_expr='a')
-
-for view_name,view in VIEWS.items():
-    for alias in ['none','values','indices']:
-        base=np.arange(1,13,dtype=np.int64).reshape(3,4)
-        selector=np.array([1,99],dtype=np.int64)
-        values=np.array([90,91],dtype=np.int64)
-        kwargs={}
-        if alias=='values': values=base.reshape(-1);kwargs['values_expr']='base:reshape({12})'
-        if alias=='indices':
-            base *= -1; base.flat[1]=-99
-            selector=base.reshape(-1);kwargs['selector_expr']='base:reshape({12})'
-        put.case(f'failure-writeback/{view_name}/{alias}',base,view,'put',selector,values,**kwargs)
-
-for view_name,view in VIEWS.items():
-    base=-np.arange(1,13,dtype=np.int64).reshape(3,4)
-    put.case(f'alias-indices/{view_name}',base,view,'put',base.reshape(-1),[70,80],
-             selector_expr='base:reshape({12})',mode='wrap')
-
-for selector in [np.array([1.5]),np.array([1],dtype='uint64'),np.array(['1']),[1.5],1.5,
-                 [[1,2],[3,4]],[],np.array([],dtype='float64'),['1'],['3','-1']]:
-    put.case(f'indices/{repr(selector)}',base_array('int32'),VIEWS['plain'],'put',selector,[42])
-
-for shape in [(),(0,),(2,0),(1,)]:
-    for selector in [[],[1],[-1],[99]]:
-        for values in [[],[4]]:
-            base=np.zeros(shape,dtype=np.int32)
-            put.case(f'empty-scalar/{shape}/{selector}/{values}',base,VIEWS['plain'],'put',selector,values)
-    for values in [[],[4]]:
-        for truth in [True,False]:
-            base=np.zeros(shape,dtype=np.int32)
-            mask=np.full(shape,truth,dtype=bool)
-            place.case(f'empty-scalar/{shape}/{values}/{truth}',base,VIEWS['plain'],'place',mask,values)
-
-for mask in [np.arange(12)%3,np.arange(12,dtype=float)-4,np.arange(12).reshape(2,6),
-             np.array([0,1,1j]*4),np.array(['','a','0']*4),[0,1,0]*4,
-             ['','a','0']*4,[0,'0',False]*4,[True],[],True,np.array([float('nan')]*12)]:
-    place.case(f'mask/{repr(mask)}',base_array('int32'),VIEWS['plain'],'place',mask,[40,50])
-
-for dtype in ['int8','uint8','float32','bool','complex128','datetime64[D]','timedelta64[h]']:
-    for values in [['2','3'],['','2'],['  ','3'],['300'],['NaN'],['3.5'],['2+3j'],['2026-11-08']]:
-        put.case(f'string-input/{dtype}/{values}',base_array(dtype),VIEWS['plain'],'put',[1,-1],values)
-        place.case(f'string-input/{dtype}/{values}',base_array(dtype),VIEWS['plain'],'place',np.arange(12)%3==0,values)
-        array_values=np.array(values)
-        put.case(f'string-array/{dtype}/{values}',base_array(dtype),VIEWS['plain'],'put',[1,-1],array_values)
-        place.case(f'string-array/{dtype}/{values}',base_array(dtype),VIEWS['plain'],'place',np.arange(12)%3==0,array_values)
-
-# Converted/noncontiguous values and masks, source/endian conversion and
-# shared zero-stride destinations exercise the actual writeback loop.
-for dtype in ['int32','float32','complex128','>i4','>f8']:
+    # Values and selectors sharing the actual backing array. Original references
+    # retain upstream live place reads rather than substituting a snapshot oracle.
     for view_name,view in VIEWS.items():
-        for reverse in [False,True]:
-            base=base_array(dtype)
-            values=base[:,::-1] if reverse else base.T
-            value_expr='np.flip(base,2)' if reverse else 'np.transpose(base)'
-            put.case(f'noncontiguous-values/{dtype}/{view_name}/{reverse}',base,view,'put',[1,-1,2,3],values,values_expr=value_expr)
-            base=base_array(dtype);values=base[:,::-1] if reverse else base.T
-            size=view(base)[0].size
-            place.case(f'noncontiguous-values/{dtype}/{view_name}/{reverse}',base,view,'place',np.arange(size)%3==0,values,values_expr=value_expr)
+        for dtype in ['int32','bool','float64']:
+            base = base_array(dtype)
+            values = base.reshape(-1)
+            size = view(base)[0].size
+            put.case(f'alias-values/{dtype}/{view_name}',base,view,'put',[size,1,2,3],values,values_expr='base:reshape({12})')
+            base = base_array(dtype)
+            values = base.reshape(-1)
+            place.case(f'alias-values/{dtype}/{view_name}',base,view,'place',np.arange(size)%3!=1,values,values_expr='base:reshape({12})')
+            if dtype == 'bool':
+                base=base_array(dtype)
+                mask=view(base)[0]
+                place.case(f'alias-mask/{view_name}',base,view,'place',mask,[False,True],selector_expr='a')
 
-def broadcast_view(base):
-    return np.broadcast_arrays(base,np.zeros((3,4)))[0], 'np.broadcast_arrays(base,np.zeros({3,4}))[1]'
-for dtype in ['int32','float64','bool']:
-    base=np.arange(4).reshape(1,4).astype(dtype)
-    put.case(f'zero-stride/{dtype}',base,broadcast_view,'put',[1,5,-1],[7,8])
-    base=np.arange(4).reshape(1,4).astype(dtype)
-    place.case(f'zero-stride/{dtype}',base,broadcast_view,'place',np.arange(12)%3!=1,[True,False] if dtype=='bool' else [7,8])
+    for view_name,view in VIEWS.items():
+        for alias in ['none','values','indices']:
+            base=np.arange(1,13,dtype=np.int64).reshape(3,4)
+            selector=np.array([1,99],dtype=np.int64)
+            values=np.array([90,91],dtype=np.int64)
+            kwargs={}
+            if alias=='values': values=base.reshape(-1);kwargs['values_expr']='base:reshape({12})'
+            if alias=='indices':
+                base *= -1; base.flat[1]=-99
+                selector=base.reshape(-1);kwargs['selector_expr']='base:reshape({12})'
+            put.case(f'failure-writeback/{view_name}/{alias}',base,view,'put',selector,values,**kwargs)
 
-put.finish()
-place.finish()
-(ROOT/'tests/write98_blocked_reference.lua').write_text(
-    '-- Original NumPy 2.5.3 outputs blocked by numeric byte-order support.\nreturn {\n'+
-    ',\n'.join('{'+','.join(k+'='+lua(v) for k,v in case.items())+'}' for case in BLOCKED)+'\n}\n')
-print('blocked original states:',len(BLOCKED))
+    for view_name,view in VIEWS.items():
+        base=-np.arange(1,13,dtype=np.int64).reshape(3,4)
+        put.case(f'alias-indices/{view_name}',base,view,'put',base.reshape(-1),[70,80],
+                 selector_expr='base:reshape({12})',mode='wrap')
+
+    for selector in [np.array([1.5]),np.array([1],dtype='uint64'),np.array(['1']),[1.5],1.5,
+                     [[1,2],[3,4]],[],np.array([],dtype='float64'),['1'],['3','-1']]:
+        put.case(f'indices/{repr(selector)}',base_array('int32'),VIEWS['plain'],'put',selector,[42])
+
+    for shape in [(),(0,),(2,0),(1,)]:
+        for selector in [[],[1],[-1],[99]]:
+            for values in [[],[4]]:
+                base=np.zeros(shape,dtype=np.int32)
+                put.case(f'empty-scalar/{shape}/{selector}/{values}',base,VIEWS['plain'],'put',selector,values)
+        for values in [[],[4]]:
+            for truth in [True,False]:
+                base=np.zeros(shape,dtype=np.int32)
+                mask=np.full(shape,truth,dtype=bool)
+                place.case(f'empty-scalar/{shape}/{values}/{truth}',base,VIEWS['plain'],'place',mask,values)
+
+    for mask in [np.arange(12)%3,np.arange(12,dtype=float)-4,np.arange(12).reshape(2,6),
+                 np.array([0,1,1j]*4),np.array(['','a','0']*4),[0,1,0]*4,
+                 ['','a','0']*4,[0,'0',False]*4,[True],[],True,np.array([float('nan')]*12)]:
+        place.case(f'mask/{repr(mask)}',base_array('int32'),VIEWS['plain'],'place',mask,[40,50])
+
+    for dtype in ['int8','uint8','float32','bool','complex128','datetime64[D]','timedelta64[h]']:
+        for values in [['2','3'],['','2'],['  ','3'],['300'],['NaN'],['3.5'],['2+3j'],['2026-11-08']]:
+            put.case(f'string-input/{dtype}/{values}',base_array(dtype),VIEWS['plain'],'put',[1,-1],values)
+            place.case(f'string-input/{dtype}/{values}',base_array(dtype),VIEWS['plain'],'place',np.arange(12)%3==0,values)
+            array_values=np.array(values)
+            put.case(f'string-array/{dtype}/{values}',base_array(dtype),VIEWS['plain'],'put',[1,-1],array_values)
+            place.case(f'string-array/{dtype}/{values}',base_array(dtype),VIEWS['plain'],'place',np.arange(12)%3==0,array_values)
+
+    # Converted/noncontiguous values and masks, source/endian conversion and
+    # shared zero-stride destinations exercise the actual writeback loop.
+    for dtype in ['int32','float32','complex128','>i4','>f8']:
+        for view_name,view in VIEWS.items():
+            for reverse in [False,True]:
+                base=base_array(dtype)
+                values=base[:,::-1] if reverse else base.T
+                value_expr='np.flip(base,2)' if reverse else 'np.transpose(base)'
+                put.case(f'noncontiguous-values/{dtype}/{view_name}/{reverse}',base,view,'put',[1,-1,2,3],values,values_expr=value_expr)
+                base=base_array(dtype);values=base[:,::-1] if reverse else base.T
+                size=view(base)[0].size
+                place.case(f'noncontiguous-values/{dtype}/{view_name}/{reverse}',base,view,'place',np.arange(size)%3==0,values,values_expr=value_expr)
+
+    def broadcast_view(base):
+        return np.broadcast_arrays(base,np.zeros((3,4)))[0], 'np.broadcast_arrays(base,np.zeros({3,4}))[1]'
+    for dtype in ['int32','float64','bool']:
+        base=np.arange(4).reshape(1,4).astype(dtype)
+        put.case(f'zero-stride/{dtype}',base,broadcast_view,'put',[1,5,-1],[7,8])
+        base=np.arange(4).reshape(1,4).astype(dtype)
+        place.case(f'zero-stride/{dtype}',base,broadcast_view,'place',np.arange(12)%3!=1,[True,False] if dtype=='bool' else [7,8])
+
+    put.finish()
+    place.finish()
+    (ROOT/'tests/write98_blocked_reference.lua').write_text(
+        '-- Original NumPy 2.5.3 outputs blocked by numeric byte-order support.\nreturn {\n'+
+        ',\n'.join('{'+','.join(k+'='+lua(v) for k,v in case.items())+'}' for case in BLOCKED)+'\n}\n')
+    print('blocked original states:',len(BLOCKED))
+
+if __name__=='__main__':
+    main()

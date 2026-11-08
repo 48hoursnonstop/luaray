@@ -1,0 +1,8 @@
+local np=require('luaray')
+local matrix=np.zeros({3,4},'float32')
+np.copyto(matrix,1.5,'no',{1,0,1,0})
+assert(matrix:get(1,1)==1.5 and matrix:get(1,2)==0)
+local mask=np.greater(matrix,np.array(0,'float32'))
+np.putmask(matrix,mask,{7,8,9})
+assert(matrix:get(1,1)==7 and matrix:get(1,3)==9 and matrix:get(2,1)==8)
+print('LuaRay native masked-write example: passed')

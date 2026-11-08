@@ -1,3 +1,17 @@
+## 0.99 — NumPy 2.5.3 raw masked assignment
+
+`ln_write.c` follows array_assign_array.c, array_assign_scalar.c, shape.c's
+stride permutation, dtype_transfer.c's raw iterators, mask-run wrapper and
+128-element multistep casts. Lua literal resolution follows multiarraymodule.c
+and abstractdtypes.c. Shared dtype transfer fixes preserve source identity bytes,
+memmove overlap and complex real-component temporal conversion. Ten inspected
+source/test hashes are pinned by `NUMPY_2_5_3_MEMORY99_FILE_HASHES.sha256`.
+
+Both source and new executable oracle are NumPy 2.5.3. Original post-error and
+aliasing outcomes are preserved, including non-atomic cases and the descriptor-
+width-dependent cast buffer boundary. No altered reference is used to hide them.
+Historical NumPy 2.3.5 oracle provenance is unchanged.
+
 ## 0.98 — NumPy 2.5.3 indexed and selected writes
 
 `src/ln_write.c` derives from `PyArray_PutTo` in

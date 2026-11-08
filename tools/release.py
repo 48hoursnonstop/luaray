@@ -12,6 +12,10 @@ ROOT=Path(__file__).resolve().parents[1]
 VERSION=(ROOT/'VERSION').read_text().strip()
 NAME='luaray-'+VERSION
 RELEASES=ROOT/'releases';RELEASES.mkdir(exist_ok=True)
+(ROOT/'.dev').mkdir(exist_ok=True)
+coverage=json.loads((ROOT/'compatibility/current.json').read_text())
+assert coverage['version']==VERSION,'release compatibility record has stale version'
+assert not (RELEASES/(NAME+'-verification.json')).exists(),'verified release already exists; preserve immutable archives'
 EXCLUDED={'.git','.dev','artifacts','releases','build','__pycache__','.pytest_cache'}
 files=[]
 for directory,dirs,names in os.walk(ROOT):
@@ -43,10 +47,12 @@ with tempfile.TemporaryDirectory(prefix='clean-release-',dir=ROOT/'.dev') as tem
         env['LUA_PATH']=str(clean/'lua/?.lua')+';;'
         env['LUA_CPATH']=str(clean/'build/?.so')+';;'
         subprocess.run(['lua5.4','examples/writing98.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
+        subprocess.run(['lua5.4','examples/masked_writes99.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
 report=dict(version=VERSION,archive=archive.name,sha256=digest,source_files=len(files),
             manifest_entries=len(files)-1,clean_build='passed',clean_log=log.name,
             differential_fixture_files=len(list((ROOT/'tests').glob('*_differential_generated.lua'))),
-            new_oracle='NumPy 2.5.3',put_cases=1002,place_cases=733,blocked_original_states=40,
+            new_oracle=coverage['new_oracle'],new_reference_cases=coverage['new_reference_cases'],
+            blocked_original_states=coverage['blocked_original_states'],
             runtime='Lua 5.4, native C/C++ module, CBLAS/BLAS and LAPACK; no Python',
             build_flags='C: -O2; C++ PocketFFT: -O0',
             sanitizers='Separate directed audit: ln_write, ln_dtype_transfer and lua_module; other dependencies uninstrumented; leaks disabled')

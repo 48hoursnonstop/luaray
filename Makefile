@@ -802,7 +802,7 @@ dtype94-test: $(BUILD)/lua_runner
 full-test: dtype94-test
 
 # 0.98: flattened indexed and selection-counted writes.
-$(BUILD)/ln_write.o: src/ln_write.c src/ln_write.h src/ln_mapping.h src/ln_core.h | $(BUILD)
+$(BUILD)/ln_write.o: src/ln_write.c src/ln_write.h src/ln_mapping.h src/ln_core.h src/ln_dtype_transfer.h | $(BUILD)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -fPIC -c $< -o $@
 
 $(BUILD)/test_write98_main.o: tests/test_write98_core.c src/ln_write.h | $(BUILD)
@@ -829,3 +829,23 @@ release:
 	python3 tools/release.py
 
 .PHONY: sanitize-write98 release
+
+$(BUILD)/test_memory99_main.o: tests/test_memory99_core.c src/ln_write.h | $(BUILD)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/test_memory99_core: $(BUILD)/test_memory99_main.o $(BUILD)/ln_write.o $(BUILD)/test_core
+	$(CXX) $(LDFLAGS) $(BUILD)/test_memory99_main.o $(filter-out %_san.o,$(wildcard $(BUILD)/ln_*.o)) -lm $(BLAS_LIBS) $(LAPACK_LIBS) -o $@
+
+memory99-test: $(BUILD)/test_memory99_core $(BUILD)/lua_runner
+	./$(BUILD)/test_memory99_core
+	./$(BUILD)/lua_runner tests/memory99_regression.lua
+	./$(BUILD)/lua_runner tests/copyto99_differential_generated.lua
+	./$(BUILD)/lua_runner tests/putmask99_differential_generated.lua
+
+full-test: memory99-test
+.PHONY: memory99-test
+
+sanitize-memory99: $(BUILD)/lua_runner $(BUILD)/luaray_core.so
+	python3 tools/sanitize_write98.py --memory99
+
+.PHONY: sanitize-memory99

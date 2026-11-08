@@ -615,6 +615,15 @@ load_numeric_as_int64_time(const char *src, const ln_dtype *dt, int64_t *out, ln
         case LN_FLOAT: { float v; memcpy(&v,src,4); if(!isfinite(v)||(long double)v>(long double)INT64_MAX||(long double)v<(long double)INT64_MIN){*out=LN_DATETIME_NAT;return 0;} *out=(int64_t)v; return 0; }
         case LN_DOUBLE: { double v; memcpy(&v,src,8); if(!isfinite(v)||(long double)v>(long double)INT64_MAX||(long double)v<(long double)INT64_MIN){*out=LN_DATETIME_NAT;return 0;} *out=(int64_t)v; return 0; }
         case LN_LONGDOUBLE: { long double v; memcpy(&v,src,sizeof(v)); if(!isfinite(v)||v>(long double)INT64_MAX||v<(long double)INT64_MIN){*out=LN_DATETIME_NAT;return 0;} *out=(int64_t)v; return 0; }
+        case LN_CFLOAT: case LN_CDOUBLE: case LN_CLONGDOUBLE: {
+            long double v;
+            if(dt->type_num==LN_CFLOAT){ln_cfloat z;memcpy(&z,src,sizeof(z));v=z.real;}
+            else if(dt->type_num==LN_CDOUBLE){ln_cdouble z;memcpy(&z,src,sizeof(z));v=z.real;}
+            else {ln_clongdouble z;memcpy(&z,src,sizeof(z));v=z.real;}
+            if(!isfinite(v)||v>(long double)INT64_MAX||v<(long double)INT64_MIN)*out=LN_DATETIME_NAT;
+            else *out=(int64_t)v;
+            return 0;
+        }
         default: set_transfer_error(err,"unsupported numeric source for temporal cast"); return -1;
     }
 }
@@ -912,6 +921,17 @@ ln_cast_strided_numeric(const char *src, ln_intp src_stride,
         return -1;
     }
 
+    /* Identity transfers are byte copies, including strings and temporal data.
+     * They may alias during raw assignment; preserve payloads and avoid both
+     * memcpy overlap and destructive string repacking onto the same element. */
+    if (src_dtype == dst_dtype) {
+        size_t width=src_dtype->elsize;
+        if(src_stride==(ln_intp)width && dst_stride==(ln_intp)width)
+            memmove(dst,src,(size_t)count*width);
+        else for(ln_intp i=0;i<count;++i,src+=src_stride,dst+=dst_stride)memmove(dst,src,width);
+        return 0;
+    }
+
     if (ln_string_is_dtype(src_dtype) || ln_string_is_dtype(dst_dtype)) {
         for (ln_intp i=0;i<count;++i,src+=src_stride,dst+=dst_stride) {
             if (ln_string_is_dtype(src_dtype) && ln_string_is_dtype(dst_dtype)) {
@@ -965,7 +985,7 @@ ln_cast_strided_numeric(const char *src, ln_intp src_stride,
     if (src_dtype->type_num == dst_dtype->type_num &&
             src_stride == (ln_intp)src_dtype->elsize &&
             dst_stride == (ln_intp)dst_dtype->elsize) {
-        memcpy(dst, src, (size_t)count * src_dtype->elsize);
+        memmove(dst, src, (size_t)count * src_dtype->elsize);
         return 0;
     }
 

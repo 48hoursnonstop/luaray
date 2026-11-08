@@ -100,6 +100,7 @@ static lua_array *test_array(lua_State *L,int idx);
 static ln_array *broadcast_arg(lua_State *L,int idx);
 static int fail(lua_State *L,const ln_error *e);
 static int push_array(lua_State *L,ln_array *a);
+static ln_array *write98_arg(lua_State *L,int arg,const ln_dtype *dtype,ln_casting casting);
 static int normalize_lua_axis(lua_State *L,lua_Integer raw,int nd,int *axis);
 static int np_transpose(lua_State *L);
 static int np_swapaxes(lua_State *L);
@@ -7228,9 +7229,8 @@ static const luaL_Reg generator_funcs[]={
 };
 
 
-/* ndarray memory/copying APIs. The staging buffers are deliberately constructed
- * before writing: overlapping views, conversion failures and aliased masks
- * must not yield partially modified destinations. */
+/* ndarray overlap inspection and host-facing write adapters. Actual assignment
+ * traversal, aliasing and error mutation are source-derived in ln_write.c. */
 static void mem97_span(const ln_array *a, uintptr_t *low, uintptr_t *high) {
     intptr_t lo=0,hi=0;
     for (int j=0;j<a->nd;j++) {
@@ -7293,8 +7293,8 @@ static int mem97_load_where(lua_State *L,int arg,const ln_array **where,int *sca
     *where=NULL;*scalar_where=1;
     if(lua_type(L,arg)==LUA_TNONE || lua_type(L,arg)==LUA_TNIL)return 0;
     if(lua_type(L,arg)==LUA_TBOOLEAN){*scalar_where=lua_toboolean(L,arg);return 0;}
-    *where=broadcast_arg(L,arg);
-    if((*where)->descr->type_num!=LN_BOOL)return luaL_error(L,"where/mask must have boolean dtype");
+    lua_array *u=test_array(L,arg);
+    *where=(u && u->a->descr->type_num==LN_BOOL)?u->a:write98_arg(L,arg,ln_dtype_by_num(LN_BOOL),LN_SAFE_CASTING);
     return 0;
 }
 static int mem97_scalar_integer_fits(int64_t x,const ln_dtype *d){
@@ -7312,47 +7312,31 @@ static int mem97_scalar_integer_fits(int64_t x,const ln_dtype *d){
     return (uint64_t)x<((uint64_t)1<<bits);
 }
 static int np_copyto(lua_State *L) {
+    int nargs=lua_gettop(L);
     ln_array *dst=check_array(L,1)->a;
-    if(!(dst->flags&LN_ARRAY_WRITEABLE))return luaL_error(L,"destination is read-only");
-    int weak_integer=lua_isinteger(L,2);
-    if(weak_integer && !mem97_scalar_integer_fits((int64_t)lua_tointegerx(L,2,NULL),dst->descr))return luaL_error(L,"integer scalar out of bounds for destination dtype");
+    if(lua_gettop(L)<2 || lua_type(L,2)==LUA_TNIL)return luaL_error(L,"copyto requires a source");
     const ln_array *where=NULL;
     ln_casting casting=LN_SAME_KIND_CASTING;
     int scalar_where=1;
     if(read_casting_arg(L,3,casting,&casting))return 0;
-    mem97_load_where(L,4,&where,&scalar_where);
     const ln_array *src=broadcast_arg(L,2);
     ln_error e={{0}};
-    ln_intp src_st[LN_MAXDIMS]={0},mask_st[LN_MAXDIMS]={0};
-    if(ln_broadcast_strides(dst->nd,dst->dimensions,src->nd,src->dimensions,src->strides,"source",src_st,&e)<0)return fail(L,&e);
-    if(where && ln_broadcast_strides(dst->nd,dst->dimensions,where->nd,where->dimensions,where->strides,"where",mask_st,&e)<0)return fail(L,&e);
-    if(!(weak_integer && dst->descr->type_num!=LN_BOOL && dst->descr->type_num!=LN_STRING && dst->descr->type_num!=LN_UNICODE && dst->descr->type_num!=LN_DATETIME && dst->descr->type_num!=LN_TIMEDELTA) && !ln_dtype_can_cast(src->descr,dst->descr,casting))return luaL_error(L,"Cannot cast array data from dtype('%s') to dtype('%s') under casting rule '%s'",src->descr->name,dst->descr->name,ln_casting_name(casting));
-    ln_intp count=ln_array_size(dst);size_t width=dst->descr->elsize;
-    if(count<0 || (size_t)count>SIZE_MAX/(width?width:1))return luaL_error(L,"output too large");
-    unsigned char *values=(unsigned char*)malloc((size_t)(count?count:1)*width);
-    unsigned char *selection=(unsigned char*)malloc((size_t)(count?count:1));
-    if(!values||!selection){free(values);free(selection);return luaL_error(L,"allocation failed in copyto");}
-    ln_intp ix[LN_MAXDIMS]={0};
-    for(ln_intp k=0;k<count;k++) {
-        int enabled=scalar_where;
-        if(where){const char *wp=where->data;for(int d=0;d<dst->nd;d++)wp+=ix[d]*mask_st[d];enabled=*(const uint8_t*)wp!=0;}
-        selection[k]=(unsigned char)enabled;
-        if(enabled){
-            const char *sp=src->data;for(int d=0;d<dst->nd;d++)sp+=ix[d]*src_st[d];
-            if(ln_cast_strided_numeric(sp,0,src->descr,(char*)values+(size_t)k*width,0,dst->descr,1,&e)<0){free(values);free(selection);return fail(L,&e);}
+    int weak_number=lua_type(L,2)==LUA_TNUMBER;
+    lua_complex *complex=test_complex(L,2);
+    if(weak_number || complex) {
+        const ln_dtype *chosen=src->descr;
+        if(dst->descr->kind=='m' && !(weak_number && !lua_isinteger(L,2) && isnan(lua_tonumberx(L,2,NULL))))chosen=dst->descr;
+        else if(dst->descr->kind=='b'||dst->descr->kind=='i'||dst->descr->kind=='u'||dst->descr->kind=='f'||dst->descr->kind=='c') {
+            if(complex)chosen=ln_resolve_weak_complex_dtype(dst,LN_OP_ADD,&e);
+            else chosen=ln_resolve_weak_scalar_dtype(dst,lua_isinteger(L,2),lua_isinteger(L,2)?lua_tointegerx(L,2,NULL):0,LN_OP_ADD,&e);
+            if(!chosen)return fail(L,&e);
         }
-        mem97_next(dst->nd,dst->dimensions,ix);
+        if(casting==LN_EQUIV_CASTING && chosen!=src->descr)return luaL_error(L,"cannot cast Lua scalar under equiv casting");
+        src=write98_arg(L,2,chosen,LN_UNSAFE_CASTING);
     }
-    memset(ix,0,sizeof(ix));
-    for(ln_intp k=0;k<count;k++){
-        if(selection[k])memcpy(array_ptr_local(dst,ix),values+(size_t)k*width,width);
-        mem97_next(dst->nd,dst->dimensions,ix);
-    }
-    free(values);free(selection);
-    return 0; /* NumPy copyto mutates its destination and returns None. */
+    if(nargs>=4)mem97_load_where(L,4,&where,&scalar_where);
+    return ln_array_copyto(dst,src,where,scalar_where,casting,&e)<0?fail(L,&e):0;
 }
-/* NumPy putmask: both mask and values are flattened in C order, and the
- * values index advances with the destination position, not with true masks. */
 /* Python scalars/sequences are converted directly to the requested descriptor,
  * whereas ndarray operands obey the selected casting rule. Preserve that
  * distinction and keep every temporary rooted on Lua's stack across errors. */
@@ -7380,6 +7364,10 @@ static void write98_fill(lua_State *L,int arg,ln_array *a,int depth,ln_intp *ind
             indices[depth]=(ln_intp)i-1;lua_geti(L,arg,(lua_Integer)i);
             write98_fill(L,-1,a,depth+1,indices);lua_pop(L,1);
         }
+    }
+    else if(a->descr->kind=='b' && test_complex(L,arg)) {
+        lua_complex *z=test_complex(L,arg);ln_error err={{0}};
+        if(ln_array_pack_number(a,indices,0,z->real!=0 || z->imag!=0,1,&err)<0)fail(L,&err);
     }
     else if(lua_type(L,arg)==LUA_TSTRING && !ln_string_is_dtype(a->descr) && a->descr->kind!='M') {
         size_t n=0;const char *s=lua_tolstring(L,arg,&n);ln_error err={{0}};
@@ -7442,38 +7430,15 @@ static int np_place(lua_State *L) {
     return ln_array_place(dst,mask,values,&err)<0?fail(L,&err):0;
 }
 static int np_putmask(lua_State *L) {
+    /* Values advance by destination position, unlike place's selected count. */
     ln_array *dst=check_array(L,1)->a;
-    if(!(dst->flags&LN_ARRAY_WRITEABLE))return luaL_error(L,"destination is read-only");
-    const ln_array *mask=broadcast_arg(L,2);
-    int weak_numeric=lua_type(L,3)==LUA_TNUMBER || lua_type(L,3)==LUA_TBOOLEAN;
-    int weak_integer=lua_isinteger(L,3);
-    if(weak_integer && !mem97_scalar_integer_fits((int64_t)lua_tointegerx(L,3,NULL),dst->descr))return luaL_error(L,"integer scalar out of bounds for destination dtype");
-    const ln_array *vals=broadcast_arg(L,3);
-    if(mask->descr->type_num!=LN_BOOL)return luaL_error(L,"mask must have boolean dtype");
-    ln_intp count=ln_array_size(dst),nm=ln_array_size(mask),nv=ln_array_size(vals);
-    if(count!=nm)return luaL_error(L,"putmask mask and destination must have the same number of elements");
-    if(nv==0 && count)return luaL_error(L,"cannot put from an empty value array");
-    if(!weak_numeric && !ln_dtype_can_cast(vals->descr,dst->descr,LN_SAFE_CASTING))return luaL_error(L,"Cannot cast putmask values under safe casting rule");
-    if((size_t)count>SIZE_MAX/(dst->descr->elsize?dst->descr->elsize:1))return luaL_error(L,"output too large");
-    size_t width=dst->descr->elsize;
-    unsigned char *values=(unsigned char*)malloc((size_t)(count?count:1)*width);
-    unsigned char *selection=(unsigned char*)malloc((size_t)(count?count:1));
-    if(!values||!selection){free(values);free(selection);return luaL_error(L,"allocation failed in putmask");}
-    ln_error e={{0}};ln_intp di[LN_MAXDIMS]={0},mi[LN_MAXDIMS]={0},vi[LN_MAXDIMS]={0};
-    ln_intp vi_linear=0;
-    for(ln_intp k=0;k<count;k++) {
-        selection[k]=*(const uint8_t*)array_ptr_local(mask,mi)!=0;
-        if(selection[k] && ln_cast_strided_numeric(array_ptr_local(vals,vi),0,vals->descr,(char*)values+(size_t)k*width,0,dst->descr,1,&e)<0){free(values);free(selection);return fail(L,&e);}
-        mem97_next(dst->nd,dst->dimensions,di);
-        mem97_next(mask->nd,mask->dimensions,mi);
-        if(++vi_linear>=nv){vi_linear=0;memset(vi,0,sizeof(vi));}else mem97_next(vals->nd,vals->dimensions,vi);
-    }
-    memset(di,0,sizeof(di));
-    for(ln_intp k=0;k<count;k++) {
-        if(selection[k])memcpy(array_ptr_local(dst,di),values+(size_t)k*width,width);
-        mem97_next(dst->nd,dst->dimensions,di);
-    }
-    free(values);free(selection);return 0;
+    if(lua_gettop(L)<3 || lua_type(L,2)==LUA_TNIL || lua_type(L,3)==LUA_TNIL)return luaL_error(L,"putmask requires mask and values");
+    if(!(dst->flags&LN_ARRAY_WRITEABLE))return luaL_error(L,"putmask destination is read-only");
+    ln_array *mask=write98_arg(L,2,ln_dtype_by_num(LN_BOOL),LN_UNSAFE_CASTING);
+    if(ln_array_size(mask)!=ln_array_size(dst))return luaL_error(L,"putmask mask and data must be the same size");
+    ln_array *values=write98_arg(L,3,dst->descr,LN_SAFE_CASTING);
+    ln_error err={{0}};
+    return ln_array_putmask(dst,mask,values,&err)<0?fail(L,&err):0;
 }
 static const luaL_Reg module_funcs[]={{"complex",complex_ctor},{"datetime64",np_datetime64},{"timedelta64",np_timedelta64},{"datetime_as_string",np_datetime_as_string},{"array",np_array},{"append",np_append},{"delete",np_delete},{"insert",np_insert},{"concatenate",np_concatenate},{"stack",np_stack},{"hstack",np_hstack},{"vstack",np_vstack},{"row_stack",np_vstack},{"dstack",np_dstack},{"column_stack",np_column_stack},{"split",np_split},{"array_split",np_array_split},{"hsplit",np_hsplit},{"vsplit",np_vsplit},{"dsplit",np_dsplit},{"astype",np_astype},{"shares_memory",np_shares_memory},{"may_share_memory",np_may_share_memory},{"copyto",np_copyto},{"putmask",np_putmask},{"put",np_put},{"place",np_place},{"can_cast",np_can_cast},{"promote_types",np_promote_types},{"result_type",np_result_type},{"min_scalar_type",np_min_scalar_type},{"issubdtype",np_issubdtype},{"zeros",np_zeros},{"ones",np_ones},{"empty",np_empty},{"arange",np_arange},{"mean",np_mean},{"average",np_average},{"var",np_var},{"std",np_std},{"cumsum",np_cumsum},{"cumprod",np_cumprod},{"nancumsum",np_nancumsum},{"nancumprod",np_nancumprod},{"nansum",np_nansum},{"nanprod",np_nanprod},{"nanmean",np_nanmean},{"nanvar",np_nanvar},{"nanstd",np_nanstd},{"min",np_amin},{"amin",np_amin},{"max",np_amax},{"amax",np_amax},{"argmin",np_argmin},{"argmax",np_argmax},{"nanmin",np_nanmin},{"nanmax",np_nanmax},{"nanargmin",np_nanargmin},{"nanargmax",np_nanargmax},{"ptp",np_ptp},{"median",np_median},{"quantile",np_quantile},{"percentile",np_percentile},{"nanmedian",np_nanmedian},{"nanquantile",np_nanquantile},{"nanpercentile",np_nanpercentile},{"sum",np_sum},{"prod",np_prod},{"any",np_any},{"all",np_all},{"count_nonzero",np_count_nonzero},{"add",np_add},{"subtract",np_subtract},{"multiply",np_multiply},{"true_divide",np_true_divide},{"divide",np_true_divide},{"equal",np_equal},{"not_equal",np_not_equal},{"less",np_less},{"less_equal",np_less_equal},{"greater",np_greater},{"greater_equal",np_greater_equal},{"logical_and",np_logical_and},{"logical_or",np_logical_or},{"logical_xor",np_logical_xor},{"maximum",np_maximum},{"minimum",np_minimum},{"floor_divide",np_floor_divide},{"remainder",np_remainder},{"mod",np_remainder},{"power",np_power},{"bitwise_and",np_bitwise_and},{"bitwise_or",np_bitwise_or},{"bitwise_xor",np_bitwise_xor},{"fmax",np_fmax},{"fmin",np_fmin},{"copysign",np_copysign},{"negative",np_negative},{"absolute",np_absolute},{"abs",np_absolute},{"positive",np_positive},{"sign",np_sign},{"logical_not",np_logical_not},{"isnan",np_isnan},{"isinf",np_isinf},{"isfinite",np_isfinite},{"isnat",np_isnat},{"signbit",np_signbit},{"sqrt",np_sqrt},{"exp",np_exp},{"log",np_log},{"sin",np_sin},{"cos",np_cos},{"tan",np_tan},{"sinh",np_sinh},{"cosh",np_cosh},{"tanh",np_tanh},{"exp2",np_exp2},{"log2",np_log2},{"log10",np_log10},{"expm1",np_expm1},{"log1p",np_log1p},{"cbrt",np_cbrt},{"arcsin",np_arcsin},{"asin",np_arcsin},{"arccos",np_arccos},{"acos",np_arccos},{"arctan",np_arctan},{"atan",np_arctan},{"arcsinh",np_arcsinh},{"asinh",np_arcsinh},{"arccosh",np_arccosh},{"acosh",np_arccosh},{"arctanh",np_arctanh},{"atanh",np_arctanh},{"arctan2",np_arctan2},{"atan2",np_arctan2},{"hypot",np_hypot},{"frexp",np_frexp},{"modf",np_modf},{"divmod",np_divmod},{"ldexp",np_ldexp},{"matmul",np_matmul},{"dot",np_dot},{"inner",np_inner},{"outer",np_outer},{"sort",np_sort},{"argsort",np_argsort},{"partition",np_partition},{"argpartition",np_argpartition},{"searchsorted",np_searchsorted},{"add_accumulate",np_add_accumulate},{"multiply_accumulate",np_multiply_accumulate},{"add_reduceat",np_add_reduceat},{"multiply_reduceat",np_multiply_reduceat},{"reshape",np_reshape},{"transpose",np_transpose},{"swapaxes",np_swapaxes},{"moveaxis",np_moveaxis},{"expand_dims",np_expand_dims},{"squeeze",np_squeeze},{"flip",np_flip},{"flipud",np_flipud},{"fliplr",np_fliplr},{"rot90",np_rot90},{"atleast_1d",np_atleast_1d},{"atleast_2d",np_atleast_2d},{"atleast_3d",np_atleast_3d},{"broadcast_to",np_broadcast_to},{"broadcast_arrays",np_broadcast_arrays},{"broadcast_shapes",np_broadcast_shapes},{"tile",np_tile},{"roll",np_roll},{"rollaxis",np_rollaxis},{"repeat",np_repeat_elements},{"repeat_elements",np_repeat_elements},{"slice",np_slice},{"s",np_slice},{NULL,NULL}};
 
@@ -7526,7 +7491,7 @@ int luaopen_luaray_core(lua_State*L){
     for(int i=0;names[i];i++){lua_pushstring(L,names[i]);lua_setfield(L,-2,names[i]);}
     push_index_token(L,LN_INDEX_NEWAXIS);lua_setfield(L,-2,"newaxis");
     push_index_token(L,LN_INDEX_ELLIPSIS);lua_setfield(L,-2,"ellipsis");
-    lua_pushstring(L,"0.98.0-dev");lua_setfield(L,-2,"_version");
+    lua_pushstring(L,"0.99.0-dev");lua_setfield(L,-2,"_version");
     lua_pushstring(L,"286e698f1dcf601648b165f48485ceaeec9c6231");lua_setfield(L,-2,"_numpy_upstream_commit");
     return 1;
 }

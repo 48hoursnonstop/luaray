@@ -1170,6 +1170,24 @@ ASan+UBSan were run over the native modules and adapter with the unchanged
 PocketFFT object linked uninstrumented; this limitation prevents claiming
 that PocketFFT or *all* linked code was sanitizer-clean. The 2.5.3 source
 archive, not an installed executable NumPy 2.5.3, supplied source semantics.
+## 0.99 — source-derived masked assignment (2026-11-08)
+
+- Complete local `make full-test` passed **116/116 differential fixture files**
+  plus old/new native C and Lua regression suites.
+- **4,914 copyto + 1,481 putmask cases**, **175,110 comparisons** against actual
+  NumPy 2.5.3; **77 targeted Lua regression checks** and public examples passed.
+- Actual post-error output, live shared masks, raw stride traversal, overlapping
+  source direction, zero-stride views, scalar promotion, empty values and legacy
+  text buffer boundaries are covered.
+- ASan initially found overlapping memcpy in identity transfers. After memmove
+  and identity-string fixes, the instrumented three changed C units passed both
+  native tests and ten Lua suites. Other dependencies uninstrumented; leaks off.
+- Refactored 0.98 fixtures and new 0.99 fixtures reproduced byte-for-byte.
+  Numeric historical expectations were preserved; release assertions now use 0.99.
+- Forty original numeric-byte-order states remain blocked, outside parity totals.
+  Clean source build/test/example/integrity results belong to the final release
+  verification JSON/log; remote GitHub CI is a separate check.
+
 ## 0.98 — native put/place and assignment conversions (2026-11-08)
 
 - Imported 0.97 archive matched the supplied SHA-256 and all 603 source hashes.

@@ -1,3 +1,22 @@
+## 0.101.0-dev verification (executed)
+
+- Full native/Lua regression passed, including **119/119 frozen fixture files**.
+  Final source archive gate rebuilds and executes the same suite separately.
+- `take_along101`: **2,061 original NumPy 2.5.3 cases / 109,722 checks**.
+  `put_along101`: **3,599 cases / 430,929 checks**. New total: **5,660 / 540,651**.
+- New native C suite and **85 Lua checks** passed. Public module example passed.
+  Original fixtures check acceptance, backing data after real errors, result
+  independence, shape, dtype and strides, including bidirectional broadcasting,
+  operand order, aliases, rank limits and both sides of 8,192-element buffering.
+- Both generated files reproduced byte-for-byte with the pinned oracle.
+- Directed ASan/UBSan passed **eight C units**, **four native / 19 Lua suites**:
+  ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string,
+  ln_along and ln_mapping. Expanded final fixtures were replayed with the same
+  instrumented module and passed. Other dependencies uninstrumented, leaks off.
+- Earlier take hang-class rejections and 40 blocked numeric-endian states remain
+  outside original parity totals; no overall NumPy completeness is inferred.
+- Final clean archive results and actual remote CI are tracked separately.
+
 ## 0.100.0-dev verification (executed)
 
 - `make -j4 full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'`:

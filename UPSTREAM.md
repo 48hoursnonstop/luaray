@@ -1,3 +1,22 @@
+## 0.101 — NumPy 2.5.3 along-axis functions and MapIter
+
+`ln_along.{c,h}` follows numpy/lib/_shape_base_impl.py's take_along_axis,
+put_along_axis and _make_along_axis_idx: orthogonal index ranges, matching rank,
+bidirectional broadcasting and public default/explicit-axis differences.
+The flat path follows iterators.c:iter_array, preserving writable contiguous
+views and read-only noncontiguous copies. Source and executable oracle are 2.5.3.
+
+Shared ln_mapping corrections follow mapping.c's overlapping index snapshots,
+MapIter KEEPORDER output and buffered input casts, and nditer_constr.c's stable
+axis ordering / negative-stride rules. An 8,192-element all-fancy conversion
+buffer reproduces tested post-error boundaries. General mixed slice/subspace
+buffering remains a separate compatibility area. Original reference values and
+metadata were not replaced with idealized order or atomic-write expectations.
+
+Nine inspected implementation/test files are pinned in
+NUMPY_2_5_3_ALONG101_FILE_HASHES.sha256. Upstream shape-base tests informed explicit
+bidirectional broadcast cases. Earlier oracle provenance remains unchanged.
+
 ## 0.100 — NumPy 2.5.3 take and legacy string conversion
 
 The native ln_take subsystem follows item_selection.c's PyArray_TakeFrom and

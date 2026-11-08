@@ -1,0 +1,8 @@
+local np=require('luaray')
+local a=np.array({{10,30,20},{60,40,50}},'int32')
+local order=np.argsort(a,{axis=2})
+local sorted=np.take_along_axis(a,order,2)
+assert(sorted:get(1,1)==10 and sorted:get(2,3)==60)
+np.put_along_axis(a,np.array({{2},{1}},'int64'),99,2)
+assert(a:get(1,2)==99 and a:get(2,1)==99)
+print('LuaRay native along-axis example: passed')

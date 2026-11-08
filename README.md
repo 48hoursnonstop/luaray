@@ -1,3 +1,15 @@
+## LuaRay 0.101.0-dev — gather and assign along an axis
+
+`np.take_along_axis` and `np.put_along_axis` now use native orthogonal advanced
+indices, with multidimensional broadcasting, iterator memory order, protected
+shared operands and buffered dtype conversion. The explicit flat path preserves
+NumPy's distinction between writable C-contiguous views and read-only copies.
+
+Read the [English API reference](docs/en/along_axis.md) or
+[referencia de API en español](docs/es/along_axis.md). **5,660 original NumPy
+2.5.3 cases / 540,651 checks**, 85 Lua checks and native tests passed. The full
+regression contains **119 fixture files**. Runtime remains Lua and native C/C++.
+
 ## LuaRay 0.100.0-dev — native indexed gathering
 
 `np.take(input, indices, axis_or_options)` and `input:take(...)` gather through

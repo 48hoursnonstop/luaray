@@ -500,6 +500,55 @@ stride_item_cmp(const void *va, const void *vb)
     return as > bs ? -1 : 1;
 }
 
+/* nditer_constr.c:npyiter_find_best_axis_ordering. Order is fastest first;
+ * only nonzero operand strides resolve ties, with C-order winning conflicts. */
+static uintmax_t stride_magnitude(ln_intp stride)
+{ return stride<0?(uintmax_t)(-(stride+1))+1:(uintmax_t)stride; }
+
+static void mapiter_order(const ln_map_plan *p,const ln_intp *values_strides,
+                          int *order,int *flipped)
+{
+    int nd=p->nd_fancy,nops=p->num_fancy+(values_strides!=NULL);
+    for(int d=0;d<nd;++d) {
+        order[d]=nd-1-d;flipped[d]=0;
+        int negative=0,positive=0;
+        for(int op=0;op<nops;++op) {
+            ln_intp stride=op<p->num_fancy?p->fancy_bstrides[op][d]:values_strides[d];
+            negative|=stride<0;positive|=stride>0;
+        }
+        if(!(p->num_fancy==1 && p->fancy_arrays[0]->nd==1))flipped[d]=negative&&!positive;
+    }
+    for(int i=1;i<nd;++i) {
+        int candidate=order[i],pos=i;
+        for(int j=i-1;j>=0;--j) {
+            int ambig=1,swap=0,previous=order[j];
+            for(int op=0;op<nops;++op) {
+                ln_intp a=op<p->num_fancy?p->fancy_bstrides[op][candidate]:values_strides[candidate];
+                ln_intp b=op<p->num_fancy?p->fancy_bstrides[op][previous]:values_strides[previous];
+                if(a && b) {
+                    if(stride_magnitude(b)<=stride_magnitude(a))swap=0;
+                    else if(ambig)swap=1;
+                    ambig=0;
+                }
+            }
+            if(!ambig) { if(swap)pos=j;else break; }
+        }
+        for(int j=i;j>pos;--j)order[j]=order[j-1];
+        order[pos]=candidate;
+    }
+}
+
+static void mapiter_advance(const ln_map_plan *p,const int *order,
+                            const int *flipped,ln_intp *coord)
+{
+    for(int j=0;j<p->nd_fancy;++j) {
+        int d=order[j];
+        coord[d]+=flipped[d]?-1:1;
+        if(coord[d]>=0 && coord[d]<p->fancy_shape[d])break;
+        coord[d]=flipped[d]?p->fancy_shape[d]-1:0;
+    }
+}
+
 /*
  * Port of mapping.c:PyArray_MapIterNew output allocation for the common
  * `subspace != NULL && PyArray_SIZE(subspace) > 1` branch.  NumPy does not
@@ -548,12 +597,16 @@ allocate_mapiter_internal(const ln_map_plan *p, const ln_dtype *dtype,
         }
     }
     else {
-        /* For size-one/no-real-subspace cases, NpyIter chooses KEEPORDER.
-         * C-order is identical for the ordinary C-contiguous index arrays;
-         * the exact one-fancy fast path is handled below for F-order indices. */
-        int flags = LN_ARRAY_DEFAULT;
-        ln_array_fill_strides(strides, shape, nd, dtype->elsize,
-                              LN_ARRAY_C_CONTIGUOUS, &flags);
+        int order[LN_MAXDIMS],flipped[LN_MAXDIMS];
+        mapiter_order(p,NULL,order,flipped);
+        ln_intp stride=(ln_intp)dtype->elsize;
+        for(int d=p->nd_fancy;d<nd;++d)strides[d]=stride;
+        for(int i=0;i<p->nd_fancy;++i) {
+            int d=order[i];strides[d]=stride;
+            if(ln_mul_sizes_with_overflow(&stride,stride,shape[d])<0) {
+                map_error(err,"advanced indexing operation result is too large");return NULL;
+            }
+        }
     }
 
     ln_array *storage = ln_array_new(nd, shape, dtype, 0, 0, err);
@@ -912,8 +965,8 @@ ln_array_advanced_get(const ln_array *src, const ln_index *indices,
     return view;
 }
 
-int
-ln_array_advanced_assign_array(ln_array *dst, const ln_index *indices,
+static int
+advanced_assign_prepared(ln_array *dst, const ln_index *indices,
                                int index_num, const ln_array *values_in,
                                ln_error *err)
 {
@@ -962,6 +1015,43 @@ ln_array_advanced_assign_array(ln_array *dst, const ln_index *indices,
         return 0;
     }
 
+    if(p.sub_nd==0) {
+        int order[LN_MAXDIMS],flipped[LN_MAXDIMS];
+        mapiter_order(&p,src_bstrides,order,flipped);
+        ln_intp coord[LN_MAXDIMS]={0};
+        for(int d=0;d<p.nd_fancy;++d)if(flipped[d])coord[d]=p.fancy_shape[d]-1;
+        int cast=values->descr!=dst->descr;
+        ln_intp capacity=ftotal<8192?ftotal:8192;
+        ln_array *buffer=cast?ln_array_new(1,&capacity,dst->descr,0,0,err):NULL;
+        if(cast && !buffer){ln_array_free(tmp);return -1;}
+        for(ln_intp start=0;start<ftotal;) {
+            ln_intp count=ftotal-start<capacity?ftotal-start:capacity;
+            if(cast) {
+                ln_intp readcoord[LN_MAXDIMS];memcpy(readcoord,coord,sizeof(coord));
+                for(ln_intp k=0;k<count;++k) {
+                    const char *sp=source_ptr_for_internal(&p,values,src_bstrides,readcoord,NULL);
+                    if(ln_cast_strided_numeric(sp,0,values->descr,
+                            buffer->data+(size_t)k*dst->descr->elsize,0,dst->descr,1,err)<0) {
+                        ln_array_free(buffer);ln_array_free(tmp);return -1;
+                    }
+                    mapiter_advance(&p,order,flipped,readcoord);
+                }
+            }
+            for(ln_intp k=0;k<count;++k) {
+                char *dp=p.baseoffset;
+                for(int j=0;j<p.num_fancy;++j)if(fancy_pointer(&p,j,coord,&dp,err)<0) {
+                    ln_array_free(buffer);ln_array_free(tmp);return -1;
+                }
+                const char *sp=cast?buffer->data+(size_t)k*dst->descr->elsize:
+                    source_ptr_for_internal(&p,values,src_bstrides,coord,NULL);
+                memmove(dp,sp,dst->descr->elsize);
+                mapiter_advance(&p,order,flipped,coord);
+            }
+            start+=count;
+        }
+        ln_array_free(buffer);ln_array_free(tmp);return 0;
+    }
+
     ln_intp fcoord[LN_MAXDIMS] = {0};
     for (ln_intp fi = 0; fi < ftotal; ++fi) {
         char *fbase = p.baseoffset;
@@ -989,6 +1079,33 @@ ln_array_advanced_assign_array(ln_array *dst, const ln_index *indices,
     }
     ln_array_free(tmp);
     return 0;
+}
+
+int
+ln_array_advanced_assign_array(ln_array *dst,const ln_index *indices,
+                               int index_num,const ln_array *values,ln_error *err)
+{
+    if(index_num>LN_MAXDIMS*2+1) {
+        map_error(err,"too many advanced indices");return -1;
+    }
+    if(!dst || !indices || index_num<=0)
+        return advanced_assign_prepared(dst,indices,index_num,values,err);
+    ln_index prepared[LN_MAXDIMS*2+1];ln_array *copies[LN_MAXDIMS*2+1]={0};
+    memcpy(prepared,indices,(size_t)index_num*sizeof(*indices));
+    int rc=-1;
+    for(int j=0;j<index_num;++j) {
+        const ln_array *ind=indices[j].array;
+        if((indices[j].kind==LN_INDEX_FANCY || indices[j].kind==LN_INDEX_0D_BOOL) &&
+           ind && dst->owner && ind->owner==dst->owner) {
+            copies[j]=ln_array_copy_c(ind,err);
+            if(!copies[j])goto done;
+            prepared[j].array=copies[j];
+        }
+    }
+    rc=advanced_assign_prepared(dst,prepared,index_num,values,err);
+done:
+    for(int j=0;j<index_num;++j)ln_array_free(copies[j]);
+    return rc;
 }
 
 int

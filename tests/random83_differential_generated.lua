@@ -1,6 +1,6 @@
 -- Frozen NumPy 2.3.5 oracle; regenerate with tools/generate_random83_oracle.py
 local np=require('luaray_core')
-assert(np._version=='0.100.0-dev')
+assert(np._version=='0.101.0-dev')
 local cases=0
 local function close(a,b)
  if type(a)~=type(b) then return false end

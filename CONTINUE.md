@@ -1,3 +1,26 @@
+# Current checkpoint — 0.101 along-axis release gate
+
+Active worktree /mnt/datos/luaray/.dev/along101, branch along101. VERSION0.101.
+Native ln_along.{c,h}, np.take_along_axis / np.put_along_axis and shared ln_mapping
+fixes are implemented. Actual original references: take2061/109722 checks,
+put3599/430929 checks, 85 Lua checks and new C suite passed. All119 frozen fixture
+files passed. Eight-unit ASan/UBSan: four native / nineteen Lua suites passed;
+expanded final fixtures replayed successfully. Both fixture files reproduced.
+Public module example passed. English/Spanish docs at docs/{en,es}/along_axis.md.
+
+Next: review diff, clean source packaging/rebuild/full tests/four public examples,
+commit/integrate, publish0.101 and verify actual Ubuntu CI. Then continue coherent
+selection/advanced indexing work. Do not stop at this development release.
+Numeric endian/object/structured/variable strings and general mixed-subspace
+buffering remain incomplete. No overall completion percentage is justified.
+
+0.100 is published at tag406aba8, source SHA
+cc1497f316aea2cdfaa0d5ca787b00be352beb51910730ecad5e473c9e69cc80;
+652 source files/651 manifest entries, clean117 suites/three examples, directed
+six-unit ASan passed. Exact Ubuntu CI42530255799 on406aba8 passed. Downloads
+source/checksum and public asset hash verified. Older checkpoints below are
+historical and do not supersede this one. Keep release archives immutable.
+
 # Current checkpoint — 0.100 native take release gate
 
 0.99.1 is published (d6b7778); exact versioned Ubuntu CI 42527745200 passed.

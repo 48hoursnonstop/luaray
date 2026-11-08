@@ -1,32 +1,33 @@
 {
-  "version": "0.100.0-dev",
+  "version": "0.101.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "take": 6704
+    "take_along_axis": 2061,
+    "put_along_axis": 3599
   },
-  "new_numeric_checks": 324615,
-  "new_lua_regression_checks": 63,
+  "new_numeric_checks": 540651,
+  "new_lua_regression_checks": 85,
   "blocked_original_states": 40,
   "deliberate_difference_variants": 3,
   "status": "implemented_partial",
   "apis": {
-    "numpy.take": "implemented_partial",
-    "numpy.ndarray.take": "implemented_partial"
+    "numpy.take_along_axis": "implemented_partial",
+    "numpy.put_along_axis": "implemented_partial"
   },
   "evidence": [
-    "tests/take100_differential_generated.lua",
-    "tests/take100_regression.lua",
-    "tests/test_take100_core.c",
-    "tests/take100_reference_differences.lua",
-    "tools/probe_take100_hang.py"
+    "tests/take_along101_differential_generated.lua",
+    "tests/put_along101_differential_generated.lua",
+    "tests/along101_regression.lua",
+    "tests/test_along101_core.c",
+    "tools/generate_along101_differential.py"
   ],
   "limits": [
-    "Non-native numeric dtype descriptors remain unavailable",
-    "Object, structured and variable-width StringDType arrays are unavailable",
-    "Python exception-class and complete warning fidelity are not claimed",
-    "Rejects upstream empty-axis wrap hang; three variants outside parity, only representative executed upstream",
-    "Reference comparisons establish tested operations and environment, not full NumPy compatibility"
+    "Non-native numeric endian descriptors, object, structured and variable-width StringDType arrays remain unavailable",
+    "General mixed slice/fancy subspace buffering remains a separate compatibility area",
+    "Python subclass semantics, exception-class and complete warning fidelity are not claimed",
+    "Earlier take empty-axis hang rejection remains deliberate and outside parity",
+    "References establish tested operations and environment, not full NumPy compatibility"
   ],
-  "sanitizers": "Directed audit: ln_take, ln_string, ln_write, ln_dtype_transfer, lua_module and ln_random; three native suites and fourteen Lua suites; other dependencies uninstrumented; leaks disabled"
+  "sanitizers": "Directed audit: ln_along, ln_mapping, lua_module, ln_write, ln_dtype_transfer, ln_random, ln_take and ln_string; four native and nineteen Lua suites; other dependencies uninstrumented; leaks disabled"
 }

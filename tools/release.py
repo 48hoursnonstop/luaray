@@ -22,7 +22,7 @@ for directory,dirs,names in os.walk(ROOT):
     dirs[:]=sorted(d for d in dirs if d not in EXCLUDED and not d.startswith('build-'))
     for name in sorted(names):
         p=Path(directory)/name
-        if name!='PROJECT_SHA256SUMS' and not name.endswith('.pyc'):
+        if name not in EXCLUDED and name!='PROJECT_SHA256SUMS' and not name.endswith('.pyc'):
             assert not p.is_symlink(),f'unexpected source symlink: {p}'
             assert p.suffix not in {'.o','.so'},f'compiled file in source tree: {p}'
             files.append(p)
@@ -55,6 +55,6 @@ report=dict(version=VERSION,archive=archive.name,sha256=digest,source_files=len(
             blocked_original_states=coverage['blocked_original_states'],
             runtime='Lua 5.4, native C/C++ module, CBLAS/BLAS and LAPACK; no Python',
             build_flags='C: -O2; C++ PocketFFT: -O0',
-            sanitizers='Separate directed audit: ln_write, ln_dtype_transfer and lua_module; other dependencies uninstrumented; leaks disabled')
+            sanitizers=coverage.get('sanitizers','Separate directed audit: ln_write, ln_dtype_transfer and lua_module; other dependencies uninstrumented; leaks disabled'))
 (RELEASES/(NAME+'-verification.json')).write_text(json.dumps(report,indent=2)+'\n')
 print(json.dumps(report,indent=2))

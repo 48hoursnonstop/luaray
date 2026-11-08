@@ -1,25 +1,31 @@
 {
-  "version": "0.99.0-dev",
+  "version": "0.99.1-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
-  "new_reference_cases": {
-    "copyto": 4914,
-    "putmask": 1481
-  },
-  "new_numeric_checks": 175110,
-  "new_lua_regression_checks": 77,
+  "new_reference_cases": {},
+  "new_numeric_checks": 4,
+  "new_lua_regression_checks": 4,
   "blocked_original_states": 40,
   "status": "implemented_partial",
   "evidence": [
-    "tests/copyto99_differential_generated.lua",
-    "tests/putmask99_differential_generated.lua",
-    "tests/memory99_regression.lua",
-    "tests/test_memory99_core.c"
+    "tests/exponential_regression.lua",
+    "tests/exponential_differential_generated.lua",
+    "tools/probe_libm.py"
   ],
   "limits": [
     "Non-native numeric dtype descriptors remain unavailable",
     "Object and structured dtypes are unavailable",
     "Python exception-class and complete warning fidelity are not claimed",
     "Reference comparisons establish tested operations and environment, not full NumPy compatibility"
-  ]
+  ],
+  "reference_checks": {
+    "exponential": 17376
+  },
+  "remote_ci": {
+    "run_id": 42526947924,
+    "commit": "965203bfbd085b8f75b1c669f392a817238e33e5",
+    "result": "passed",
+    "platform": "Ubuntu 24.04"
+  },
+  "sanitizers": "Directed audit: ln_write, ln_dtype_transfer, lua_module and ln_random; two native suites and twelve Lua suites; other dependencies uninstrumented; leaks disabled"
 }

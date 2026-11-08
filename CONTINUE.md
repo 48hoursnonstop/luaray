@@ -1,5 +1,43 @@
 # Active dependency work
 
+## Current — 0.99.1 portability correction
+
+Ubuntu native CI initially failed inverse-exponential float32 rounding; direct
+loading of official Ubuntu libm 2.39 reproduced three one-ULP differences.
+80-digit Decimal calculations confirm the frozen expected values. Corrected
+ln_random's inverse float32 path to evaluate log1p in double then round to float.
+No fixture or tolerance weakened; next-PCG64 word is preserved. Corrected-code
+CI run 42526947924 on commit 965203b passed all 116 suites and both examples.
+
+Current VERSION=0.99.1-dev. Local full-test passed after version metadata updates.
+Directed ASan/UBSan passed four modified C units including ln_random, two native
+tests and twelve Lua suites; dependencies uninstrumented, leaks off. Read
+PROGRESS_0_99_1.md and docs/{en,es}/portability.md. Clean source packaging and
+0.99.1 publication are the next gate; do not claim that release exists yet.
+
+Next take work is ISOLATED in git worktree /mnt/datos/luaray/.dev/take100, branch
+take100, based on 965203b. It has new ln_take.{c,h}, Makefile links, np.take and
+ndarray:take (axis/options/out/modes/scalars). Native compilation and basic actual
+Lua take/out examples passed; NO NumPy differential take corpus or sanitizer
+has run yet. Do not mark take complete. Merge current main into that branch
+after the patch release to inherit 0.99.1/version/docs/packaging changes before
+advancing to 0.100. .dev symlinks its oracle venv/source to the parent repo.
+
+Take implementation retains source-derived out preconversion, raise-mode temp,
+C-order source normalization, live compatible out/indices and chunk-at-once
+index loads. Next: build actual NumPy corpus; arrays of indices use SAME_KIND,
+positive Lua coordinates shift by one and negative values are unchanged. For
+live out/index alias tests use negative source values so dynamically overwritten
+index encodings remain identical in both languages. Read prior source facts below.
+
+No source empty-axis wrap hang has been executed/confirmed yet; use bounded
+subprocess investigation before including that potentially hanging oracle case.
+
+Docker command exists but access to daemon is denied. Do not change permissions
+or system config; actual Ubuntu CI is available and passed the correction.
+Old-libc extraction cannot run the full Arch binary due to ABI requirements;
+only the direct log1pf diagnostic was executed locally with that older library.
+
 ## Latest checkpoint — 0.99 published
 
 0.99 is published at https://github.com/48hoursnonstop/luaray/releases/tag/v0.99.0-dev

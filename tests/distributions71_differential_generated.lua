@@ -1,6 +1,6 @@
 -- Generated independent reference expectations from installed NumPy 2.3.5
 local np=require("luaray_core")
-assert(np._version=="0.99.0-dev")
+assert(np._version=="0.99.1-dev")
 local checks=0
 local function eq(a,b) assert(a==b,("check %d: %s ~= %s"):format(checks,tostring(a),tostring(b))); checks=checks+1 end
 local function num(a,b) if b~=b then assert(a~=a,"expected NaN "..checks) elseif b==math.huge or b==-math.huge then assert(a==b) else assert(a==b,("check %d %.17g vs %.17g"):format(checks,a,b)) end; checks=checks+1 end

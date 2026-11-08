@@ -1170,6 +1170,19 @@ ASan+UBSan were run over the native modules and adapter with the unchanged
 PocketFFT object linked uninstrumented; this limitation prevents claiming
 that PocketFFT or *all* linked code was sanitizer-clean. The 2.5.3 source
 archive, not an installed executable NumPy 2.5.3, supplied source semantics.
+## 0.99.1 — float32 inverse-exponential portability (2026-11-08)
+
+- Initial Ubuntu CI failed an unchanged exact float32 inverse-exponential value.
+  Direct old-libm loading reproduced it; 80-digit Decimal calculations confirmed
+  three glibc 2.39 rounding differences on exact PCG64 uniforms.
+- Double evaluation followed by float32 rounding preserves every existing test
+  value and next-PCG64 state. The 17,376 exponential comparisons pass unchanged;
+  four explicit three-value/next-word assertions were added.
+- Corrected-code Ubuntu CI **42526947924**, commit **965203b**, passed all 116
+  fixture files and both public examples. Local Arch full-test also passed.
+- Release checks and the added ln_random sanitizer scope are recorded in their
+  actual logs/reports. No full old-libc ABI execution was claimed locally.
+
 ## 0.99 — source-derived masked assignment (2026-11-08)
 
 - Complete local `make full-test` passed **116/116 differential fixture files**

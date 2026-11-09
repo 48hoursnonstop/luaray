@@ -34,7 +34,7 @@ the [array guide](arrays.md) explains where Lua conventions change how you call 
 - **Looking up an operation?** Browse the reference in the sidebar or search its name.
 - **Moving from NumPy?** Check [API availability and limitations](api_inventory.md).
 
-::: info Development version · 0.123.0-dev
+::: info Development version · 0.124.0-dev
 LuaRay uses NumPy 2.5.3 as its primary behavioral reference. Compatibility varies
 by operation and dtype. The [API inventory](api_inventory.md) records supported
 names and remaining gaps; available functions are still classified as partial.

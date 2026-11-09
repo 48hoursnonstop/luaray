@@ -40,13 +40,13 @@ retain their original NumPy 2.3.5 attribution.
 
 `compatibility/current.json` records the release-specific behavioral evidence.
 `compatibility/api_inventory.json` records runtime availability. The latter
-reports 370 of 675 scoped names as available and classifies all available APIs
+reports 371 of 675 scoped names as available and classifies all available APIs
 as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.123.0-dev** passed **55 native suites**, **93 Lua suites**, seven public
-examples and 58 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
+LuaRay **0.124.0-dev** passed **55 native suites**, **94 Lua suites**, seven public
+examples and 66 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
 passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
 metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
@@ -64,9 +64,11 @@ Diagonal-index and scalar-string references passed **1,766 cases / 81,899 exact 
 
 Triangular-index helpers passed **9,908 cases / 487,084 exact checks**, covering independent contiguous vectors, rectangular/empty dimensions, extreme offsets, advanced read/write and backing states across dtypes and views.
 
+Fill-diagonal references passed **29,960 cases / 1,292,460 exact checks**, including logical flat traversal, repetition/wrap, scalar/typed conversion differences, read-only destinations and progressive shared-memory values.
+
 The directed ASan/UBSan run instrumented `ln_matrix`, `ln_linalg`, `lua_matrix`,
 and `lua_module`, plus the native matrix test and Lua runner. All maintained tests
-and all seven cumulative matrix corpora passed. Other native dependencies were not fully
+and all eight cumulative matrix corpora passed. Other native dependencies were not fully
 instrumented; leak detection was disabled. This is a directed audit, not an
 all-dependency memory-safety certification.
 

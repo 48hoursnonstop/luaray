@@ -272,3 +272,29 @@ int ln_lua_tril_indices(lua_State *L){return triangular_indices(L,0,0);}
 int ln_lua_triu_indices(lua_State *L){return triangular_indices(L,1,0);}
 int ln_lua_tril_indices_from(lua_State *L){return triangular_indices(L,0,1);}
 int ln_lua_triu_indices_from(lua_State *L){return triangular_indices(L,1,1);}
+
+int ln_lua_fill_diagonal(lua_State *L)
+{
+    int top=lua_gettop(L),wrap=0;
+    if(top<2||top>3)return luaL_error(L,"fill_diagonal accepts destination, values and optional wrap");
+    ln_array *a=ln_lua_test_array(L,1);
+    if(!a||a->nd<2)return luaL_error(L,"fill_diagonal requires an ndarray of rank at least two");
+    for(int d=1;a->nd>2&&d<a->nd;++d)
+        if(a->dimensions[d]!=a->dimensions[0])return luaL_error(L,"all array dimensions must have equal length");
+    if(!(a->flags&LN_ARRAY_WRITEABLE))return luaL_error(L,"fill_diagonal destination is read-only");
+    if(lua_type(L,3)==LUA_TTABLE){
+        lua_pushnil(L);
+        while(lua_next(L,3)){
+            size_t length=0;const char *key=lua_type(L,-2)==LUA_TSTRING?lua_tolstring(L,-2,&length):NULL;
+            if(!key||length!=4||memcmp(key,"wrap",4))return luaL_error(L,"unknown fill_diagonal option");
+            lua_pop(L,1);
+        }
+        lua_getfield(L,3,"wrap");
+        if(lua_type(L,-1)!=LUA_TNIL){if(lua_type(L,-1)!=LUA_TBOOLEAN)return luaL_error(L,"wrap must be boolean");wrap=lua_toboolean(L,-1);}lua_pop(L,1);
+    }else if(top==3&&lua_type(L,3)!=LUA_TNIL){
+        if(lua_type(L,3)!=LUA_TBOOLEAN)return luaL_error(L,"wrap must be boolean");
+        wrap=lua_toboolean(L,3);
+    }
+    ln_array *values=ln_lua_assignment_values(L,2,a->descr);
+    ln_error err={0};return ln_matrix_fill_diagonal(a,values,wrap,&err)<0?ln_lua_fail(L,&err):0;
+}

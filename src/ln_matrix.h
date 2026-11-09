@@ -16,4 +16,6 @@ ln_array *ln_matrix_diag_indices(ln_intp n,ln_error *err);
 /* Outputs are separate contiguous one-based index vectors owned by the caller. */
 int ln_matrix_trilu_indices(ln_intp rows,ln_intp columns,ln_intp k,int upper,
                            ln_array **outputs,ln_error *err);
+/* Values are read live in logical C order, cycling rather than broadcasting. */
+int ln_matrix_fill_diagonal(ln_array *a,const ln_array *values,int wrap,ln_error *err);
 #endif

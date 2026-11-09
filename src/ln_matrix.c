@@ -303,3 +303,43 @@ int ln_matrix_trilu_indices(ln_intp rows,ln_intp columns,ln_intp k,int upper,
         }
     ln_array_free(mask);return 0;
 }
+
+static char *logical_element(const ln_array *a,ln_intp flat)
+{
+    char *p=a->data;
+    for(int d=a->nd-1;d>=0;--d){
+        ln_intp coordinate=flat%a->dimensions[d];flat/=a->dimensions[d];
+        p+=coordinate*a->strides[d];
+    }
+    return p;
+}
+int ln_matrix_fill_diagonal(ln_array *a,const ln_array *values,int wrap,ln_error *err)
+{
+    if(!a||a->nd<2||!values){failure(err,"fill_diagonal requires rank at least two and values");return -1;}
+    for(int d=1;a->nd>2&&d<a->nd;++d)
+        if(a->dimensions[d]!=a->dimensions[0]){failure(err,"all array dimensions must have equal length");return -1;}
+    if(!(a->flags&LN_ARRAY_WRITEABLE)){failure(err,"fill_diagonal destination is read-only");return -1;}
+    ln_array *converted=ln_creation_convert(values,a->descr,'K',-1,0,NULL,err);
+    if(!converted)return -1;
+    ln_intp total=ln_array_size(a),nv=ln_array_size(converted);
+    if(!total||!nv){ln_array_free(converted);return 0;}
+    ln_intp count,step;
+    if(a->nd==2){
+        ln_intp columns=a->dimensions[1];
+        if(columns==INTPTR_MAX){count=1;step=1;}
+        else{
+            step=columns+1;
+            count=wrap?1+(total-1)/step:
+                (a->dimensions[0]<columns?a->dimensions[0]:columns);
+        }
+    }else{
+        count=a->dimensions[0];step=1;
+        ln_intp product=1;
+        for(int d=1;d<a->nd;++d){product*=count;step+=product;}
+    }
+    /* iterators.c:iter_ass_subscript consumes its value iterator live. This
+     * intentionally preserves progressive overlap, rather than snapshotting. */
+    for(ln_intp i=0;i<count;++i)
+        memmove(logical_element(a,i*step),logical_element(converted,i%nv),a->descr->elsize);
+    ln_array_free(converted);return 0;
+}

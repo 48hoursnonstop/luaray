@@ -35,6 +35,7 @@ const pages = [
     ['Vandermonde matrices', 'Matrices de Vandermonde', 'vander'],
     ['Identity matrices', 'Matrices identidad', 'eye'],
     ['Diagonal indices', 'Índices diagonales', 'diag_indices'],
+    ['Fill a diagonal', 'Rellenar una diagonal', 'fill_diagonal'],
   ]],
   ['Compatibility', 'Compatibilidad', [
     ['API availability', 'Disponibilidad de APIs', 'api_inventory'],
@@ -77,7 +78,7 @@ export default defineConfig({
         nav: [
           { text: 'Guide', link: '/getting-started' },
           { text: 'Reference', link: '/creation' },
-          { text: '0.123.0-dev', link: `${repo}/releases/tag/v0.123.0-dev` },
+          { text: '0.124.0-dev', link: `${repo}/releases/tag/v0.124.0-dev` },
         ],
         sidebar: sidebar(),
       },
@@ -88,7 +89,7 @@ export default defineConfig({
         nav: [
           { text: 'Guía', link: '/es/getting-started' },
           { text: 'Referencia', link: '/es/creation' },
-          { text: '0.123.0-dev', link: `${repo}/releases/tag/v0.123.0-dev` },
+          { text: '0.124.0-dev', link: `${repo}/releases/tag/v0.124.0-dev` },
         ],
         sidebar: sidebar(true),
         outline: { label: 'En esta página', level: [2, 3] },

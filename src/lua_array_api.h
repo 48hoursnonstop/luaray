@@ -13,4 +13,8 @@ int ln_lua_fail(lua_State *L,ln_error *err);
 int ln_lua_shape(lua_State *L,int index,ln_intp *dims,int *nd);
 const ln_dtype *ln_lua_creation_target(lua_State *L,int source_index,const ln_array *array,const ln_dtype *dtype,ln_error *err);
 void ln_lua_copyto_unsafe(lua_State *L,int destination,int source);
+/* Typed arrays are borrowed unchanged for the caller's native casting path.
+ * Ordinary Lua sequences/scalars are converted directly with assignment bounds
+ * checks and rooted on the stack, preserving Python scalar/ndarray distinctions. */
+ln_array *ln_lua_assignment_values(lua_State *L,int index,const ln_dtype *dtype);
 #endif

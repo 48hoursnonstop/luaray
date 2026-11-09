@@ -12,6 +12,13 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.124.0-dev
+
+Added `fill_diagonal` with direct logical writes, repeated C-order values,
+rectangular and higher-rank diagonals, historical tall-matrix wrap and live
+overlapping reads. Reused typed assignment conversion for scalar bounds, string
+parsing and complex-to-Boolean values. Added executable English/Spanish guides.
+
 ## 0.123.0-dev
 
 Added `tril_indices`, `triu_indices` and both `_from` helpers with one-based,

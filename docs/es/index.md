@@ -34,7 +34,7 @@ numéricos familiares; la [guía de arrays](arrays.md) explica cómo se usan des
 - **¿Buscas una operación?** Usa la referencia del menú lateral o busca su nombre.
 - **¿Vienes de NumPy?** Consulta [disponibilidad y límites de API](api_inventory.md).
 
-::: info Versión de desarrollo · 0.123.0-dev
+::: info Versión de desarrollo · 0.124.0-dev
 LuaRay usa NumPy 2.5.3 como referencia principal. La compatibilidad depende de la
 operación y del dtype. El [inventario](api_inventory.md) registra nombres disponibles
 y funciones pendientes; las APIs disponibles siguen clasificadas como parciales.

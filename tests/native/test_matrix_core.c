@@ -77,5 +77,14 @@ int main(void)
     ln_array_free(coordinates[0]);ln_array_free(coordinates[1]);
     assert(ln_matrix_trilu_indices(2,1,INTPTR_MIN,1,coordinates,&err)<0);
     assert(ln_matrix_trilu_indices(2,2,0,0,NULL,&err)<0);
+    ln_intp tall[]={5,3},two=2;ln_array *destination=ln_array_new(2,tall,ln_dtype_by_name("int64"),0,1,&err);
+    ln_array *values_array=ln_array_new(1,&two,ln_dtype_by_name("int64"),0,0,&err);
+    ((int64_t*)values_array->data)[0]=3;((int64_t*)values_array->data)[1]=7;
+    assert(ln_matrix_fill_diagonal(destination,values_array,1,&err)==0);
+    assert(((int64_t*)destination->data)[0]==3&&((int64_t*)destination->data)[4]==7&&((int64_t*)destination->data)[12]==7);
+    destination->flags&=~LN_ARRAY_WRITEABLE;
+    assert(ln_matrix_fill_diagonal(destination,values_array,0,&err)<0);
+    assert(ln_matrix_fill_diagonal(values_array,destination,0,&err)<0);
+    ln_array_free(destination);ln_array_free(values_array);
     puts("matrix native: diagonal layout, shared lifetime, readonly, construction, overflow and staged trace passed");
 }

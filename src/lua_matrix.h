@@ -17,4 +17,5 @@ int ln_lua_tril_indices(lua_State *L);
 int ln_lua_triu_indices(lua_State *L);
 int ln_lua_tril_indices_from(lua_State *L);
 int ln_lua_triu_indices_from(lua_State *L);
+int ln_lua_fill_diagonal(lua_State *L);
 #endif

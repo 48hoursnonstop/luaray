@@ -32,12 +32,10 @@ ln_array *ln_roll(const ln_array *a, int flatten, const ln_intp *offsets,
             int selected=order[i],j=i;
             ln_intp stride=a->strides[selected];
             uintmax_t magnitude=stride<0?(uintmax_t)(-(stride+1))+1:(uintmax_t)stride;
-            if(!magnitude)magnitude=UINTMAX_MAX;
             while(j>0) {
                 int other=order[j-1];
                 ln_intp value=a->strides[other];
                 uintmax_t compare=value<0?(uintmax_t)(-(value+1))+1:(uintmax_t)value;
-                if(!compare)compare=UINTMAX_MAX;
                 if(compare<magnitude || (compare==magnitude && other>selected))break;
                 order[j]=other;j--;
             }

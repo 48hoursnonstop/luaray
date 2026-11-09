@@ -1,6 +1,6 @@
 -- Reproducible NumPy 2.3.5 oracle: tools/generate_random82_oracle.py
 local np=require('luaray_core')
-assert(np._version=='0.104.0-dev')
+assert(np._version=='0.105.0-dev')
 local cases=0
 local function close(a,b,eps)
  if type(a)~=type(b) then return false end

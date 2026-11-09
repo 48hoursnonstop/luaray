@@ -1,3 +1,26 @@
+## 0.105.0-dev verification (executed)
+
+- Full native/Lua regression passed **129/129 frozen fixture files**.
+- Original NumPy2.5.3 frequencies: **826 cases /28,419 checks**; shifts:
+  **1,800 /86,698**; transforms/output behavior: **6,964 /343,993**.
+  Total **9,590 /459,110**. Checks include input/output states, real acceptance,
+  dtype, strides, shape and destination identity; all three fixtures reproduced.
+- New C suite and **111 Lua checks** passed. Known half/float32 precision cases
+  use exact expected values. Differential float32/complex64 tolerances are
+  absolute+relative3e-6; wider output2e-12. Maximum absolute transform error:
+  1.9073486328125e-6; frequency/shift error0. No tolerance was weakened.
+- Expanded text/out cases reproduced a NULL dtype normalization crash. Systemd
+  core/GDB confirmed it; validation now precedes promotion. The same cases and
+  read-only outputs pass rejection tests and sanitizer execution.
+- ASan/UBSan passed **15 C units +1 C++ unit**, **8 native /33 Lua suites**.
+  C++ PocketFFT integration is instrumented; other linked dependencies are not.
+  Leak detection is disabled. Complete scope in compatibility/current.json.
+- Inventory observed **303/675** direct callable names,371 missing and one Lua
+  exception-class adaptation; FFT18/18 available remains partially compatible.
+- Final source archive extraction/rebuild/full regression/eight public examples
+  and SHA manifest are recorded by the versioned release JSON/log. Remote CI
+  is separate. Earlier blocked states and explicit differences are retained.
+
 ## 0.104.0-dev verification (executed)
 
 - Final full native/Lua regression passed **126/126 frozen fixture files**.

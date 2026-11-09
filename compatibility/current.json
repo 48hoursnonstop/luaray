@@ -1,13 +1,14 @@
 {
-  "version": "0.104.0-dev",
+  "version": "0.105.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "where": 1487,
-    "select": 1961
+    "fft_frequencies": 826,
+    "fft_shifts": 1800,
+    "fft_transforms_and_outputs": 6964
   },
-  "new_numeric_checks": 79676,
-  "new_lua_regression_checks": 65,
+  "new_numeric_checks": 459110,
+  "new_lua_regression_checks": 111,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -15,21 +16,26 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.where": "implemented_partial",
-    "numpy.select": "implemented_partial"
+    "numpy.fft.fftfreq": "implemented_partial",
+    "numpy.fft.rfftfreq": "implemented_partial",
+    "numpy.fft.fftshift": "implemented_partial",
+    "numpy.fft.ifftshift": "implemented_partial",
+    "numpy.fft.hfft": "implemented_partial",
+    "numpy.fft.ihfft": "implemented_partial"
   },
   "evidence": [
-    "tests/where104_differential_generated.lua",
-    "tests/select104_differential_generated.lua",
-    "tests/select104_regression.lua",
-    "tests/test_select104_core.c",
+    "tests/fft_frequency105_differential_generated.lua",
+    "tests/fft_shift105_differential_generated.lua",
+    "tests/fft_hermitian105_differential_generated.lua",
+    "tests/fft105_regression.lua",
+    "tests/test_fft105_core.c",
     "compatibility/api_inventory.json",
     "tools/inventory_api.py"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 297,
-    "missing_bindings": 377,
+    "available_callables": 303,
+    "missing_bindings": 371,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -39,7 +45,9 @@
     "Non-native numeric endian remains unavailable",
     "Python subclasses, complete warnings and exception-class fidelity are not claimed",
     "Availability inventory alone verifies no full behavior; alternate Lua spellings can exist",
-    "Earlier take/choose differences remain separate; full NumPy parity is not claimed"
+    "Earlier take/choose differences remain separate; full NumPy parity is not claimed",
+    "All eighteen scoped FFT callables are available; full FFT behavior, every dtype/length/out alias and device argument remain uncertified",
+    "FFT float32/complex64 numeric tolerance: absolute3e-6 plus relative3e-6; wider output2e-12; values/metadata and known precision regression values checked separately"
   ],
-  "sanitizers": "Directed audit: ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string, ln_along, ln_mapping, ln_choose, ln_condition, ln_select, ln_nditer_multi, ln_datetime; seven native and twenty-nine Lua suites; other dependencies uninstrumented; leaks disabled"
+  "sanitizers": "Directed audit: fifteen C units (ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string, ln_along, ln_mapping, ln_choose, ln_condition, ln_select, ln_nditer_multi, ln_datetime, ln_fft_helpers, ln_roll) plus C++ ln_fft; eight native and thirty-three Lua suites; other dependencies uninstrumented; leaks disabled"
 }

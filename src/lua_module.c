@@ -23,6 +23,7 @@
 #include "ln_quantile.h"
 #include "ln_sort.h"
 #include "ln_fft.h"
+#include "ln_fft_helpers.h"
 #include "ln_linalg.h"
 #include "ln_ufunc.h"
 #include "ln_complex.h"
@@ -106,6 +107,7 @@ static int np_nanpercentile(lua_State *L);
 static int np_percentile(lua_State *L);
 static lua_array *check_array(lua_State *L,int idx);
 static lua_array *test_array(lua_State *L,int idx);
+static lua_complex *test_complex(lua_State *L,int idx);
 static ln_array *broadcast_arg(lua_State *L,int idx);
 static int fail(lua_State *L,const ln_error *e);
 static int push_array(lua_State *L,ln_array *a);
@@ -133,7 +135,9 @@ typedef enum lua_fft_kind {
     LUA_FFT_FFT = 0,
     LUA_FFT_IFFT = 1,
     LUA_FFT_RFFT = 2,
-    LUA_FFT_IRFFT = 3
+    LUA_FFT_IRFFT = 3,
+    LUA_FFT_HFFT = 4,
+    LUA_FFT_IHFFT = 5
 } lua_fft_kind;
 
 typedef struct fft_call_options {
@@ -190,47 +194,62 @@ parse_fft_options_table(lua_State *L,int idx,const ln_array *a,lua_fft_kind kind
     return 0;
 }
 
+static ln_intp fft_default_length(lua_State *L,const ln_array *a,int axis,lua_fft_kind kind) {
+    ln_intp length=a->dimensions[axis];
+    if(kind==LUA_FFT_IRFFT || kind==LUA_FFT_HFFT) {
+        if(length>INTPTR_MAX/2+1)luaL_error(L,"default real FFT length overflows native index range");
+        return 2*(length-1);
+    }
+    return length;
+}
+
 static int
-parse_fft_call(lua_State *L,const ln_array *a,lua_fft_kind kind,fft_call_options *o)
+parse_fft_call(lua_State *L,const ln_array *a,lua_fft_kind kind,fft_call_options *o,int top)
 {
     memset(o,0,sizeof(*o));
     if(a->nd<1)return luaL_error(L,"axis -1 is out of bounds for array of dimension 0");
     o->axis=a->nd-1; o->norm=LN_FFT_NORM_BACKWARD;
-    int top=lua_gettop(L);
     if(top<2||lua_type(L,2)==LUA_TNIL){
-        o->n=(kind==LUA_FFT_IRFFT)?2*(a->dimensions[o->axis]-1):a->dimensions[o->axis];
-        return 0;
+        o->has_n=0;
     }
-    if(lua_type(L,2)==LUA_TTABLE){
+    else if(lua_type(L,2)==LUA_TTABLE){
         int rc=parse_fft_options_table(L,2,a,kind,o);if(rc)return rc;
-        if(!o->has_n)o->n=(kind==LUA_FFT_IRFFT)?2*(a->dimensions[o->axis]-1):a->dimensions[o->axis];
+        if(!o->has_n)o->n=fft_default_length(L,a,o->axis,kind);
         return 0;
     }
     /* Convenient NumPy-shaped positional form: (a, n, axis, norm, out).
      * Axis remains Lua 1-based. */
-    int ok=0;lua_Integer n=lua_tointegerx(L,2,&ok);
-    if(!ok)return luaL_error(L,"second FFT argument must be n or an options table");
-    o->n=(ln_intp)n;o->has_n=1;
+    int ok=0;
+    if(top>=2 && lua_type(L,2)!=LUA_TNIL) {
+        lua_Integer n=lua_tointegerx(L,2,&ok);
+        if(!ok)return luaL_error(L,"second FFT argument must be n or an options table");
+        o->n=(ln_intp)n;o->has_n=1;
+    }
     if(top>=3&&lua_type(L,3)!=LUA_TNIL){
         lua_Integer raw=lua_tointegerx(L,3,&ok);if(!ok)return luaL_error(L,"axis must be an integer");
         if(normalize_lua_axis(L,raw,a->nd,&o->axis))return 1;
     }
     if(top>=4&&parse_fft_norm(L,4,&o->norm))return 1;
     if(top>=5&&lua_type(L,5)!=LUA_TNIL){o->out=test_array(L,5);if(!o->out)return luaL_error(L,"out must be an ndarray or nil");}
+    if(!o->has_n)o->n=fft_default_length(L,a,o->axis,kind);
     return 0;
 }
 
 static int
 fft_function(lua_State *L,lua_fft_kind kind)
 {
-    lua_array *u=check_array(L,1);fft_call_options o;
-    if(parse_fft_call(L,u->a,kind,&o))return 0;
+    int nargs=lua_gettop(L);
+    if(nargs<1 || nargs>5)return luaL_error(L,"FFT expects input and optional n, axis, norm and out");
+    const ln_array *input=broadcast_arg(L,1);fft_call_options o;
+    if(parse_fft_call(L,input,kind,&o,nargs))return 0;
     ln_error e={{0}};ln_array *r=NULL;
     const ln_dtype *outdt=o.out?o.out->a->descr:NULL;
-    if(kind==LUA_FFT_FFT) r=ln_fft_fft(u->a,o.n,o.axis,0,o.norm,outdt,&e);
-    else if(kind==LUA_FFT_IFFT) r=ln_fft_fft(u->a,o.n,o.axis,1,o.norm,outdt,&e);
-    else if(kind==LUA_FFT_RFFT) r=ln_fft_rfft(u->a,o.n,o.axis,o.norm,outdt,&e);
-    else r=ln_fft_irfft(u->a,o.n,o.axis,o.norm,outdt,&e);
+    if(kind==LUA_FFT_FFT) r=ln_fft_fft(input,o.n,o.axis,0,o.norm,outdt,&e);
+    else if(kind==LUA_FFT_IFFT) r=ln_fft_fft(input,o.n,o.axis,1,o.norm,outdt,&e);
+    else if(kind==LUA_FFT_RFFT) r=ln_fft_rfft(input,o.n,o.axis,o.norm,outdt,&e);
+    else if(kind==LUA_FFT_IRFFT)r=ln_fft_irfft(input,o.n,o.axis,o.norm,outdt,&e);
+    else if(kind==LUA_FFT_HFFT)r=ln_fft_hfft(input,o.n,o.axis,o.norm,outdt,&e);
+    else r=ln_fft_ihfft(input,o.n,o.axis,o.norm,outdt,&e);
     if(!r)return fail(L,&e);
     if(o.out){
         if(ln_fft_copy_into(r,o.out->a,&e)<0){ln_array_free(r);return fail(L,&e);}
@@ -244,6 +263,51 @@ static int np_fft_fft(lua_State *L){return fft_function(L,LUA_FFT_FFT);}
 static int np_fft_ifft(lua_State *L){return fft_function(L,LUA_FFT_IFFT);}
 static int np_fft_rfft(lua_State *L){return fft_function(L,LUA_FFT_RFFT);}
 static int np_fft_irfft(lua_State *L){return fft_function(L,LUA_FFT_IRFFT);}
+
+static int np_fft_hfft(lua_State *L){return fft_function(L,LUA_FFT_HFFT);}
+static int np_fft_ihfft(lua_State *L){return fft_function(L,LUA_FFT_IHFFT);}
+
+static int fft_frequency_function(lua_State *L,int real_only) {
+    int nargs=lua_gettop(L);
+    if(nargs<1 || nargs>2)return luaL_error(L,"frequency expects n and optional spacing");
+    ln_intp n;
+    if(lua_type(L,1)==LUA_TBOOLEAN) {
+        if(!real_only)return luaL_error(L,"fftfreq n must be an integer dimension");
+        n=lua_toboolean(L,1);
+    }
+    else if(lua_isinteger(L,1))n=(ln_intp)lua_tointegerx(L,1,NULL);
+    else return luaL_error(L,"frequency n must be an integer");
+    if(nargs==1){lua_pushnumber(L,1.0);nargs=2;}
+    if(lua_type(L,2)==LUA_TTABLE)return luaL_error(L,"spacing must be a numeric scalar or ndarray");
+    int scalar=lua_type(L,2)==LUA_TNUMBER || lua_type(L,2)==LUA_TBOOLEAN || test_complex(L,2)!=NULL;
+    const ln_array *spacing=broadcast_arg(L,2);
+    ln_error err={{0}};ln_array *result=ln_fft_frequency(n,spacing,scalar,real_only,&err);
+    if(!result)return fail(L,&err);
+    return push_array(L,result);
+}
+static int np_fft_fftfreq(lua_State *L){return fft_frequency_function(L,0);}
+static int np_fft_rfftfreq(lua_State *L){return fft_frequency_function(L,1);}
+static int fft_shift_function(lua_State *L,int inverse) {
+    int nargs=lua_gettop(L);
+    if(nargs<1 || nargs>2)return luaL_error(L,"FFT shift expects input and optional axes");
+    const ln_array *input=broadcast_arg(L,1);int count=-1,*axes=NULL;
+    if(nargs==2 && lua_type(L,2)!=LUA_TNIL) {
+        size_t n=lua_type(L,2)==LUA_TTABLE?lua_rawlen(L,2):1;
+        if(n>INT_MAX || n>SIZE_MAX/sizeof(*axes))return luaL_error(L,"too many FFT shift axes");
+        count=(int)n;axes=lua_newuserdatauv(L,n*sizeof(*axes),0);
+        for(size_t j=0;j<n;++j) {
+            if(lua_type(L,2)==LUA_TTABLE)lua_geti(L,2,(lua_Integer)j+1);
+            else lua_pushvalue(L,2);
+            if(!lua_isinteger(L,-1))return luaL_error(L,"FFT shift axes must be integers");
+            normalize_lua_axis(L,lua_tointegerx(L,-1,NULL),input->nd,&axes[j]);lua_pop(L,1);
+        }
+    }
+    ln_error err={{0}};ln_array *result=ln_fft_shift(input,axes,count,inverse,&err);
+    if(!result)return fail(L,&err);
+    return push_array(L,result);
+}
+static int np_fft_fftshift(lua_State *L){return fft_shift_function(L,0);}
+static int np_fft_ifftshift(lua_State *L){return fft_shift_function(L,1);}
 
 typedef enum lua_fft_nd_kind {
     LUA_FFT_FFTN = 0,
@@ -522,6 +586,8 @@ static int np_fft_rfft2(lua_State *L){return fft_nd_function(L,LUA_FFT_RFFTN,1);
 static int np_fft_irfft2(lua_State *L){return fft_nd_function(L,LUA_FFT_IRFFTN,1);}
 static const luaL_Reg fft_funcs[]={
     {"fft",np_fft_fft},{"ifft",np_fft_ifft},{"rfft",np_fft_rfft},{"irfft",np_fft_irfft},
+    {"hfft",np_fft_hfft},{"ihfft",np_fft_ihfft},{"fftfreq",np_fft_fftfreq},{"rfftfreq",np_fft_rfftfreq},
+    {"fftshift",np_fft_fftshift},{"ifftshift",np_fft_ifftshift},
     {"fftn",np_fft_fftn},{"ifftn",np_fft_ifftn},{"rfftn",np_fft_rfftn},{"irfftn",np_fft_irfftn},
     {"fft2",np_fft_fft2},{"ifft2",np_fft_ifft2},{"rfft2",np_fft_rfft2},{"irfft2",np_fft_irfft2},
     {NULL,NULL}};
@@ -7771,7 +7837,7 @@ int luaopen_luaray_core(lua_State*L){
     for(int i=0;names[i];i++){lua_pushstring(L,names[i]);lua_setfield(L,-2,names[i]);}
     push_index_token(L,LN_INDEX_NEWAXIS);lua_setfield(L,-2,"newaxis");
     push_index_token(L,LN_INDEX_ELLIPSIS);lua_setfield(L,-2,"ellipsis");
-    lua_pushstring(L,"0.104.0-dev");lua_setfield(L,-2,"_version");
+    lua_pushstring(L,"0.105.0-dev");lua_setfield(L,-2,"_version");
     lua_pushstring(L,"286e698f1dcf601648b165f48485ceaeec9c6231");lua_setfield(L,-2,"_numpy_upstream_commit");
     return 1;
 }

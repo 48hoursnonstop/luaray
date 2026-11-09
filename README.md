@@ -1,3 +1,17 @@
+## LuaRay 0.105.0-dev — FFT grids, shifts and Hermitian transforms
+
+Native `np.fft.fftfreq`, `rfftfreq`, `fftshift`, `ifftshift`, `hfft` and `ihfft`
+now execute through typed arrays and PocketFFT. Shared fixes preserve zero-stride
+memory order, exact input FFT precision, half normalization and positional nil n.
+Invalid text and read-only outputs raise Lua errors.
+
+Read the [English FFT reference](docs/en/fft_helpers.md) or
+[referencia FFT en español](docs/es/fft_helpers.md). **9,590 original NumPy2.5.3
+cases /459,110 checks**,111 direct Lua checks and native tests passed. Full
+regression has **129 fixture files**. The [inventory](docs/en/api_inventory.md)
+observes303/675 callable names and18/18 FFT names; every API remains partial.
+No Python runtime is required.
+
 ## LuaRay 0.104.0-dev — conditional values and measured API availability
 
 Native `np.where` / `np.select` now support strong/weak dtype resolution,

@@ -1,6 +1,6 @@
 {
   "upstream": "NumPy 2.5.3",
-  "lua_version": "0.104.0-dev",
+  "lua_version": "0.105.0-dev",
   "scope": "Public callable names in numpy/fft/linalg/random __all__, ndarray/Generator/ufunc public methods. Aliases counted separately; not constants, properties, all submodules or dtype loop combinations.",
   "interpretation": "Availability is observed at runtime; every available callable remains partial. This inventory alone verifies no behavior or full compatibility. Release-specific original fixtures provide separate behavioral evidence.",
   "complete_apis_declared": 0,
@@ -13,9 +13,9 @@
     },
     "numpy.fft": {
       "scoped_names": 18,
-      "available_callables": 12,
+      "available_callables": 18,
       "not_applicable_to_lua": 0,
-      "missing_callables": 6
+      "missing_callables": 0
     },
     "numpy.linalg": {
       "scoped_names": 32,
@@ -1997,9 +1997,9 @@
         "fftfreq"
       ],
       "upstream_kind": "callable",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -2025,9 +2025,9 @@
         "fftshift"
       ],
       "upstream_kind": "callable",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -2039,9 +2039,9 @@
         "hfft"
       ],
       "upstream_kind": "callable",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -2095,9 +2095,9 @@
         "ifftshift"
       ],
       "upstream_kind": "callable",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -2109,9 +2109,9 @@
         "ihfft"
       ],
       "upstream_kind": "callable",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -2193,9 +2193,9 @@
         "rfftfreq"
       ],
       "upstream_kind": "callable",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {

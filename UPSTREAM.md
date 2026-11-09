@@ -1,3 +1,17 @@
+## 0.105 — NumPy2.5.3 FFT helpers and actual compute precision
+
+ln_fft_helpers follows fft/_helper.py frequency-bin and roll compositions, and
+fft/_pocketfft.py hfft/ihfft conjugation and norm swapping. Typed frequency
+spacing uses the existing native weak-scalar ufunc resolver. Conjugation follows
+NpyIter KEEPORDER; zero-stride roll allocation follows ctors.c's stride sorting.
+_pocketfft.py normalization and _pocketfft_umath.cpp exact input loops establish
+half normalization and retained float32/complex64 computation with wider output.
+Unsupported dtype validation precedes output-driven promotion. Read-only output
+checks prevent writes. Source/tests are pinned in the nine-file
+NUMPY_2_5_3_FFT105_FILE_HASHES.sha256. NumPy BSD license and bundled PocketFFT
+license/attribution remain included. Source and executable oracle are2.5.3;
+older fixtures retain their own recorded provenance. No Python runtime dependency.
+
 ## 0.104 — NumPy2.5.3 where/select and API availability
 
 ln_select follows multiarraymodule.c:PyArray_Where and _function_base_impl.py:

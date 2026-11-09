@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.104.0-dev')
+assert(np._version=='0.105.0-dev')
 local function eq(x,y) assert(x==y,tostring(x)..' ~= '..tostring(y)) end
 local function fails(f)assert(not pcall(f),'accepted invalid repeats')end
 local a=np.reshape(np.arange(12,'int32'),{3,4})

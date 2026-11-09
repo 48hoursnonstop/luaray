@@ -115,7 +115,7 @@ $(BUILD)/ln_linalg.o: src/ln_linalg.c src/ln_linalg.h src/ln_core.h src/ln_dtype
 $(BUILD)/test_core_main.o: tests/test_core.c src/ln_split.h src/ln_repeat.h | $(BUILD)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-$(BUILD)/test_core: $(BUILD)/test_core_main.o $(BUILD)/ln_random.o $(BUILD)/ln_hypergeometric.o $(BUILD)/ln_multivariate_hypergeometric.o $(BUILD)/ln_multinomial.o $(BUILD)/ln_dirichlet.o $(BUILD)/ln_multivariate_normal.o $(BUILD)/ln_half.o $(BUILD)/ln_complex_math.o $(BUILD)/ln_string.o $(BUILD)/ln_datetime.o $(BUILD)/ln_datetime_strings.o $(BUILD)/ln_core.o $(BUILD)/ln_dtype_transfer.o $(BUILD)/ln_ufunc_loops.o $(BUILD)/ln_nditer_multi.o $(BUILD)/ln_ufunc.o $(BUILD)/ln_mapping.o $(BUILD)/ln_write.o $(BUILD)/ln_take.o $(BUILD)/ln_along.o $(BUILD)/ln_choose.o $(BUILD)/ln_condition.o $(BUILD)/ln_select.o $(BUILD)/ln_nditer.o $(BUILD)/ln_matmul.o $(BUILD)/ln_dot.o $(BUILD)/ln_join.o $(BUILD)/ln_delete.o $(BUILD)/ln_insert.o $(BUILD)/ln_split.o $(BUILD)/ln_axis.o $(BUILD)/ln_repeat.o $(BUILD)/ln_roll.o $(BUILD)/ln_stats.o $(BUILD)/ln_average.o $(BUILD)/ln_truth.o $(BUILD)/ln_quantile.o $(BUILD)/ln_sort.o $(BUILD)/ln_fft.o $(BUILD)/ln_linalg.o
+$(BUILD)/test_core: $(BUILD)/test_core_main.o $(BUILD)/ln_random.o $(BUILD)/ln_hypergeometric.o $(BUILD)/ln_multivariate_hypergeometric.o $(BUILD)/ln_multinomial.o $(BUILD)/ln_dirichlet.o $(BUILD)/ln_multivariate_normal.o $(BUILD)/ln_half.o $(BUILD)/ln_complex_math.o $(BUILD)/ln_string.o $(BUILD)/ln_datetime.o $(BUILD)/ln_datetime_strings.o $(BUILD)/ln_core.o $(BUILD)/ln_dtype_transfer.o $(BUILD)/ln_ufunc_loops.o $(BUILD)/ln_nditer_multi.o $(BUILD)/ln_ufunc.o $(BUILD)/ln_mapping.o $(BUILD)/ln_write.o $(BUILD)/ln_take.o $(BUILD)/ln_along.o $(BUILD)/ln_choose.o $(BUILD)/ln_condition.o $(BUILD)/ln_select.o $(BUILD)/ln_fft_helpers.o $(BUILD)/ln_nditer.o $(BUILD)/ln_matmul.o $(BUILD)/ln_dot.o $(BUILD)/ln_join.o $(BUILD)/ln_delete.o $(BUILD)/ln_insert.o $(BUILD)/ln_split.o $(BUILD)/ln_axis.o $(BUILD)/ln_repeat.o $(BUILD)/ln_roll.o $(BUILD)/ln_stats.o $(BUILD)/ln_average.o $(BUILD)/ln_truth.o $(BUILD)/ln_quantile.o $(BUILD)/ln_sort.o $(BUILD)/ln_fft.o $(BUILD)/ln_linalg.o
 	$(CXX) $(LDFLAGS) $^ -lm $(BLAS_LIBS) $(LAPACK_LIBS) -o $@
 
 test: $(BUILD)/test_core $(BUILD)/test_repeat_core $(BUILD)/test_roll_core $(BUILD)/test_atleast_core $(BUILD)/test_delete_core $(BUILD)/test_insert_core $(BUILD)/test_extrema_core $(BUILD)/test_selection_core $(BUILD)/test_quantile_core $(BUILD)/test_nanquantile_core $(BUILD)/test_nanreductions_core $(BUILD)/test_nanextrema_core $(BUILD)/test_cumulative_core $(BUILD)/test_truth_core $(BUILD)/test_average_core
@@ -155,10 +155,10 @@ BLAS_LIBS ?= $(shell \
 	else echo -lblas; fi)
 LAPACK_LIBS ?= -llapack
 
-$(BUILD)/lua_module.o: src/lua_module.c src/ln_take.h src/ln_write.h src/ln_random.h src/ln_multivariate_normal.h src/lua_compat.h src/ln_core.h src/ln_string.h src/ln_ufunc.h src/ln_nditer_multi.h src/ln_mapping.h src/ln_nditer.h src/ln_matmul.h src/ln_dot.h src/ln_join.h src/ln_delete.h src/ln_insert.h src/ln_split.h src/ln_axis.h src/ln_repeat.h src/ln_roll.h src/ln_stats.h src/ln_average.h src/ln_truth.h src/ln_sort.h src/ln_fft.h src/ln_linalg.h src/ln_datetime.h src/ln_datetime_strings.h | $(BUILD)
+$(BUILD)/lua_module.o: src/lua_module.c src/ln_fft_helpers.h src/ln_take.h src/ln_write.h src/ln_random.h src/ln_multivariate_normal.h src/lua_compat.h src/ln_core.h src/ln_string.h src/ln_ufunc.h src/ln_nditer_multi.h src/ln_mapping.h src/ln_nditer.h src/ln_matmul.h src/ln_dot.h src/ln_join.h src/ln_delete.h src/ln_insert.h src/ln_split.h src/ln_axis.h src/ln_repeat.h src/ln_roll.h src/ln_stats.h src/ln_average.h src/ln_truth.h src/ln_sort.h src/ln_fft.h src/ln_linalg.h src/ln_datetime.h src/ln_datetime_strings.h | $(BUILD)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -fPIC -c $< -o $@
 
-$(BUILD)/luaray_core.so: $(BUILD)/ln_random.o $(BUILD)/ln_hypergeometric.o $(BUILD)/ln_multivariate_hypergeometric.o $(BUILD)/ln_multinomial.o $(BUILD)/ln_dirichlet.o $(BUILD)/ln_multivariate_normal.o $(BUILD)/ln_half.o $(BUILD)/ln_complex_math.o $(BUILD)/ln_string.o $(BUILD)/ln_datetime.o $(BUILD)/ln_datetime_strings.o $(BUILD)/ln_core.o $(BUILD)/ln_dtype_transfer.o $(BUILD)/ln_ufunc_loops.o $(BUILD)/ln_nditer_multi.o $(BUILD)/ln_ufunc.o $(BUILD)/ln_mapping.o $(BUILD)/ln_write.o $(BUILD)/ln_take.o $(BUILD)/ln_along.o $(BUILD)/ln_choose.o $(BUILD)/ln_condition.o $(BUILD)/ln_select.o $(BUILD)/ln_nditer.o $(BUILD)/ln_matmul.o $(BUILD)/ln_dot.o $(BUILD)/ln_join.o $(BUILD)/ln_delete.o $(BUILD)/ln_insert.o $(BUILD)/ln_split.o $(BUILD)/ln_axis.o $(BUILD)/ln_repeat.o $(BUILD)/ln_roll.o $(BUILD)/ln_stats.o $(BUILD)/ln_average.o $(BUILD)/ln_truth.o $(BUILD)/ln_quantile.o $(BUILD)/ln_sort.o $(BUILD)/ln_fft.o $(BUILD)/ln_linalg.o $(BUILD)/lua_module.o
+$(BUILD)/luaray_core.so: $(BUILD)/ln_random.o $(BUILD)/ln_hypergeometric.o $(BUILD)/ln_multivariate_hypergeometric.o $(BUILD)/ln_multinomial.o $(BUILD)/ln_dirichlet.o $(BUILD)/ln_multivariate_normal.o $(BUILD)/ln_half.o $(BUILD)/ln_complex_math.o $(BUILD)/ln_string.o $(BUILD)/ln_datetime.o $(BUILD)/ln_datetime_strings.o $(BUILD)/ln_core.o $(BUILD)/ln_dtype_transfer.o $(BUILD)/ln_ufunc_loops.o $(BUILD)/ln_nditer_multi.o $(BUILD)/ln_ufunc.o $(BUILD)/ln_mapping.o $(BUILD)/ln_write.o $(BUILD)/ln_take.o $(BUILD)/ln_along.o $(BUILD)/ln_choose.o $(BUILD)/ln_condition.o $(BUILD)/ln_select.o $(BUILD)/ln_fft_helpers.o $(BUILD)/ln_nditer.o $(BUILD)/ln_matmul.o $(BUILD)/ln_dot.o $(BUILD)/ln_join.o $(BUILD)/ln_delete.o $(BUILD)/ln_insert.o $(BUILD)/ln_split.o $(BUILD)/ln_axis.o $(BUILD)/ln_repeat.o $(BUILD)/ln_roll.o $(BUILD)/ln_stats.o $(BUILD)/ln_average.o $(BUILD)/ln_truth.o $(BUILD)/ln_quantile.o $(BUILD)/ln_sort.o $(BUILD)/ln_fft.o $(BUILD)/ln_linalg.o $(BUILD)/lua_module.o
 	$(CXX) $(LDFLAGS) -shared $^ $(LUA_SO) -lm $(BLAS_LIBS) $(LAPACK_LIBS) -o $@
 
 $(BUILD)/lunumpy_core.so: $(BUILD)/luaray_core.so
@@ -167,7 +167,7 @@ $(BUILD)/lunumpy_core.so: $(BUILD)/luaray_core.so
 $(BUILD)/lua_runner_main.o: tests/lua_runner.c | $(BUILD)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-$(BUILD)/lua_runner: $(BUILD)/lua_runner_main.o $(BUILD)/ln_random.o $(BUILD)/ln_hypergeometric.o $(BUILD)/ln_multivariate_hypergeometric.o $(BUILD)/ln_multinomial.o $(BUILD)/ln_dirichlet.o $(BUILD)/ln_multivariate_normal.o $(BUILD)/ln_half.o $(BUILD)/ln_complex_math.o $(BUILD)/ln_string.o $(BUILD)/ln_datetime.o $(BUILD)/ln_datetime_strings.o $(BUILD)/ln_core.o $(BUILD)/ln_dtype_transfer.o $(BUILD)/ln_ufunc_loops.o $(BUILD)/ln_nditer_multi.o $(BUILD)/ln_ufunc.o $(BUILD)/ln_mapping.o $(BUILD)/ln_write.o $(BUILD)/ln_take.o $(BUILD)/ln_along.o $(BUILD)/ln_choose.o $(BUILD)/ln_condition.o $(BUILD)/ln_select.o $(BUILD)/ln_nditer.o $(BUILD)/ln_matmul.o $(BUILD)/ln_dot.o $(BUILD)/ln_join.o $(BUILD)/ln_delete.o $(BUILD)/ln_insert.o $(BUILD)/ln_split.o $(BUILD)/ln_axis.o $(BUILD)/ln_repeat.o $(BUILD)/ln_roll.o $(BUILD)/ln_stats.o $(BUILD)/ln_average.o $(BUILD)/ln_truth.o $(BUILD)/ln_quantile.o $(BUILD)/ln_sort.o $(BUILD)/ln_fft.o $(BUILD)/ln_linalg.o $(BUILD)/lua_module.o
+$(BUILD)/lua_runner: $(BUILD)/lua_runner_main.o $(BUILD)/ln_random.o $(BUILD)/ln_hypergeometric.o $(BUILD)/ln_multivariate_hypergeometric.o $(BUILD)/ln_multinomial.o $(BUILD)/ln_dirichlet.o $(BUILD)/ln_multivariate_normal.o $(BUILD)/ln_half.o $(BUILD)/ln_complex_math.o $(BUILD)/ln_string.o $(BUILD)/ln_datetime.o $(BUILD)/ln_datetime_strings.o $(BUILD)/ln_core.o $(BUILD)/ln_dtype_transfer.o $(BUILD)/ln_ufunc_loops.o $(BUILD)/ln_nditer_multi.o $(BUILD)/ln_ufunc.o $(BUILD)/ln_mapping.o $(BUILD)/ln_write.o $(BUILD)/ln_take.o $(BUILD)/ln_along.o $(BUILD)/ln_choose.o $(BUILD)/ln_condition.o $(BUILD)/ln_select.o $(BUILD)/ln_fft_helpers.o $(BUILD)/ln_nditer.o $(BUILD)/ln_matmul.o $(BUILD)/ln_dot.o $(BUILD)/ln_join.o $(BUILD)/ln_delete.o $(BUILD)/ln_insert.o $(BUILD)/ln_split.o $(BUILD)/ln_axis.o $(BUILD)/ln_repeat.o $(BUILD)/ln_roll.o $(BUILD)/ln_stats.o $(BUILD)/ln_average.o $(BUILD)/ln_truth.o $(BUILD)/ln_quantile.o $(BUILD)/ln_sort.o $(BUILD)/ln_fft.o $(BUILD)/ln_linalg.o $(BUILD)/lua_module.o
 	$(CXX) $(LDFLAGS) $^ $(LUA_SO) -lm $(BLAS_LIBS) $(LAPACK_LIBS) -o $@
 
 lua-test: $(BUILD)/luaray_core.so $(BUILD)/lua_runner
@@ -398,7 +398,7 @@ $(BUILD)/test_extrema_core: $(BUILD)/test_extrema_main.o $(BUILD)/test_core
 $(BUILD)/test_selection_main.o: tests/test_selection_core.c src/ln_stats.h | $(BUILD)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-$(BUILD)/test_selection_core: $(BUILD)/test_selection_main.o $(BUILD)/ln_random.o $(BUILD)/ln_hypergeometric.o $(BUILD)/ln_multivariate_hypergeometric.o $(BUILD)/ln_multinomial.o $(BUILD)/ln_half.o $(BUILD)/ln_complex_math.o $(BUILD)/ln_string.o $(BUILD)/ln_datetime.o $(BUILD)/ln_datetime_strings.o $(BUILD)/ln_core.o $(BUILD)/ln_dtype_transfer.o $(BUILD)/ln_ufunc_loops.o $(BUILD)/ln_nditer_multi.o $(BUILD)/ln_ufunc.o $(BUILD)/ln_mapping.o $(BUILD)/ln_write.o $(BUILD)/ln_take.o $(BUILD)/ln_along.o $(BUILD)/ln_choose.o $(BUILD)/ln_condition.o $(BUILD)/ln_select.o $(BUILD)/ln_nditer.o $(BUILD)/ln_matmul.o $(BUILD)/ln_dot.o $(BUILD)/ln_join.o $(BUILD)/ln_delete.o $(BUILD)/ln_insert.o $(BUILD)/ln_split.o $(BUILD)/ln_axis.o $(BUILD)/ln_repeat.o $(BUILD)/ln_roll.o $(BUILD)/ln_stats.o $(BUILD)/ln_average.o $(BUILD)/ln_truth.o $(BUILD)/ln_quantile.o $(BUILD)/ln_sort.o $(BUILD)/ln_fft.o $(BUILD)/ln_linalg.o
+$(BUILD)/test_selection_core: $(BUILD)/test_selection_main.o $(BUILD)/ln_random.o $(BUILD)/ln_hypergeometric.o $(BUILD)/ln_multivariate_hypergeometric.o $(BUILD)/ln_multinomial.o $(BUILD)/ln_half.o $(BUILD)/ln_complex_math.o $(BUILD)/ln_string.o $(BUILD)/ln_datetime.o $(BUILD)/ln_datetime_strings.o $(BUILD)/ln_core.o $(BUILD)/ln_dtype_transfer.o $(BUILD)/ln_ufunc_loops.o $(BUILD)/ln_nditer_multi.o $(BUILD)/ln_ufunc.o $(BUILD)/ln_mapping.o $(BUILD)/ln_write.o $(BUILD)/ln_take.o $(BUILD)/ln_along.o $(BUILD)/ln_choose.o $(BUILD)/ln_condition.o $(BUILD)/ln_select.o $(BUILD)/ln_fft_helpers.o $(BUILD)/ln_nditer.o $(BUILD)/ln_matmul.o $(BUILD)/ln_dot.o $(BUILD)/ln_join.o $(BUILD)/ln_delete.o $(BUILD)/ln_insert.o $(BUILD)/ln_split.o $(BUILD)/ln_axis.o $(BUILD)/ln_repeat.o $(BUILD)/ln_roll.o $(BUILD)/ln_stats.o $(BUILD)/ln_average.o $(BUILD)/ln_truth.o $(BUILD)/ln_quantile.o $(BUILD)/ln_sort.o $(BUILD)/ln_fft.o $(BUILD)/ln_linalg.o
 	$(CXX) $(LDFLAGS) $^ -lm $(BLAS_LIBS) $(LAPACK_LIBS) -o $@
 
 extrema-native-test: $(BUILD)/test_extrema_core
@@ -450,7 +450,7 @@ $(BUILD)/test_truth_core: $(BUILD)/test_truth_main.o $(BUILD)/test_core
 $(BUILD)/test_average_main.o: tests/test_average_core.c src/ln_average.h | $(BUILD)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-TEST_CORE_NATIVE_OBJECTS = $(BUILD)/ln_random.o $(BUILD)/ln_hypergeometric.o $(BUILD)/ln_multivariate_hypergeometric.o $(BUILD)/ln_multinomial.o $(BUILD)/ln_half.o $(BUILD)/ln_complex_math.o $(BUILD)/ln_string.o $(BUILD)/ln_datetime.o $(BUILD)/ln_datetime_strings.o $(BUILD)/ln_core.o $(BUILD)/ln_dtype_transfer.o $(BUILD)/ln_ufunc_loops.o $(BUILD)/ln_nditer_multi.o $(BUILD)/ln_ufunc.o $(BUILD)/ln_mapping.o $(BUILD)/ln_write.o $(BUILD)/ln_take.o $(BUILD)/ln_along.o $(BUILD)/ln_choose.o $(BUILD)/ln_condition.o $(BUILD)/ln_select.o $(BUILD)/ln_nditer.o $(BUILD)/ln_matmul.o $(BUILD)/ln_dot.o $(BUILD)/ln_join.o $(BUILD)/ln_delete.o $(BUILD)/ln_insert.o $(BUILD)/ln_split.o $(BUILD)/ln_axis.o $(BUILD)/ln_repeat.o $(BUILD)/ln_roll.o $(BUILD)/ln_stats.o $(BUILD)/ln_average.o $(BUILD)/ln_truth.o $(BUILD)/ln_quantile.o $(BUILD)/ln_sort.o $(BUILD)/ln_fft.o $(BUILD)/ln_linalg.o
+TEST_CORE_NATIVE_OBJECTS = $(BUILD)/ln_random.o $(BUILD)/ln_hypergeometric.o $(BUILD)/ln_multivariate_hypergeometric.o $(BUILD)/ln_multinomial.o $(BUILD)/ln_half.o $(BUILD)/ln_complex_math.o $(BUILD)/ln_string.o $(BUILD)/ln_datetime.o $(BUILD)/ln_datetime_strings.o $(BUILD)/ln_core.o $(BUILD)/ln_dtype_transfer.o $(BUILD)/ln_ufunc_loops.o $(BUILD)/ln_nditer_multi.o $(BUILD)/ln_ufunc.o $(BUILD)/ln_mapping.o $(BUILD)/ln_write.o $(BUILD)/ln_take.o $(BUILD)/ln_along.o $(BUILD)/ln_choose.o $(BUILD)/ln_condition.o $(BUILD)/ln_select.o $(BUILD)/ln_fft_helpers.o $(BUILD)/ln_nditer.o $(BUILD)/ln_matmul.o $(BUILD)/ln_dot.o $(BUILD)/ln_join.o $(BUILD)/ln_delete.o $(BUILD)/ln_insert.o $(BUILD)/ln_split.o $(BUILD)/ln_axis.o $(BUILD)/ln_repeat.o $(BUILD)/ln_roll.o $(BUILD)/ln_stats.o $(BUILD)/ln_average.o $(BUILD)/ln_truth.o $(BUILD)/ln_quantile.o $(BUILD)/ln_sort.o $(BUILD)/ln_fft.o $(BUILD)/ln_linalg.o
 $(BUILD)/test_average_core: $(BUILD)/test_average_main.o $(TEST_CORE_NATIVE_OBJECTS)
 	$(CXX) $(LDFLAGS) $^ -lm $(BLAS_LIBS) $(LAPACK_LIBS) -o $@
 
@@ -964,3 +964,27 @@ sanitize-select104: $(BUILD)/lua_runner $(BUILD)/luaray_core.so
 	python3 tools/sanitize_write98.py --memory99 --libm-fix --take100 --along101 --choose102 --condition103 --select104
 
 .PHONY: sanitize-select104
+
+$(BUILD)/ln_fft_helpers.o: src/ln_fft_helpers.c src/ln_fft_helpers.h src/ln_fft.h src/ln_ufunc.h src/ln_mapping.h src/ln_roll.h src/ln_complex.h | $(BUILD)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -fPIC -c $< -o $@
+
+$(BUILD)/test_fft105_main.o: tests/test_fft105_core.c src/ln_fft_helpers.h | $(BUILD)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/test_fft105_core: $(BUILD)/test_fft105_main.o $(BUILD)/ln_fft_helpers.o $(BUILD)/test_core
+	$(CXX) $(LDFLAGS) $(BUILD)/test_fft105_main.o $(filter-out %_san.o,$(wildcard $(BUILD)/ln_*.o)) -lm $(BLAS_LIBS) $(LAPACK_LIBS) -o $@
+
+fft105-test: $(BUILD)/test_fft105_core $(BUILD)/lua_runner
+	./$(BUILD)/test_fft105_core
+	./$(BUILD)/lua_runner tests/fft105_regression.lua
+	./$(BUILD)/lua_runner tests/fft_frequency105_differential_generated.lua
+	./$(BUILD)/lua_runner tests/fft_shift105_differential_generated.lua
+	./$(BUILD)/lua_runner tests/fft_hermitian105_differential_generated.lua
+
+full-test: fft105-test
+.PHONY: fft105-test
+
+sanitize-fft105: $(BUILD)/lua_runner $(BUILD)/luaray_core.so
+	python3 tools/sanitize_write98.py --memory99 --libm-fix --take100 --along101 --choose102 --condition103 --select104 --fft105
+
+.PHONY: sanitize-fft105

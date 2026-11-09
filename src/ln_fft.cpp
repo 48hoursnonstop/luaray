@@ -326,7 +326,10 @@ extern "C" ln_array *ln_fft_fft(const ln_array *a, ln_intp n, int axis,
         return NULL;
     }
     const ln_dtype *cdt = fft_complex_dtype(a->descr);
-    cdt = promote_complex_compute_for_out(cdt, requested_out_dtype);
+    if (!cdt) { ferr(err, "unsupported FFT input dtype"); return NULL; }
+    /* Exact complex-input loops retain their native computation precision. */
+    if (a->descr->kind != 'c')
+        cdt = promote_complex_compute_for_out(cdt, requested_out_dtype);
     if (!cdt) { ferr(err, "unsupported FFT input dtype"); return NULL; }
     ln_array *tmp = new_like_axis(a, n, cdt, axis, 1, err);
     if (!tmp) return NULL;
@@ -360,7 +363,11 @@ extern "C" ln_array *ln_fft_rfft(const ln_array *a, ln_intp n, int axis,
     const ln_dtype *rdt = rfft_real_compute_dtype(a->descr);
     if (!rdt) { ferr(err,"ufunc 'rfft' not supported for complex input"); return NULL; }
     const ln_dtype *cdt = complex_for_real(rdt);
-    const ln_dtype *promoted_cdt=promote_complex_compute_for_out(cdt,requested_out_dtype);
+    /* Exact real FFT input loops keep their computation precision even when
+     * the output is wider. Half/integer inputs can select a wider loop. */
+    const ln_dtype *promoted_cdt=(a->descr->type_num==LN_FLOAT ||
+            a->descr->type_num==LN_DOUBLE || a->descr->type_num==LN_LONGDOUBLE)
+        ? cdt : promote_complex_compute_for_out(cdt,requested_out_dtype);
     if (promoted_cdt!=cdt) { cdt=promoted_cdt; rdt=real_component_dtype(cdt); }
     ln_array *tmp = new_like_axis(a,n,rdt,axis,1,err);
     if (!tmp) return NULL;
@@ -394,17 +401,17 @@ extern "C" ln_array *ln_fft_irfft(const ln_array *a, ln_intp n, int axis,
     }
     const ln_dtype *public_rdt = irfft_public_real_dtype(a->descr);
     const ln_dtype *compute_rdt = irfft_compute_real_dtype(a->descr);
+    if (!public_rdt || !compute_rdt) { ferr(err,"unsupported irfft input dtype"); return NULL; }
     /* For real inputs there is no exact complex-input loop.  NumPy's ufunc
      * resolver may therefore choose a wider loop to match out=.  Exact
      * complex inputs retain their native F/D/G loop and cast on writeback. */
     if (a->descr->kind!='c' && requested_out_dtype) {
         const ln_dtype *want=real_component_dtype(requested_out_dtype);
         if (want && want->type_num==LN_HALF) want=ln_dtype_by_num(LN_FLOAT);
-        if (want && real_precision_rank(want)>real_precision_rank(compute_rdt)) {
+        if (want && real_precision_rank(want)>=real_precision_rank(compute_rdt)) {
             compute_rdt=want;public_rdt=want;
         }
     }
-    if (!public_rdt || !compute_rdt) { ferr(err,"unsupported irfft input dtype"); return NULL; }
     const ln_dtype *cdt = complex_for_real(compute_rdt);
     ln_intp nin_needed = n/2 + 1;
     ln_array *tmp = new_like_axis(a,nin_needed,cdt,axis,1,err);
@@ -450,6 +457,7 @@ static int same_kind(const ln_dtype *from, const ln_dtype *to)
 extern "C" int ln_fft_copy_into(const ln_array *src, ln_array *dst, ln_error *err)
 {
     if (!src || !dst || src->nd != dst->nd) { ferr(err,"output array has wrong shape."); return -1; }
+    if (!(dst->flags & LN_ARRAY_WRITEABLE)) { ferr(err,"FFT output array is read-only"); return -1; }
     for (int d=0; d<src->nd; ++d) if (src->dimensions[d] != dst->dimensions[d]) {
         ferr(err,"output array has wrong shape."); return -1;
     }

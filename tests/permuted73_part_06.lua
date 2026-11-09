@@ -1,6 +1,6 @@
 -- Frozen differential fixtures generated from real NumPy 2.3.5
 local np=require("luaray_core")
-assert(np._version=="0.104.0-dev")
+assert(np._version=="0.105.0-dev")
 local checks,cases=0,0
 local function deep(a,b,desc)
     assert(type(a)==type(b),desc..': type mismatch: '..type(a)..' vs '..type(b))

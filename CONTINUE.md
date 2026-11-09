@@ -1,3 +1,85 @@
+# Current checkpoint — FFT0.105 final release gates
+
+Active /mnt/datos/luaray/.dev/fft105 branch fft105, VERSION0.105.0-dev.
+Development full regression129/129 passed after version update; direct native
+suite +111 Lua checks; new original NumPy2.5.3 frequency826/28419, shift1800/
+86698, transforms6964/343993 (combined9590/459110). All three fixtures regenerated
+exactly. Runtime inventory303/675, FFT18/18 available, allpartial, missing371,
+N/A1; inventory reproduces exactly. Public FFT example passed. EN/ESdocs ready.
+
+Actual reproduced fixes: zero-stride roll allocation; KEEPORDER conjugation;
+float16 normalization with explicit float32 out avoids second half rounding;
+exact complex/real FFT compute precision retained for wider output; positional
+nil n honors axis/norm/out; read-only out rejection. Expanded U4->complex out
+case crashed; core/GDB confirmed norm real_dtNULL after out promotion masked
+unsupported input. Validation now precedes promotion; same calls reject and
+pass sanitizer. Related irfft unsafe validation reordered before first execution.
+Original differential tolerances were retained. 15C+1C++ units instrumented,
+8native33Lua passed before version-only metadata change; final version sanitizer
+is running (artifacts/fft105-final-sanitize.log). Other dependencies uninstrumented,
+leaksdisabled. First sanitizer log artifacts/fft105-sanitize.log.
+
+Next: confirm final sanitizer, run tools/release.py clean gate (129fixtures and
+8publicexamples), inspect sourceonly manifest/tar/gzip SHA and logs; commit coherent
+0.105; fast-forwardmain, tag/publicrelease/Downloads copy, exactUbuntuCI. Do not
+claim any gate not actually completed. Earlier immutable releases remain intact.
+Then continue next coherent gap: native linspace/logspace/geomspace are all missing
+and useful to luanimath. Inspect actual source and original references first.
+Do not stop at release milestones; unfinished luanimath goal remains active.
+Older checkpoints below are historical and superseded where contradictory.
+
+# Updated FFT105 differential checkpoint
+
+Active branch fft105 /mnt/datos/luaray/.dev/fft105, runtime still0.104. Initial
+826 frequency cases/28419checks,1680shift/79348,6610Hermitian/330013 passed.
+Expanded tests add zero-stride and3D layouts; inspect newest logs for result:
+artifacts/fft_frequency105.log,fft_shift105.log,fft_hermitian105.log.
+
+Actual corrections: fftfreq boolean n rejected as source's empty(True) rejects;
+rfftfreq n=0 has one bin when typed/nonfinite spacing avoids Python zero division.
+FFT shift0-D raises upstream and is rejected. hfft conjugation now uses native
+NpyIter KEEPORDER (bool->int8) rather than a C-order copy. Typed complex64 test
+construction was corrected to retain dtype after adding imaginary data. Original
+zero-stride shift tests exposed ln_roll.c sorting zero strides as largest; removed
+that special case to match actual empty_like order. Need full old roll regression.
+PocketFFT C++ unchanged, normalization includes original half rounding.
+
+Next: inspect expanded passes; add output alias/stride/bad-shape tests, C/Lua
+regression and invalid API cases, full prior126 suites, sanitizer (include new
+fft_helpers and changed ln_roll plus existing13C units; C++ backend remains
+uninstrumented unless separately audited), refresh version/inventory, bilingual
+docs/reproducible fixtures/clean package and release. First real public example
+passed. Compilation errors were fixed; no0.105 release/parity claim yet.
+
+# Current checkpoint — FFT0.105 initial implementation
+
+Active /mnt/datos/luaray/.dev/fft105 branch fft105; runtime still0.104. New
+ln_fft_helpers.{c,h} registers six missing FFT names:fftfreq/rfftfreq,shifts,
+hfft/ihfft. Frequencies use real native ufunc operand APIs to retain typed
+spacing precision (including ndarray spacing); raw scalar division-by-zero is
+separate, with nonfinite zero-length cases retained. Negative rfftfreq can be
+empty upstream. Shifts use ln_roll, duplicate-axis modular accumulation safe
+from overflow. Hermitian transforms use native conjugation + existing irfft/
+rfft with normalization swap; C++ PocketFFT unchanged. Source has half norm
+rounding already, do not replace it with generic doubles.
+
+Lua 1-D FFT parser captures original argc for array-like input; positional nil
+n now preserves following axis/norm/out. Default real FFT length overflow guard
+added. Initial compile mistakes (getter name/forward declaration) corrected.
+First actual public example result is in session45609 / output; inspect before
+claiming it. A just-added >5arg guard requires rebuild. No original NumPy FFT105
+corpus or new C/Lua tests/sanitizers/docs/releases yet. Next strict source tests:
+frequency integer/typed/nonfinite/complex spacing, shifts layouts/axes/dtypes,
+Hermitian dtype/norm/length/axes/out aliases, all prior126 suites, ASan, docs and
+inventory refresh after version0.105. No complete FFT parity claim yet.
+
+0.104 is published at b33a903, SHA
+cc3ac956aad319c1ee66d4af933f6436b614b12631793f21032c40a27c307904;
+706files705manifest clean126suites7examples13-unitASan7native29Lua passed.
+Exact UbuntuCI42536437197 SUCCESS; public asset hash/Downloads verified. Keep
+archives immutable, user requests continuing beyond releases until done/usageout.
+Older checkpoints below historical; luanimath goal remains unfinished.
+
 # Current checkpoint — selection0.104 release gate
 
 Active /mnt/datos/luaray/.dev/select104, branch select104, VERSION0.104.

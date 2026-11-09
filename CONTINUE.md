@@ -1,3 +1,92 @@
+# Current checkpoint — sampling0.106 clean release gate
+
+Active sampling106 /mnt/datos/luaray/.dev/sampling106, VERSION0.106. All132frozen
+fixtures and existingC/Lua passed afterfunctional/metadata changes. Directed
+ASan/UBSan21units(20C+1C++)10native37Lua passed (finalfulltest.log/finalsanitize.log).
+Three originalsequencefixtures:linspace2478/504645 exact0error;logspace1542/154195
+maxnormalized1.1393306865162e-7(maxabs9.2233720368548e18 atlargepowers);geomspace1392/
+150473 maxnormalized1.9546212523884e-7(maxabs9.5367431640625e-7). Combined5412/809313.
+Cformatter70828rawstates/141656exactASCII+Unicode comparisons;8threads16384calls;
+allhalfpatterns andrandomwider+14x87. TwoCtests and154Lua checks passed; final
+24additionalwide-storagechecks ran normal+instrumented module separately.
+All3fixtures/header/Dragon4import/APIinventory regenerateexactly. Nativepublic
+example0.106passed. Inventory306/675available,368missing,N/A1; allpartial. Complete0.
+EN/ESdocs,sourcepins,README/UPSTREAM/TEST_RESULTS/currentjson ready.
+
+New shared ln_creation.c exposes ln_array_new_keeporder inln_core.h, bodyofcore
+unchanged;extractedsourceorderfromroll nowshared, dtypeawareitemsize. Sampling
+copycasts use NewLikeArray K-order ratherthaniterator allocation, fixing expanded
+zero-stridegeomspace. Ufunc canonicalC/Ftrivialoutput andcomplexcomponentcast /
+FMAfixes explained inoldercheckpoint andPROGRESS_0_106.md. NativeDragon4 preserves
+MIT+NumPylicenses, stripsPythonCAPI, TLSboundedoutput. OtherABIbranchesunverified.
+Tolerancesforpower/log followcompute dtypebeforefinalcast; originaloutputbased
+criterion correctedafteractualSVML/libmpowf1ULPproof. Allinteger/bool/string and
+metadataassertionsremainexact. Linspaceexactallcases. Do notcalltoleranceunchanged.
+
+Next: tools/release.py actualclean gate132fixtures9examples; inspectfinalmanifest/
+sourceonlytar/gzipSHAandlogs. Commit0.106, fast-forwardmainonlyifclean,tagpublic
+release/assets/Downloads;checkexactUbuntuCIafterpush. Don'teditmanifest-covered
+sourceafterpackagingwithoutregenerating/retakinggate. Thencontinuenextcoherentgap:
+creation/copy/asarray/like API missing andln_creation foundationready. Do notstop
+at release; userrequests continueuntilcomplete/usageexhausted, luanimathunfinished.
+Earlier checkpoints historical;0.105 immutablepublishedCIpassed facts below.
+
+# Current checkpoint — sampling0.106 regression gate
+
+Active /mnt/datos/luaray/.dev/sampling106, branchsampling106; runtime still0.105.
+Implemented native ln_sampling.c/h with linspace/logspace/geomspace. Options table
+num/endpoint/axis/dtype/retstep(linspace)/base(logspace), optional positionaln;
+Lua-positiveaxes1based. Weak scalar endpoints cast into the resolved inexact dtype;
+strong endpoint layouts retained. Native subtract forces compute dtype, typed
+arange/ufuncs preserve half/float precision and subnormal fallback, endpoints
+corrected, intlinspace floors before finalcast; geomspace rotates sign, restores
+endpoints, reversesrotation; logspace arraysbasepad rank andinsert sampleaxis.
+First public examplepassed. New native sampling boundarytest and127Lua checks
+passed. Original NumPy2.5.3 fixtures: linspace2416/356658 maxerror0, logspace1476/
+138215 maxabs0.5(maxrelative1.1332e-7), geomspace1332/134855 maxabs9.5367e-7,
+maxrelative1.9546e-7. Combined5224/629728. Linspace values exact; transcendental
+bounds follow compute dtype BEFORE finalcast, not widened storage dtype. Source
+NumPy SVML vs libm powf1ULP verified; integer/boolean/string outputs remain exact.
+Earlier default output-based tolerance was corrected for valid F32->F64 output
+casting; do not call it unchanged. NumPy float128 maps existing Lua longdouble
+spelling on primaryx86ABI; rawdecimal test values chosen exact atLua boundary.
+
+Original cases caught shared defects: floatstrings used fixed printf precision;
+new native Dragon4 numerical core port (licensedMIT NumPy2.5.3 dragon4.c/h) strips
+Python wrappers/4PyErr calls, TLS scratch and nativecopyto callerstorage, type/ABI
+shim. 65536half patterns +2063F32+2063F64+576C64+576C128+14x87 states passed
+141656 exact ASCII/Unicode comparisons;8threads/16384formattercalls passed.
+Complex->real casts now use original component precision instead oflongdouble;
+38935.516C64->int8 now23 (was0). New original geomspace integerout exposed complex
+multiplyFMA rounding: trace a=2+.25j sign, b=8-.5j divide matched, unfusedrestored
+stop8 versusNumPy7.9999995 thenintout8vs7. SourceSIMDmuladdsub verified FMA operand
+ordering. ln_ufunc_loops nonreduceCFLOAT/CDOUBLEmultiply now fmaf/fma whenruntime
+host FMA available (x86builtin/aarch64);longdouble/reductionsretainbaseline.
+Shared ufunc trivial outputalloc nowcanonical C/F for exactcontiguousinput and
+0Dother, matching singleton strides. Scope not fullSIMD/ufunc parity.
+
+Current running gates: full-test session53995 artifacts/sampling106-full-test.log;
+san session33236 artifacts/sampling106-sanitize.log.20instrumentedunits(19C+1C++),
+10native37Lua whenallpass. Newln_ufunc_loops compiled-fwrapv in sanitizer.
+Need inspectcompletion/failures. Newformat generator was cleaned after first
+execution(noexpectedchanges); import_dragon4.py nowvalidatessourcehash andincludes
+MIT header license, but rerunneeded(headercommentupdate). PreserveprivateCAPI
+independence. Need fixture/header/import reproducibility check, expandedzero-stride/
+3D andbasearraytests if gaps, docsEN/ES/sourcepins/inventory, version0.106 after
+functional gates, finalfull/san, sourcecleanrelease132fixtures9examples SHA,
+publicreleaseandexactCI. Do notclaimunexecutedgates. Continue afterreleases.
+0.105publishedCIpassedfacts incheckpointbelow; immutablearchives retained.
+
+# Current checkpoint — sampling0.106 implementation
+
+Sampling106 implementation in progress; runtime0.105. Native sequence helpers,
+Lua wrappers and first public example executed. Original generators now running.
+Do not classify unexecuted/incomplete corpora as passed. Full regression,
+ASan/UBSan, bilingual docs, inventory/version and release gates remain pending.
+0.105 published e2cbff295f5049205410ef3337f33c019df16fa8; exactUbuntuCI42539354346
+SUCCESS. PublicsourceSHAa423c2eff701aa82e63028f5ff4d73d383606594a1d7131802f7357f553300de,
+719files718manifest129fixtures8examples16unitsASan8native33Lua passed; immutable.
+
 # Current checkpoint — FFT0.105 final release gates
 
 Active /mnt/datos/luaray/.dev/fft105 branch fft105, VERSION0.105.0-dev.

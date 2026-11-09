@@ -236,6 +236,9 @@ int ln_broadcast_shape(int narr, const ln_array *const *arrs,
 
 ln_array *ln_array_new(int nd, const ln_intp *dims, const ln_dtype_descr *dtype,
                        int fortran, int zeroed, ln_error *err);
+/* New independent storage using the prototype's physical K-order axes. */
+ln_array *ln_array_new_keeporder(const ln_array *prototype,const ln_dtype *dtype,
+                                 ln_error *err);
 ln_array *ln_array_view(const ln_array *base, int nd, const ln_intp *dims,
                         const ln_intp *strides, char *data, ln_error *err);
 ln_array *ln_array_index_axis0(const ln_array *base, ln_intp lua_index,

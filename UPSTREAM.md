@@ -1,3 +1,24 @@
+## 0.106 — NumPy2.5.3 sequence sampling and native Dragon4
+
+ln_sampling follows _core/function_base.py linear/log/geometric composition,
+including array_converter.c weak-scalar resolution, typed arange, subnormal
+fallback, endpoint assignment, integer floor and sign/log rotation. The dedicated
+creation allocator follows ctors.c NewLikeArray KEEPORDER and is shared by roll.
+Ufunc trivial-loop output allocation follows ufunc_object.c. Complex-to-real
+casting preserves arraytypes.c.src's original component type; dispatched complex
+multiply follows loops_arithm_fp's FMA operand order on supporting hosts.
+
+The licensed numerical portion of dragon4.c and enums from dragon4.h were
+adapted to native ABI types and thread-local scratch. Python entry wrappers,
+interpreter headers and PyErr calls were removed. Native bounded caller-owned
+output replaces Python Unicode creation. The original MIT copyright/license and
+NumPy attribution remain in the imported source/private header; NumPy BSD license
+is bundled. tools/import_dragon4.py checks the exact upstream C hash and reproduces
+the native import. Scalar string conventions/cutoffs follow scalartypes.c.src.
+Seventeen source/test hashes are pinned in
+NUMPY_2_5_3_SAMPLING106_FILE_HASHES.sha256. New original oracle/source are2.5.3;
+older fixtures retain their recorded provenance. No Python runtime is introduced.
+
 ## 0.105 — NumPy2.5.3 FFT helpers and actual compute precision
 
 ln_fft_helpers follows fft/_helper.py frequency-bin and roll compositions, and

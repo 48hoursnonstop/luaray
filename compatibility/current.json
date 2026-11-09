@@ -1,14 +1,15 @@
 {
-  "version": "0.105.0-dev",
+  "version": "0.106.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "fft_frequencies": 826,
-    "fft_shifts": 1800,
-    "fft_transforms_and_outputs": 6964
+    "linspace": 2478,
+    "logspace": 1542,
+    "geomspace": 1392,
+    "native_float_string_states": 70828
   },
-  "new_numeric_checks": 459110,
-  "new_lua_regression_checks": 111,
+  "new_numeric_checks": 950969,
+  "new_lua_regression_checks": 154,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -16,26 +17,25 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.fft.fftfreq": "implemented_partial",
-    "numpy.fft.rfftfreq": "implemented_partial",
-    "numpy.fft.fftshift": "implemented_partial",
-    "numpy.fft.ifftshift": "implemented_partial",
-    "numpy.fft.hfft": "implemented_partial",
-    "numpy.fft.ihfft": "implemented_partial"
+    "numpy.linspace": "implemented_partial",
+    "numpy.logspace": "implemented_partial",
+    "numpy.geomspace": "implemented_partial"
   },
   "evidence": [
-    "tests/fft_frequency105_differential_generated.lua",
-    "tests/fft_shift105_differential_generated.lua",
-    "tests/fft_hermitian105_differential_generated.lua",
-    "tests/fft105_regression.lua",
-    "tests/test_fft105_core.c",
+    "tests/linspace106_differential_generated.lua",
+    "tests/logspace106_differential_generated.lua",
+    "tests/geomspace106_differential_generated.lua",
+    "tests/format106_reference.h",
+    "tests/test_format106_core.c",
+    "tests/test_sampling106_core.c",
+    "tests/sampling106_regression.lua",
     "compatibility/api_inventory.json",
     "tools/inventory_api.py"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 303,
-    "missing_bindings": 371,
+    "available_callables": 306,
+    "missing_bindings": 368,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -47,7 +47,11 @@
     "Availability inventory alone verifies no full behavior; alternate Lua spellings can exist",
     "Earlier take/choose differences remain separate; full NumPy parity is not claimed",
     "All eighteen scoped FFT callables are available; full FFT behavior, every dtype/length/out alias and device argument remain uncertified",
-    "FFT float32/complex64 numeric tolerance: absolute3e-6 plus relative3e-6; wider output2e-12; values/metadata and known precision regression values checked separately"
+    "FFT float32/complex64 numeric tolerance: absolute3e-6 plus relative3e-6; wider output2e-12; values/metadata and known precision regression values checked separately",
+    "Sampling uses Lua options tables; full NumPy positional/device/array-valued count/warning APIs remain incomplete",
+    "Linspace reference values are exact; power/log tolerances follow computation precision before final casts (half2e-3, float32/complex64 3e-6, wider2e-12 absolute+relative); integer/bool/string values remain exact",
+    "Shared FMA path and raw-bit extended formatting were executed on Linux x86; other ABI branches, every hardware rounding/unsafe cast and full SIMD dispatch remain uncertified",
+    "NumPy float128 uses the existing LuaRay longdouble spelling on the tested x86 ABI; original width/strides are checked"
   ],
-  "sanitizers": "Directed audit: fifteen C units (ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string, ln_along, ln_mapping, ln_choose, ln_condition, ln_select, ln_nditer_multi, ln_datetime, ln_fft_helpers, ln_roll) plus C++ ln_fft; eight native and thirty-three Lua suites; other dependencies uninstrumented; leaks disabled"
+  "sanitizers": "Directed audit: twenty C units (ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string, ln_along, ln_mapping, ln_choose, ln_condition, ln_select, ln_nditer_multi, ln_datetime, ln_fft_helpers, ln_roll, ln_sampling, ln_creation, ln_float_format, ln_ufunc, ln_ufunc_loops) plus C++ ln_fft; ten native and thirty-seven Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops compiled with -fwrapv"
 }

@@ -1,3 +1,36 @@
+## 0.106.0-dev verification (executed)
+
+- Full native/Lua regression passed **132/132 frozen fixture files**.
+- Original NumPy2.5.3 linspace: **2,478 cases /504,645 checks**, logspace:
+  **1,542 /154,195**, geomspace: **1,392 /150,473**; combined **5,412 /809,313**.
+  Linspace values compare exactly, observed error0. Power/log tolerances follow
+  compute precision before final dtype casts: half2e-3, float32/complex64 3e-6,
+  wider2e-12 absolute+relative. Integer/bool/string values and metadata are exact.
+  Output-based tolerance was corrected after source/SVML versus libm audit;
+  explicit wide-storage/narrow-computation Lua checks pass exactly.
+- Max normalized `abs(error)/max(1,abs(ref))`:1.1393306865162e-7 logspace,
+  1.9546212523884e-7 geomspace. Logspace max absolute9.2233720368548e18 occurs
+  at large powers; geomspace max absolute9.5367431640625e-7. Both stay within
+  the declared precision-scaled bounds. See bilingual sampling reference.
+- Native raw-bit formatter reference: **70,828 states /141,656 exact ASCII and
+  Unicode comparisons**, including all65,536 half encodings, random wider
+  values, complex nonfinites, unaligned buffers and output guards. Eight threads
+  executed16,384 additional formatter calls. Primary ABI:Linux x86 extended
+  longdouble storage; other native ABI branches remain unexecuted.
+- Two new C suites and **154 direct Lua checks** passed. New full sampling
+  matrices include stride-zero/3-D views, rank63/64 and half counts65504/65536.
+- All three fixtures, raw-bit header, native Dragon4 import and runtime API
+  inventory regenerated exactly. Public native example passed.
+- Directed ASan/UBSan passed **20 C units +1 C++ unit**, **10 native /37 Lua
+  suites**. The final additional direct Lua precision checks also passed with
+  the instrumented module. Other dependencies uninstrumented, leaks disabled;
+  integer ufunc loops retain -fwrapv. Scope in compatibility/current.json.
+- Inventory: **306/675 direct callable names**,368 missing and one Lua adaptation;
+  zero complete APIs declared. No overall compatibility percentage is inferred.
+- Versioned release JSON/log separately records the final source extraction,
+  manifest, clean build/full regression and nine public examples. Remote Ubuntu
+  CI is separate. Earlier blocked states/differences retain their classification.
+
 ## 0.105.0-dev verification (executed)
 
 - Full native/Lua regression passed **129/129 frozen fixture files**.

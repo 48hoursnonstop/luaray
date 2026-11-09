@@ -13,16 +13,16 @@ all dtype-loop combinations and signature/corner-case coverage.
 
 | Group | Scoped names | Lua callables | Missing bindings | Lua adaptation |
 | --- | ---: | ---: | ---: | ---: |
-| numpy | 462 | 179 | 283 | 0 |
+| numpy | 462 | 182 | 280 | 0 |
 | numpy.fft | 18 | 18 | 0 | 0 |
 | numpy.linalg | 32 | 31 | 0 | 1 |
 | numpy.ndarray | 53 | 31 | 22 | 0 |
 | numpy.random | 60 | 1 | 59 | 0 |
 | numpy.random.Generator | 44 | 43 | 1 | 0 |
 | numpy.ufunc | 6 | 0 | 6 | 0 |
-| Total | 675 | 303 | 371 | 1 |
+| Total | 675 | 306 | 368 | 1 |
 
-**303 callable names observed does not establish 303 fully compatible APIs.**
+**306 callable names observed does not establish 306 fully compatible APIs.**
 Available names are classified `implemented_partial`; behavior is assessed
 separately through original fixtures and release-specific contracts. The
 inventory declares zero APIs completely compatible. Missing names use

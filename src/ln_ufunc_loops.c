@@ -672,7 +672,20 @@ LN_HALF_BINARY_MATH(hypot,hypotf)
  * in numpy/_core/src/umath/loops.c.src at the pinned upstream commit.  Storage
  * is the same adjacent real/imag pair used by NumPy's legacy complex dtypes.
  */
-#define DEFINE_COMPLEX_LOOPS(NAME, FTYPE, CTYPE, ABSFN, HYPOTFN) \
+/* Match the fused real/imag product ordering of NumPy's dispatched SIMD
+ * complex multiply when the host provides FMA. Scalar reductions retain the
+ * original unfused baseline, as in loops_arithm_fp.dispatch.c.src. */
+static int complex_fma_available(void) {
+#if (defined(__x86_64__) || defined(__i386__)) && defined(__GNUC__)
+    return __builtin_cpu_supports("fma") != 0;
+#elif defined(__aarch64__)
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+#define DEFINE_COMPLEX_LOOPS(NAME, FTYPE, CTYPE, ABSFN, HYPOTFN, FMAFN, CAN_FUSE) \
     static void ln_##NAME##_pairwise_sum(FTYPE *rr, FTYPE *ri, char *a, ln_intp n, ln_intp stride) { \
         if (n < 4) { \
             *rr=(FTYPE)-0.0; *ri=(FTYPE)-0.0; \
@@ -727,7 +740,8 @@ LN_HALF_BINARY_MATH(hypot,hypotf)
     static void ln_##NAME##_multiply(char **args,const ln_intp*d,const ln_intp*s,void*f){ \
         (void)f; \
         if ((assert(d[0]!=0),args[0]==args[2]&&s[0]==s[2]&&s[0]==0)) { CTYPE acc;memcpy(&acc,args[0],sizeof(acc));char *p=args[1];for(ln_intp i=0;i<d[0];++i,p+=s[1]){CTYPE b;memcpy(&b,p,sizeof(b));acc=ln_##NAME##_mul_scalar(acc,b);}memcpy(args[0],&acc,sizeof(acc));return; } \
-        char *p0=args[0],*p1=args[1],*po=args[2]; for(ln_intp i=0;i<d[0];++i,p0+=s[0],p1+=s[1],po+=s[2]){ CTYPE a,b,z;memcpy(&a,p0,sizeof(a));memcpy(&b,p1,sizeof(b));z=ln_##NAME##_mul_scalar(a,b);memcpy(po,&z,sizeof(z)); } \
+        int fused=(CAN_FUSE)&&s[2]!=0&&s[0]%(ln_intp)sizeof(FTYPE)==0&&s[1]%(ln_intp)sizeof(FTYPE)==0&&s[2]%(ln_intp)sizeof(FTYPE)==0&&complex_fma_available(); \
+        char *p0=args[0],*p1=args[1],*po=args[2]; for(ln_intp i=0;i<d[0];++i,p0+=s[0],p1+=s[1],po+=s[2]){ CTYPE a,b,z;memcpy(&a,p0,sizeof(a));memcpy(&b,p1,sizeof(b));if(fused){FTYPE ii=a.imag*b.imag,ir=a.imag*b.real;z.real=FMAFN(a.real,b.real,-ii);z.imag=FMAFN(a.real,b.imag,ir);}else z=ln_##NAME##_mul_scalar(a,b);memcpy(po,&z,sizeof(z)); } \
     } \
     static void ln_##NAME##_true_divide(char **args,const ln_intp*d,const ln_intp*s,void*f){ \
         (void)f; char *p0=args[0],*p1=args[1],*po=args[2]; for(ln_intp i=0;i<d[0];++i,p0+=s[0],p1+=s[1],po+=s[2]){ CTYPE a,b,z;memcpy(&a,p0,sizeof(a));memcpy(&b,p1,sizeof(b));z=ln_##NAME##_div_scalar(a,b);memcpy(po,&z,sizeof(z)); } \
@@ -754,9 +768,9 @@ LN_HALF_BINARY_MATH(hypot,hypotf)
     static void ln_##NAME##_fmax(char **args,const ln_intp*d,const ln_intp*s,void*f){(void)f;char*p0=args[0],*p1=args[1],*po=args[2];for(ln_intp i=0;i<d[0];++i,p0+=s[0],p1+=s[1],po+=s[2]){CTYPE a,b,z;memcpy(&a,p0,sizeof(a));memcpy(&b,p1,sizeof(b));z=(isnan(b.real)||isnan(b.imag)||LN_COMPLEX_GE(a.real,a.imag,b.real,b.imag))?a:b;memcpy(po,&z,sizeof(z));}} \
     static void ln_##NAME##_fmin(char **args,const ln_intp*d,const ln_intp*s,void*f){(void)f;char*p0=args[0],*p1=args[1],*po=args[2];for(ln_intp i=0;i<d[0];++i,p0+=s[0],p1+=s[1],po+=s[2]){CTYPE a,b,z;memcpy(&a,p0,sizeof(a));memcpy(&b,p1,sizeof(b));z=(isnan(b.real)||isnan(b.imag)||LN_COMPLEX_LE(a.real,a.imag,b.real,b.imag))?a:b;memcpy(po,&z,sizeof(z));}}
 
-DEFINE_COMPLEX_LOOPS(CFLOAT,float,ln_cfloat,fabsf,hypotf)
-DEFINE_COMPLEX_LOOPS(CDOUBLE,double,ln_cdouble,fabs,hypot)
-DEFINE_COMPLEX_LOOPS(CLONGDOUBLE,long double,ln_clongdouble,fabsl,hypotl)
+DEFINE_COMPLEX_LOOPS(CFLOAT,float,ln_cfloat,fabsf,hypotf,fmaf,1)
+DEFINE_COMPLEX_LOOPS(CDOUBLE,double,ln_cdouble,fabs,hypot,fma,1)
+DEFINE_COMPLEX_LOOPS(CLONGDOUBLE,long double,ln_clongdouble,fabsl,hypotl,fmal,0)
 #undef DEFINE_COMPLEX_LOOPS
 
 /* Complex elementary loops call the NumPy-derived numerical kernels in

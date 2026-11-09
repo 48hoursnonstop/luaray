@@ -1,3 +1,18 @@
+## LuaRay 0.106.0-dev — native sampling and shortest float strings
+
+Native `np.linspace`, `logspace` and `geomspace` now preserve endpoint broadcasting,
+weak/strong dtype precision, sample axes, subnormal steps and actual output casts.
+Shared fixes cover KEEPORDER creation, canonical ufunc singleton strides,
+complex component cast precision and FMA multiplication. Native Dragon4 supplies
+shortest real/complex fixed-string casts without Python.
+
+Read the [English sampling reference](docs/en/sampling.md) or
+[referencia de muestreo en español](docs/es/sampling.md). **5,412 original NumPy2.5.3
+sampling cases /809,313 checks**, **70,828 raw-bit formatting states /141,656 exact
+ASCII/Unicode comparisons**,154 Lua checks and native tests passed. Full regression
+has **132 fixture files**. [API availability](docs/en/api_inventory.md):306/675
+callable names observed; every API remains partial. Runtime stays Lua/native.
+
 ## LuaRay 0.105.0-dev — FFT grids, shifts and Hermitian transforms
 
 Native `np.fft.fftfreq`, `rfftfreq`, `fftshift`, `ifftshift`, `hfft` and `ihfft`

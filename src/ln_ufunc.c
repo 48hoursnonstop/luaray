@@ -779,8 +779,35 @@ ln_ufunc_execute_operands(const ln_ufunc *u,const ln_ufunc_operand *operands,
         loop_data=NULL;
         if(method->resolve_loop_data(method,resolution.descrs,&loop_data,err)<0){for(int j=0;j<LN_UFUNC_MAXARGS;++j)free(dynamic_storage[j]);return -1;}
     }
+    /* NumPy's trivial single-output loop allocates a canonical C/F array
+     * for an exact contiguous input and optional scalar. Singleton strides
+     * follow NewLikeArray, rather than general iterator permutation strides. */
+    ln_array *trivial_output=NULL;
+    if(!where&&u->nout==1&&!outputs[0]&&(u->nin==1||u->nin==2)) {
+        int candidate=-1,eligible=1;
+        for(int j=0;j<u->nin;++j)if(inputs[j]->nd) {
+            if(candidate>=0){eligible=0;break;}
+            candidate=j;
+        }
+        if(eligible&&candidate>=0) {
+            const ln_array *input=inputs[candidate];
+            if(input->descr==resolution.descrs[candidate]&&
+                    (input->flags&(LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS))) {
+                int fortran=!(input->flags&LN_ARRAY_C_CONTIGUOUS);
+                trivial_output=ln_array_new(input->nd,input->dimensions,
+                        resolution.descrs[u->nin],fortran,0,err);
+                if(!trivial_output){
+                    if(method->resolve_loop_data&&method->free_loop_data)method->free_loop_data(loop_data);
+                    for(int j=0;j<LN_UFUNC_MAXARGS;++j)free(dynamic_storage[j]);
+                    return -1;
+                }
+                outputs[0]=trivial_output;
+            }
+        }
+    }
     int rc=ln_nditer_multi_execute(u->nin,u->nout,inputs,outputs,where,
             resolution.descrs,method->loop,loop_data,method->validate,method->validate_data,err);
+    if(rc<0&&trivial_output){ln_array_free(trivial_output);outputs[0]=NULL;}
     if(method->resolve_loop_data && method->free_loop_data)method->free_loop_data(loop_data);
     for(int j=0;j<LN_UFUNC_MAXARGS;++j)free(dynamic_storage[j]);
     return rc;

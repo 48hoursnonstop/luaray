@@ -22,6 +22,7 @@ parser.add_argument('--choose102',action='store_true',help='instrument native ch
 parser.add_argument('--condition103',action='store_true',help='instrument nonzero and conditional extraction')
 parser.add_argument('--select104',action='store_true',help='instrument selection, generic iterator and temporal promotion')
 parser.add_argument('--fft105',action='store_true',help='instrument FFT helpers, shifts and C++ PocketFFT integration')
+parser.add_argument('--sampling106',action='store_true',help='instrument sampling, Dragon4 and shared ufunc/complex conversion changes')
 options=parser.parse_args()
 
 def run(args,**kwargs):
@@ -40,8 +41,9 @@ if options.choose102:changed.append('ln_choose')
 if options.condition103:changed.append('ln_condition')
 if options.select104:changed+=['ln_select','ln_nditer_multi','ln_datetime']
 if options.fft105:changed+=['ln_fft_helpers','ln_roll']
+if options.sampling106:changed+=['ln_sampling','ln_creation','ln_float_format','ln_ufunc','ln_ufunc_loops']
 for name in changed:
-    run(cc+flags+['-c',f'src/{name}.c','-o',BUILD/f'{name}.o'])
+    run(cc+flags+(['-fwrapv'] if name=='ln_ufunc_loops' else [])+['-c',f'src/{name}.c','-o',BUILD/f'{name}.o'])
 if options.fft105:
     run(cxx+['-O0','-g','-std=c++11','-Wall','-Wextra','-Wpedantic','-fPIC',
              '-fsanitize=address,undefined','-fno-omit-frame-pointer','-Isrc',
@@ -57,6 +59,7 @@ if options.choose102:core_objects.append(BUILD/'ln_choose.o')
 if options.condition103:core_objects.append(BUILD/'ln_condition.o')
 if options.select104:core_objects+=[BUILD/'ln_select.o',BUILD/'ln_nditer_multi.o',BUILD/'ln_datetime.o']
 if options.fft105:core_objects+=[BUILD/'ln_fft_helpers.o',BUILD/'ln_roll.o',BUILD/'ln_fft.o']
+if options.sampling106:core_objects+=[BUILD/(n+'.o') for n in ['ln_sampling','ln_creation','ln_float_format','ln_ufunc','ln_ufunc_loops']]
 link=['-fsanitize=address,undefined']
 native_libs=['-lm']+libs('cblas',['-lblas'])+libs('lapack',['-llapack'])
 run(cxx+link+['-shared']+core_objects+[BUILD/'lua_module.o']+
@@ -94,6 +97,11 @@ if options.fft105:
     run(cc+flags+['-c','tests/test_fft105_core.c','-o',BUILD/'test_fft105.o'])
     run(cxx+link+[BUILD/'test_fft105.o']+core_objects+native_libs+['-o',BUILD/'test_fft105'])
     run([BUILD/'test_fft105'],env=env)
+if options.sampling106:
+    for name in ['sampling106','format106']:
+        run(cc+flags+['-c',f'tests/test_{name}_core.c','-o',BUILD/f'test_{name}.o'])
+        run(cxx+link+[BUILD/f'test_{name}.o']+core_objects+native_libs+['-o',BUILD/f'test_{name}'])
+        run([BUILD/f'test_{name}'],env=env)
 asan=subprocess.check_output(cc+['-print-file-name=libasan.so'],text=True).strip()
 env['LD_PRELOAD']=asan;env['LUA_CPATH']=str(BUILD/'?.so')+';;'
 tests=['write98_regression','put98_differential_generated','place98_differential_generated',
@@ -107,6 +115,7 @@ if options.choose102:tests+=['choose102_regression','choose102_differential_gene
 if options.condition103:tests+=['condition103_regression','nonzero103_differential_generated','flatnonzero103_differential_generated','compress103_differential_generated','extract103_differential_generated']
 if options.select104:tests+=['select104_regression','where104_differential_generated','select104_differential_generated']
 if options.fft105:tests+=['fft105_regression','fft_frequency105_differential_generated','fft_shift105_differential_generated','fft_hermitian105_differential_generated']
+if options.sampling106:tests+=['sampling106_regression','linspace106_differential_generated','logspace106_differential_generated','geomspace106_differential_generated']
 for test in tests:
     run(['lua5.4',f'tests/{test}.lua'],env=env)
 print('PASS: changed '+', '.join(changed)+' instrumented; other dependencies uninstrumented; leak detection disabled')

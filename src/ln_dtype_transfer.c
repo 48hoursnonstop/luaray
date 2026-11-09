@@ -4,6 +4,7 @@
 #include "ln_datetime.h"
 #include "ln_datetime_strings.h"
 #include "ln_string.h"
+#include "ln_float_format.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -479,24 +480,12 @@ badfloat:
     free(s); set_transfer_error(err,"could not convert string to floating point"); return -1;
 }
 
-static void
-normalize_g_float(char *buf)
-{
-    if (strcmp(buf,"-nan")==0) { strcpy(buf,"nan"); return; }
-    if (strcmp(buf,"inf")==0 || strcmp(buf,"-inf")==0 || strcmp(buf,"nan")==0) return;
-    if (!strchr(buf,'.') && !strchr(buf,'e') && !strchr(buf,'E')) strcat(buf,".0");
-}
-
 static int
 format_complex_component(long double v, int kind, char *buf, size_t cap)
 {
-    int n;
-    if (isnan(v)) n=snprintf(buf,cap,"nan");
-    else if (isinf(v)) n=snprintf(buf,cap,signbit(v)?"-inf":"inf");
-    else if (kind==LN_CFLOAT) n=snprintf(buf,cap,"%.8g",(double)(float)v);
-    else if (kind==LN_CDOUBLE) n=snprintf(buf,cap,"%.17g",(double)v);
-    else n=snprintf(buf,cap,"%.20Lg",v);
-    return (n<0||(size_t)n>=cap)?-1:n;
+    if(kind==LN_CFLOAT){float x=(float)v;return ln_float_format((const char *)&x,LN_FLOAT,1,buf,cap);}
+    if(kind==LN_CDOUBLE){double x=(double)v;return ln_float_format((const char *)&x,LN_DOUBLE,1,buf,cap);}
+    return ln_float_format((const char *)&v,LN_LONGDOUBLE,1,buf,cap);
 }
 
 static int
@@ -516,13 +505,11 @@ format_numeric_ascii(const char *src, const ln_dtype *dt,
         case LN_ULONG:{unsigned long v;memcpy(&v,src,sizeof(v));n=snprintf(buf,cap,"%lu",v);break;}
         case LN_LONGLONG:{long long v;memcpy(&v,src,8);n=snprintf(buf,cap,"%lld",v);break;}
         case LN_ULONGLONG:{unsigned long long v;memcpy(&v,src,8);n=snprintf(buf,cap,"%llu",v);break;}
-        case LN_HALF:{ln_half h;memcpy(&h,src,2);float v=ln_half_to_float(h);n=snprintf(buf,cap,"%.5g",(double)v);normalize_g_float(buf);n=(int)strlen(buf);break;}
-        case LN_FLOAT:{float v;memcpy(&v,src,4);n=snprintf(buf,cap,"%.8g",(double)v);normalize_g_float(buf);n=(int)strlen(buf);break;}
-        case LN_DOUBLE:{double v;memcpy(&v,src,8);n=snprintf(buf,cap,"%.17g",v);normalize_g_float(buf);n=(int)strlen(buf);break;}
-        case LN_LONGDOUBLE:{long double v;memcpy(&v,src,sizeof(v));n=snprintf(buf,cap,"%.21Lg",v);normalize_g_float(buf);n=(int)strlen(buf);break;}
-        case LN_CFLOAT: { ln_cfloat z;memcpy(&z,src,sizeof(z));char r[80],i[80];if(format_complex_component(z.real,LN_CFLOAT,r,sizeof(r))<0||format_complex_component(z.imag,LN_CFLOAT,i,sizeof(i))<0){set_transfer_error(err,"formatted complex string buffer too small");return -1;}if(z.real==0.0f&&!signbit(z.real))n=snprintf(buf,cap,"%sj",i);else n=snprintf(buf,cap,"(%s%s%sj)",r,signbit(z.imag)?"":"+",i);break; }
-        case LN_CDOUBLE: { ln_cdouble z;memcpy(&z,src,sizeof(z));char r[96],i[96];if(format_complex_component(z.real,LN_CDOUBLE,r,sizeof(r))<0||format_complex_component(z.imag,LN_CDOUBLE,i,sizeof(i))<0){set_transfer_error(err,"formatted complex string buffer too small");return -1;}if(z.real==0.0&&!signbit(z.real))n=snprintf(buf,cap,"%sj",i);else n=snprintf(buf,cap,"(%s%s%sj)",r,signbit(z.imag)?"":"+",i);break; }
-        case LN_CLONGDOUBLE: { ln_clongdouble z;memcpy(&z,src,sizeof(z));char r[128],i[128];if(format_complex_component(z.real,LN_CLONGDOUBLE,r,sizeof(r))<0||format_complex_component(z.imag,LN_CLONGDOUBLE,i,sizeof(i))<0){set_transfer_error(err,"formatted complex string buffer too small");return -1;}if(z.real==0.0L&&!signbit(z.real))n=snprintf(buf,cap,"%sj",i);else n=snprintf(buf,cap,"(%s%s%sj)",r,signbit(z.imag)?"":"+",i);break; }
+        case LN_HALF: case LN_FLOAT: case LN_DOUBLE: case LN_LONGDOUBLE:
+            n=ln_float_format(src,dt->type_num,0,buf,cap);break;
+        case LN_CFLOAT: { ln_cfloat z;memcpy(&z,src,sizeof(z));char r[80],i[80];if(format_complex_component(z.real,LN_CFLOAT,r,sizeof(r))<0||format_complex_component(z.imag,LN_CFLOAT,i,sizeof(i))<0){set_transfer_error(err,"formatted complex string buffer too small");return -1;}if(z.real==0.0f&&!signbit(z.real))n=snprintf(buf,cap,"%sj",i);else n=snprintf(buf,cap,"(%s%s%sj)",r,signbit(z.imag)&&!isnan(z.imag)?"":"+",i);break; }
+        case LN_CDOUBLE: { ln_cdouble z;memcpy(&z,src,sizeof(z));char r[96],i[96];if(format_complex_component(z.real,LN_CDOUBLE,r,sizeof(r))<0||format_complex_component(z.imag,LN_CDOUBLE,i,sizeof(i))<0){set_transfer_error(err,"formatted complex string buffer too small");return -1;}if(z.real==0.0&&!signbit(z.real))n=snprintf(buf,cap,"%sj",i);else n=snprintf(buf,cap,"(%s%s%sj)",r,signbit(z.imag)&&!isnan(z.imag)?"":"+",i);break; }
+        case LN_CLONGDOUBLE: { ln_clongdouble z;memcpy(&z,src,sizeof(z));char r[128],i[128];if(format_complex_component(z.real,LN_CLONGDOUBLE,r,sizeof(r))<0||format_complex_component(z.imag,LN_CLONGDOUBLE,i,sizeof(i))<0){set_transfer_error(err,"formatted complex string buffer too small");return -1;}if(z.real==0.0L&&!signbit(z.real))n=snprintf(buf,cap,"%sj",i);else n=snprintf(buf,cap,"(%s%s%sj)",r,signbit(z.imag)&&!isnan(z.imag)?"":"+",i);break; }
         default: set_transfer_error(err,"unsupported numeric to string cast"); return -1;
     }
     if (n < 0 || (size_t)n >= cap) { set_transfer_error(err,"formatted string buffer too small"); return -1; }
@@ -1038,6 +1025,14 @@ ln_cast_strided_numeric(const char *src, ln_intp src_stride,
         return 0;
     }
 
+    /* Complex-to-real conversion uses the original component type. Routing
+     * float32 through long double changes the machine integer conversion
+     * intermediate (e.g. 38935.5 -> int8), which is observable in unsafe casts. */
+    if(src_dtype->kind=='c'&&dst_dtype->kind!='c'&&dst_dtype->kind!='b') {
+        const ln_dtype *real=ln_dtype_by_num(src_dtype->type_num==LN_CFLOAT?LN_FLOAT:
+            src_dtype->type_num==LN_CDOUBLE?LN_DOUBLE:LN_LONGDOUBLE);
+        return ln_cast_strided_numeric(src,src_stride,real,dst,dst_stride,dst_dtype,count,err);
+    }
     for (ln_intp i = 0; i < count; ++i, src += src_stride, dst += dst_stride) {
         if (src_dtype->kind == 'c' || dst_dtype->kind == 'c') {
             ln_complex_value z;

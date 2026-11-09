@@ -1,3 +1,29 @@
+## 0.116 — NumPy2.5.3 cross and meshgrid
+
+Eight hashes in NUMPY_2_5_3_VECTOR116_FILE_HASHES.sha256 pin numeric.cross,
+function_base.meshgrid, broadcast_arrays, reshape/iterator details, linalg
+wrapper and source tests. Independent native ln_vector and Lua lua_vector modules
+reuse axis, typed creation, reshape and ufunc engines. The earlier linalg cross
+now delegates to the common-dtype engine and preserves nonlast output strides.
+
+The pinned root cross requires three components; two-component support was
+removed upstream. Both arrays are cast to common dtype before products; source
+output-last allocation/view and ordered products/subtraction with one temporary
+are retained. General complex comparisons use budgets fixed before execution:
+6e-7 complex64 /2e-15 wider, scaled by max(1,abs(component)). Observed metrics
+are recorded in compatibility/current.json. This does not certify CPU dispatch.
+
+Meshgrid flattens/reshapes each input with an inferred -1 axis, including empty
+and singleton inputs, rather than an explicit zero that changes empty strides.
+It preserves per-input dtype and broadcast_arrays' per-array shape-match strides,
+writable/readonly state and aliasing, followed by optional C copies. Lua uses an
+explicit input list and result list; Python warning/protocol behavior is partial.
+
+Original references check values, types, shapes/strides, signed zeros, nonfinite
+placements, ownership and real post-write input/grid states. Historical numeric
+assertions remain unchanged; exact runtime assertions advance. NumPy BSD
+attribution and English/Spanish references document the actual verified scope.
+
 ## 0.115 — NumPy2.5.3 typed views, byte export and alignment
 
 Eight hashes in NUMPY_2_5_3_BYTES115_FILE_HASHES.sha256 pin common.c's dtype

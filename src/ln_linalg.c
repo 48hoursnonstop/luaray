@@ -1,4 +1,5 @@
 #include "ln_linalg.h"
+#include "ln_vector.h"
 #include "ln_dtype_transfer.h"
 #include "ln_complex.h"
 #include "ln_dot.h"
@@ -1968,52 +1969,11 @@ ln_linalg_matrix_transpose(const ln_array *a, ln_error *err)
     return ln_array_view(a,a->nd,dims,strides,a->data,err);
 }
 
-static ln_array *
-linalg_component_view(const ln_array *a, int axis, ln_intp component, ln_error *err)
-{
-    if(!a||axis<0||axis>=a->nd||component<0||component>=a->dimensions[axis]){seterr(err,"invalid vector component");return NULL;}
-    ln_intp dims[LN_MAXDIMS],strides[LN_MAXDIMS];int q=0;
-    for(int d=0;d<a->nd;d++)if(d!=axis){dims[q]=a->dimensions[d];strides[q]=a->strides[d];q++;}
-    return ln_array_view(a,a->nd-1,dims,strides,a->data+component*a->strides[axis],err);
-}
-
-static ln_array *
-linalg_cross_component(const ln_array *a1,const ln_array *b2,
-                       const ln_array *a2,const ln_array *b1,ln_error *err)
-{
-    ln_array *p=ln_binary_multiply(a1,b2,err);if(!p)return NULL;
-    ln_array *q=ln_binary_multiply(a2,b1,err);if(!q){ln_array_free(p);return NULL;}
-    ln_array *r=ln_binary_subtract(p,q,err);ln_array_free(p);ln_array_free(q);return r;
-}
-
 ln_array *
-ln_linalg_cross(const ln_array *a, int axis_a, const ln_array *b, int axis_b,
-                int axis_out, ln_error *err)
-{
-    if(!a||!b||a->nd<1||b->nd<1){seterr(err,"Input arrays must be at least 1-dimensional");return NULL;}
-    if(axis_a<0||axis_a>=a->nd||axis_b<0||axis_b>=b->nd){seterr(err,"axis is out of bounds for array");return NULL;}
-    if(a->dimensions[axis_a]!=3||b->dimensions[axis_b]!=3){seterr(err,"Both input arrays must be (arrays of) 3-dimensional vectors");return NULL;}
-    ln_array *ac[3]={0},*bc[3]={0},*c[3]={0};
-    for(int i=0;i<3;i++){ac[i]=linalg_component_view(a,axis_a,i,err);if(!ac[i])goto fail;bc[i]=linalg_component_view(b,axis_b,i,err);if(!bc[i])goto fail;}
-    c[0]=linalg_cross_component(ac[1],bc[2],ac[2],bc[1],err);if(!c[0])goto fail;
-    c[1]=linalg_cross_component(ac[2],bc[0],ac[0],bc[2],err);if(!c[1])goto fail;
-    c[2]=linalg_cross_component(ac[0],bc[1],ac[1],bc[0],err);if(!c[2])goto fail;
-    int outnd=c[0]->nd+1;if(axis_out<0||axis_out>=outnd){seterr(err,"axis is out of bounds for result");goto fail;}
-    ln_intp dims[LN_MAXDIMS];int q=0;for(int d=0;d<outnd;d++){if(d==axis_out)dims[d]=3;else dims[d]=c[0]->dimensions[q++];}
-    ln_array *out=ln_array_new(outnd,dims,c[0]->descr,0,0,err);if(!out)goto fail;
-    for(int comp=0;comp<3;comp++){
-        ln_intp vd[LN_MAXDIMS],vs[LN_MAXDIMS];q=0;
-        for(int d=0;d<outnd;d++)if(d!=axis_out){vd[q]=out->dimensions[d];vs[q]=out->strides[d];q++;}
-        ln_array *ov=ln_array_view(out,outnd-1,vd,vs,out->data+comp*out->strides[axis_out],err);
-        if(!ov||ln_array_assign_array(ov,c[comp],err)<0){ln_array_free(ov);ln_array_free(out);goto fail;}
-        ln_array_free(ov);
-    }
-    for(int i=0;i<3;i++){ln_array_free(ac[i]);ln_array_free(bc[i]);ln_array_free(c[i]);}
-    return out;
-fail:
-    for(int i=0;i<3;i++){ln_array_free(ac[i]);ln_array_free(bc[i]);ln_array_free(c[i]);}
-    return NULL;
-}
+ln_linalg_cross(const ln_array *a,int axis_a,const ln_array *b,int axis_b,
+                int axis_out,ln_error *err)
+{return ln_vector_cross(a,axis_a,b,axis_b,axis_out,err);}
+
 
 static int
 linalg_conjugate_inplace(ln_array *a, ln_error *err)

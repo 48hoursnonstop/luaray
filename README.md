@@ -1,3 +1,18 @@
+## LuaRay 0.116.0-dev — cross products and coordinate grids
+
+Native `np.cross` and `np.meshgrid` add batched vector products and typed
+coordinate grids with sparse/copy/indexing controls. The existing linalg cross
+shares the corrected common-dtype and output-axis implementation.
+
+Read the [English vector/grid reference](docs/en/vectors_and_grids.md) or
+[referencia en español](docs/es/vectors_and_grids.md). **8,141 NumPy2.5.3
+cases /787,265 checks**,27 Lua checks and native tests passed; full161-fixture
+regression passed. General complex products use documented, preselected rounding
+budgets; exact metadata/state/other numerical checks are retained. Final memory/
+clean-package gates have separate TEST_RESULTS.md/release records.
+[Inventory](docs/en/api_inventory.md):352/675 scoped names, all partial.
+Runtime remains Lua/C/C++, without Python.
+
 ## LuaRay 0.115.0-dev — typed memory views and byte export
 
 Native ndarray `view` shares and reinterprets actual storage; `tobytes`,

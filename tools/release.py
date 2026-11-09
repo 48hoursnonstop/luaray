@@ -68,6 +68,7 @@ with tempfile.TemporaryDirectory(prefix='clean-release-',dir=ROOT/'.dev') as tem
         subprocess.run(['lua5.4','examples/round113.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
         subprocess.run(['lua5.4','examples/clip114.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
         subprocess.run(['lua5.4','examples/bytes115.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
+        subprocess.run(['lua5.4','examples/vector116.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
 report=dict(version=VERSION,archive=archive.name,sha256=digest,source_files=len(files),
             manifest_entries=len(files)-1,clean_build='passed',clean_log=log.name,
             differential_fixture_files=len(list((ROOT/'tests').glob('*_differential_generated.lua'))),

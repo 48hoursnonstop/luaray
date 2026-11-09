@@ -1,6 +1,6 @@
 -- Generated with executable NumPy 2.3.5
 local np=require("luaray_core")
-assert(np._version=="0.115.0-dev")
+assert(np._version=="0.116.0-dev")
 local total=0
 local function eq(a,b) assert(a==b,("case %d: %s ~= %s"):format(total,tostring(a),tostring(b)));total=total+1 end
 do local r=np.random.default_rng(0);local v=r:negative_binomial(0.125,0.001,nil)

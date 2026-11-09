@@ -32,6 +32,7 @@ parser.add_argument('--predicates112',action='store_true',help='execute source-d
 parser.add_argument('--round113',action='store_true',help='instrument rounding, bindings and floating timedelta scaling')
 parser.add_argument('--clip114',action='store_true',help='instrument native fused clip and execute its suites')
 parser.add_argument('--bytes115',action='store_true',help='instrument byte views, export, bindings and legacy aligned buffering')
+parser.add_argument('--vector116',action='store_true',help='instrument vector/grid kernels, bindings and linalg cross delegation')
 options=parser.parse_args()
 
 def run(args,**kwargs):
@@ -58,6 +59,7 @@ if options.unary108:changed.append('ln_unary_math')
 if options.binary109:changed.append('ln_binary_math')
 if options.layout110:changed+=['ln_layout','lua_layout']
 if options.components111:changed+=['ln_components','lua_components']
+if options.vector116:changed+=['ln_vector','lua_vector','ln_linalg']
 if options.bytes115:changed+=['ln_bytes','lua_bytes','ln_nditer']
 if options.clip114:changed+=['ln_clip']
 if options.round113:changed+=['ln_round','lua_round','ln_time_scale']
@@ -89,10 +91,12 @@ if options.components111:core_objects.append(BUILD/'ln_components.o')
 if options.round113:core_objects += [BUILD/'ln_round.o',BUILD/'ln_time_scale.o']
 if options.clip114:core_objects.append(BUILD/'ln_clip.o')
 if options.bytes115:core_objects += [BUILD/'ln_bytes.o',BUILD/'ln_nditer.o']
+if options.vector116:core_objects += [BUILD/'ln_vector.o',BUILD/'ln_linalg.o']
 bindings=[BUILD/'lua_module.o']
 if (ROOT/'src/lua_creation.c').exists():bindings.append((BUILD if options.creation107 else ROOT/'build')/'lua_creation.o')
 if (ROOT/'src/lua_layout.c').exists():bindings.append((BUILD if options.layout110 else ROOT/'build')/'lua_layout.o')
 if (ROOT/'src/lua_components.c').exists():bindings.append((BUILD if options.components111 else ROOT/'build')/'lua_components.o')
+if (ROOT/'src/lua_vector.c').exists():bindings.append((BUILD if options.vector116 else ROOT/'build')/'lua_vector.o')
 if (ROOT/'src/lua_bytes.c').exists():bindings.append((BUILD if options.bytes115 else ROOT/'build')/'lua_bytes.o')
 if (ROOT/'src/lua_round.c').exists():bindings.append((BUILD if options.round113 else ROOT/'build')/'lua_round.o')
 link=['-fsanitize=address,undefined']
@@ -173,6 +177,10 @@ if options.bytes115:
     run(cc+flags+['-c','tests/test_bytes115_core.c','-o',BUILD/'test_bytes115.o'])
     run(cxx+link+[BUILD/'test_bytes115.o']+core_objects+native_libs+['-o',BUILD/'test_bytes115'])
     run([BUILD/'test_bytes115'],env=env)
+if options.vector116:
+    run(cc+flags+['-c','tests/test_vector116_core.c','-o',BUILD/'test_vector116.o'])
+    run(cxx+link+[BUILD/'test_vector116.o']+core_objects+native_libs+['-o',BUILD/'test_vector116'])
+    run([BUILD/'test_vector116'],env=env)
 asan=subprocess.check_output(cc+['-print-file-name=libasan.so'],text=True).strip()
 env['LD_PRELOAD']=asan;env['LUA_CPATH']=str(BUILD/'?.so')+';;'
 tests=['write98_regression','put98_differential_generated','place98_differential_generated',
@@ -196,6 +204,7 @@ if options.predicates112:tests+=['predicates112_regression','predicates112_diffe
 if options.round113:tests+=['round113_regression','round113_differential_generated','round_out113_differential_generated','time_scale113_differential_generated']
 if options.clip114:tests+=['clip114_regression','clip114_differential_generated','clip_out114_differential_generated','clip_buffer114_differential_generated']
 if options.bytes115:tests+=['bytes115_regression','view115_differential_generated','bytes115_differential_generated','unaligned115_differential_generated']
+if options.vector116:tests+=['vector116_regression','cross116_differential_generated','meshgrid116_differential_generated']
 for test in tests:
     run(['lua5.4',f'tests/{test}.lua'],env=env)
 print('PASS: changed '+', '.join(changed)+' instrumented; other dependencies uninstrumented; leak detection disabled')

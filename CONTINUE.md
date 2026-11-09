@@ -1,3 +1,44 @@
+# Requested stopping point — LuaRay0.116
+
+LATEST USER INSTRUCTION: finish0.116, report progress, THEN STOP, in that order.
+This overrides earlier indefinite continuation/usage instructions. Do not start
+0.117 or resume luanimath until the user explicitly resumes. The overall Manim
+port remains unfinished and must not be marked complete; pause its goal after
+0.116 delivery/progress reporting. No subagents were authorized or used.
+
+Active /mnt/datos/luaray/.dev/vector116 VERSION0.116.0-dev.8,141cases /
+787,265checks,27Lua/native C passed. Full161/161 fixtures passed.
+ASan39units(38C+1Cpp),20native78Lua passed, session42847 complete.
+Exact two-fixture/inventory regeneration passed, session21212 complete.
+Public Lua example passed. Inventory352/675,322missing,1N/A,allpartial.
+General complex budgets6e-7 C64 /2e-15 wider times max(1,abs(component));
+observed scaled maxima2.3841857910156e-7 /3.806396165811e-16 /0CLD.
+Other exact-reference metadata/state/ordinary numerical cases remain exact.
+
+Final administrative gates are recorded independently in releases/*0.116*
+verification JSON, clean log, public tag/assets and exact-head GitHub CI.
+Complete clean-package/fullsuite/19examples, manifest/gzip/SHA, source commit,
+FFmain/tag/publicassets/Downloads/exactCI if not yet recorded. After delivery,
+write an ignored artifacts/PAUSED_0_116.md with the actual release/CI evidence,
+report progress and pause. Source release tooling preserves verified archives.
+
+Native ln_vector/lua_vector implement root cross and meshgrid. Existing linalg
+cross delegates: source common dtype before products, C-last output then axis
+view, reusable product temporary. Meshgrid infers one axis (-1), flattens C,
+xy/ij mapping, per-array shape-match strides, writable/readonly broadcasts and
+optional C copies. Lua accepts an explicit input/result sequence table, up to64;
+copy=false can still copy to flatten incompatible input. EN/ES references and
+original old expected numerical states retained. Python protocols/warnings,
+all FMA/ABI paths and object/structured/void/variable strings remain partial.
+
+Latest earlier public0.115 e0ddf5703d42c67f5932eb9082b218bda4c39e84 SHA
+41a362721f639d1e30961d024303e52730b957ad1c0344c036d2117f6e0ed00a,
+871files/870manifest,159fixtures/18examples,ASan36units19native75Lua.
+Exact CI42564868056 SUCCESS; public digest and Downloads verified.
+luanimath stays suspended: published0.14, tested unreleased0.15 commit91032c5;
+no new luanimath implementation during these LuaRay releases. Earlier history
+below is historical and does not override the requested0.116 stop.
+
 # Current checkpoint — bytes0.115 release preparation
 
 Active /mnt/datos/luaray/.dev/view115 VERSION0.115.0-dev.16,794cases /

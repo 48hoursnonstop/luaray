@@ -1,13 +1,12 @@
 {
-  "version": "0.115.0-dev",
+  "version": "0.116.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "typed_views": 6480,
-    "byte_exports_and_layouts": 4464,
-    "unaligned_arithmetic": 5850
+    "cross": 6239,
+    "meshgrid": 1902
   },
-  "new_numeric_checks": 895109,
+  "new_numeric_checks": 787265,
   "new_lua_regression_checks": 27,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -16,22 +15,22 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.ndarray.view": "implemented_partial",
-    "numpy.ndarray.tobytes": "implemented_partial"
+    "numpy.cross": "implemented_partial",
+    "numpy.meshgrid": "implemented_partial",
+    "numpy.linalg.cross": "implemented_partial"
   },
   "evidence": [
-    "tests/view115_differential_generated.lua",
-    "tests/bytes115_differential_generated.lua",
-    "tests/unaligned115_differential_generated.lua",
-    "tests/bytes115_regression.lua",
-    "tests/test_bytes115_core.c",
+    "tests/cross116_differential_generated.lua",
+    "tests/meshgrid116_differential_generated.lua",
+    "tests/vector116_regression.lua",
+    "tests/test_vector116_core.c",
     "compatibility/api_inventory.json",
     "tools/inventory_api.py"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 350,
-    "missing_bindings": 324,
+    "available_callables": 352,
+    "missing_bindings": 322,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -85,7 +84,26 @@
     "Tobytes exports actual bytes including padding; NumPy2.5.3 K uses C order for numeric/bytes/time but KEEPORDER ravel for Unicode; letters case-insensitive, Lua nil/default C",
     "View accepts dtype strings only; Python subclasses/type arguments, void/subarray/structured/object/variableStringDType and non-native numeric endian remain unsupported",
     "Alignment flags and scalar loads/stores plus generic/legacy iterators and core reduction/accumulation staging support directed unaligned cases; every downstream algorithm and foreign storage layout is not certified",
-    "Frozen raw-byte oracles use little-endian x86-64; independently constructed longdouble padding and all foreign ABIs are not certified"
+    "Frozen raw-byte oracles use little-endian x86-64; independently constructed longdouble padding and all foreign ABIs are not certified",
+    "Cross follows NumPy2.5.3 three-component inputs, common-dtype casts and output-last allocation plus axis view; positive Lua axes are one-based and root ordinary array-like inputs use the existing constructor",
+    "General complex cross budgets are fixed at6e-7 for complex64 and2e-15 for wider complex, scaled by max(1,abs(component)); exact state/metadata/zero/nonfinite cases are separate; byte-identical CPU FMA dispatch is not certified",
+    "Meshgrid uses an explicit Lua input sequence table and returns a sequence table; copy/sparse require Lua booleans; indexing is xy/ij; Python variadic/custom protocols and warning objects are not reproduced",
+    "Meshgrid copy=false preserves source writable/readonly broadcasting and may share inputs or other cells; incompatible input flattening can still copy; inferred reshape preserves empty/singleton strides"
   ],
-  "sanitizers": "Directed audit: thirty-five C units plus C++ ln_fft, including byte view/export kernels/bindings, core aligned scalar/reduction handling and legacy/generic iterators; nineteen native and seventy-five Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops use -fwrapv; unary math uses explicit eligible FMA"
+  "sanitizers": "Directed audit: thirty-eight C units plus C++ ln_fft, including vector/grid kernels and bindings, delegated linalg cross, byte/alignment and shared arithmetic/iterator changes; twenty native and seventy-eight Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops use -fwrapv; unary math uses explicit eligible FMA",
+  "new_check_semantics": "Meshgrid and ordinary cross references are exact; general complex cross uses the documented preselected per-dtype budgets",
+  "cross_observed_errors": {
+    "complex64": {
+      "max_absolute_error": 4.7683715820312e-07,
+      "max_scaled_error": 2.3841857910156e-07
+    },
+    "complex128": {
+      "max_absolute_error": 4.4408920985006e-16,
+      "max_scaled_error": 3.806396165811e-16
+    },
+    "clongdouble": {
+      "max_absolute_error": 0.0,
+      "max_scaled_error": 0.0
+    }
+  }
 }

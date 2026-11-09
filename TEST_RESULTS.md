@@ -1,3 +1,33 @@
+## 0.116.0-dev verification (executed)
+
+- Full native/Lua regression passed **161/161 frozen fixture files**.
+- NumPy2.5.3 cross **6,239 cases /408,057 checks**, meshgrid **1,902 /
+  379,208**: total **8,141 /787,265 checks**. Cross includes broadcasting,
+  common-dtype casts, nonlast output strides, linalg delegation, signed zero,
+  nonfinite values and invalid vectors/axes. Meshgrid checks exact metadata,
+  values, aliasing, readonly/copy flags and actual input/output states after
+  constant or varying shared writes, including empty inferred-reshape strides.
+- General complex cross budgets were fixed before native execution at6e-7
+  complex64 /2e-15 wider, scaled by max(1,abs(component)). Observed maximum
+  absolute/scaled errors: complex64 **4.7683715820312e-7 /2.3841857910156e-7**;
+  complex128 **4.4408920985006e-16 /3.806396165811e-16**; clongdouble **0 /0**
+  in these cases. These do not certify every CPU FMA/FP environment. Other
+  exact-reference cases and metadata retain exact comparisons.
+- Native C tests and **27 Lua checks** passed, including native shared writes,
+  owner lifetime, readonly/copied grids, invalid options and rank64 grids.
+- Directed ASan/UBSan passed **38C+1Cpp units,20native /78Lua suites**.
+  Other linked dependencies uninstrumented; leaks disabled. Newly changed
+  linalg/vector/grid binding units are included; not every linalg algorithm
+  or external BLAS/LAPACK routine is certified by this directed audit.
+- Exact regeneration of two fixtures and runtime inventory passed. The public
+  module example passed without Python. Inventory observed **352/675** scoped
+  names,322 missing,1N/A,0complete. Prior numerical expected states retained.
+- Final source archive has the separate tools/release.py gate: clean extraction,
+  manifest check, rebuild, full regression and19 public examples. The release
+  verification JSON records that actual result independently of this document.
+- User-requested stopping point: finish0.116, report progress and stop. No0.117
+  implementation is authorized until the user resumes.
+
 ## 0.115.0-dev verification (executed)
 
 - Full native/Lua regression passed **159/159 frozen fixture files**.

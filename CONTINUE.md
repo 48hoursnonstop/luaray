@@ -1,3 +1,32 @@
+# Current checkpoint — binary 0.109 release gate preparation
+
+Active worktree: /mnt/datos/luaray/.dev/binary109, VERSION0.109.0-dev.
+Final directed tests:4,986 cases /514,816 checks;303Lua +native C passed.
+Full143/143 fixtures passed. ASan25units(24C+1Cpp),13native/53Lua passed.
+Inventory333/675 available,341missing,1N/A,allpartial. Public example passed.
+Next: reproduce four fixtures/inventory exactly; tools/release.py clean source
+extraction/build/full suite/12examples; manifest/gzip/SHA; commit, FF main,
+tag/public assets/Downloads and exact CI. Continue after release; user authorized
+work until completion or actual usage exhaustion. No subagents authorized.
+
+New binary module adds fmod/float_power; generic binary calls coerce scalar/table
+inputs after option parsing. Float_power weak scalars retain default precision
+until forced double signatures. String S/U add sums widths, strips trailing NUL
+padding, preserves embedded NUL and canonicalizes Unicode endian. Binary logical
+promoter resolves to bool first, including tiny weak float/complex values and
+string content truth. Existing unary logical_not remains separately scoped.
+Registry73 count and version-only assertions updated, old numerical fixtures
+unchanged. Final extreme-divisor/exponent fixtures have1,428 cases each for
+fmod/float_power. Float_power tolerance relative2e-12, observed3.23e-15.
+
+Latest published0.108 commit00a19cdaef13acf3bec26e3c83d78b0757e4cea2, SHA
+770b63b00b2ae8277fe83b26c06a307c918f91c1acaeeccb238a03f9a69827d6.
+Exact Ubuntu CI42549224919 SUCCESS; public asset digest and Downloads verified.
+Earlier endian40blocked/takehang/chooseunsafe/legacyastype limits retained.
+Next coherent subsystem: missing ravel/flatten and related layout/view functions.
+luanimath objective remains unfinished, suspended for dependency work.
+Older checkpoint text below is historical.
+
 # Current checkpoint — unary0.108 clean release gate preparation
 
 Active /mnt/datos/luaray/.dev/math108 VERSION0.108.0-dev. Directed5589cases/

@@ -1,3 +1,33 @@
+## 0.109 — NumPy2.5.3 binary math, strings and logical promotion
+
+Ten hashes in NUMPY_2_5_3_BINARY109_FILE_HASHES.sha256 pin generated signatures,
+integer fmod loops and real/half arithmetic, complex power source, dispatching.cpp
+logical_ufunc_promoter, string_ufuncs.cpp addition/descriptor resolution and
+string_buffer.h content lengths, plus source tests. Existing NumPy BSD attribution
+is retained. ln_binary_math.c provides two independently registered numeric
+operations and descriptor-aware string-add methods for the shared add registry.
+
+Fmod uses dividend-sign integer modulo with explicit zero/-1 guards, and the
+appropriate real/half fmod precision. Float_power registers only double,
+longdouble, complex128 and clongdouble signatures, preserving weak scalar
+precision until that forced resolution. Scalar/table Lua entry points parse
+options before pushing rooted temporaries and keep ndarray/scalar strength.
+
+The original coercion references exposed two older gaps. S/U add now sums
+metadata widths, canonicalizes Unicode byte order, trims trailing padding and
+retains embedded NUL. Existing staged output supports casts/truncation and shared
+views. Excess widths are rejected before allocation, even for zero-sized arrays.
+Binary logical operations now use the source boolean promoter. Weak tiny real/
+imaginary values become truth before narrow numeric conversion; fixed-width
+strings use nonempty stored contents. Unary logical_not remains separately scoped.
+
+Four new fixtures preserve observed behavior; historical numerical assertions
+remain unchanged. The native registry count increases71 to73 for two functions;
+string addition adds signatures rather than new function names. Full143-fixture
+regression and the directed25-unit sanitizer audit passed. English/Spanish docs
+record scalar return adaptation, raw Lua string class semantics, numeric tolerance
+and remaining protocols. No Python runtime is introduced.
+
 ## 0.108 — NumPy2.5.3 typed unary loops and physical iteration
 
 Ten source/test hashes in NUMPY_2_5_3_UNARY108_FILE_HASHES.sha256 pin signatures

@@ -25,6 +25,7 @@ parser.add_argument('--fft105',action='store_true',help='instrument FFT helpers,
 parser.add_argument('--sampling106',action='store_true',help='instrument sampling, Dragon4 and shared ufunc/complex conversion changes')
 parser.add_argument('--creation107',action='store_true',help='instrument conversion/creation bindings and scalar temporal packing')
 parser.add_argument('--unary108',action='store_true',help='instrument native numeric unary registry and coercing entry point')
+parser.add_argument('--binary109',action='store_true',help='instrument binary math, string concatenation and logical promotion')
 options=parser.parse_args()
 
 def run(args,**kwargs):
@@ -48,6 +49,7 @@ if options.creation107:
     changed+=['ln_core','lua_creation']
     if not options.sampling106:changed.append('ln_creation')
 if options.unary108:changed.append('ln_unary_math')
+if options.binary109:changed.append('ln_binary_math')
 for name in changed:
     run(cc+flags+(['-fwrapv'] if name=='ln_ufunc_loops' else ['-ffp-contract=off'] if name=='ln_unary_math' else [])+['-c',f'src/{name}.c','-o',BUILD/f'{name}.o'])
 if options.fft105:
@@ -70,6 +72,7 @@ if options.creation107:
     core_objects.append(BUILD/'ln_core.o')
     if not options.sampling106:core_objects.append(BUILD/'ln_creation.o')
 if options.unary108:core_objects.append(BUILD/'ln_unary_math.o')
+if options.binary109:core_objects.append(BUILD/'ln_binary_math.o')
 bindings=[BUILD/'lua_module.o']
 if (ROOT/'src/lua_creation.c').exists():bindings.append((BUILD if options.creation107 else ROOT/'build')/'lua_creation.o')
 link=['-fsanitize=address,undefined']
@@ -122,6 +125,10 @@ if options.unary108:
     run(cc+flags+['-c','tests/test_unary108_core.c','-o',BUILD/'test_unary108.o'])
     run(cxx+link+[BUILD/'test_unary108.o']+core_objects+native_libs+['-o',BUILD/'test_unary108'])
     run([BUILD/'test_unary108'],env=env)
+if options.binary109:
+    run(cc+flags+['-c','tests/test_binary109_core.c','-o',BUILD/'test_binary109.o'])
+    run(cxx+link+[BUILD/'test_binary109.o']+core_objects+native_libs+['-o',BUILD/'test_binary109'])
+    run([BUILD/'test_binary109'],env=env)
 asan=subprocess.check_output(cc+['-print-file-name=libasan.so'],text=True).strip()
 env['LD_PRELOAD']=asan;env['LUA_CPATH']=str(BUILD/'?.so')+';;'
 tests=['write98_regression','put98_differential_generated','place98_differential_generated',
@@ -138,6 +145,7 @@ if options.fft105:tests+=['fft105_regression','fft_frequency105_differential_gen
 if options.sampling106:tests+=['sampling106_regression','linspace106_differential_generated','logspace106_differential_generated','geomspace106_differential_generated']
 if options.creation107:tests+=['creation107_stack','string_cast_differential_generated','creation107_regression','conversion107_differential_generated','copy107_differential_generated','like107_differential_generated','dense_creation107_differential_generated']
 if options.unary108:tests+=['unary108_regression','rounding108_differential_generated','algebra108_differential_generated','angles108_differential_generated']
+if options.binary109:tests+=['binary109_regression','fmod109_differential_generated','float_power109_differential_generated','binary_coercion109_differential_generated','string_add109_differential_generated']
 for test in tests:
     run(['lua5.4',f'tests/{test}.lua'],env=env)
 print('PASS: changed '+', '.join(changed)+' instrumented; other dependencies uninstrumented; leak detection disabled')

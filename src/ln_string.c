@@ -257,3 +257,29 @@ int ln_string_compare_one(const char *a,const ln_dtype_descr *adt,const char *b,
     size_t n=ia<ib?ia:ib;for(size_t i=0;i<n;i++){uint32_t x=load_u32(a+i*4,adt->byteorder),y=load_u32(b+i*4,bdt->byteorder);if(x<y){*cmp=-1;return 0;}if(x>y){*cmp=1;return 0;}}
     *cmp=ia<ib?-1:ia>ib?1:0;return 0;
 }
+
+/* NumPy string_ufuncs.cpp:string_add and string_buffer.h:num_codepoints.
+ * Trailing zero padding is not part of either string; embedded zeros are. */
+int ln_string_add_one(const char *a,const ln_dtype_descr *adt,
+                      const char *b,const ln_dtype_descr *bdt,
+                      char *out,const ln_dtype_descr *outdt,ln_error *err)
+{
+    if(!ln_string_is_dtype(adt)||!ln_string_is_dtype(bdt)||!ln_string_is_dtype(outdt)||
+       adt->type_num!=bdt->type_num||adt->type_num!=outdt->type_num){
+        serr(err,"string addition requires matching string dtype classes");return -1;
+    }
+    size_t na=ln_string_nchars(adt),nb=ln_string_nchars(bdt),capacity=ln_string_nchars(outdt);
+    if(na>capacity||nb>capacity-na){serr(err,"string addition output is too small");return -1;}
+    memset(out,0,outdt->elsize);
+    if(adt->type_num==LN_STRING){
+        while(na&&a[na-1]==0)--na;
+        while(nb&&b[nb-1]==0)--nb;
+        memcpy(out,a,na);memcpy(out+na,b,nb);
+    }else{
+        while(na&&load_u32(a+(na-1)*4,adt->byteorder)==0)--na;
+        while(nb&&load_u32(b+(nb-1)*4,bdt->byteorder)==0)--nb;
+        for(size_t i=0;i<na;++i)store_u32(out+i*4,load_u32(a+i*4,adt->byteorder),outdt->byteorder);
+        for(size_t i=0;i<nb;++i)store_u32(out+(na+i)*4,load_u32(b+i*4,bdt->byteorder),outdt->byteorder);
+    }
+    return 0;
+}

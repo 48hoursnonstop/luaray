@@ -1,3 +1,17 @@
+## LuaRay 0.109.0-dev — binary math, ordinary Lua inputs and string addition
+
+Native fmod/float_power preserve exact remainder signs and minimum-double power
+precision. Binary calls now accept ordinary Lua scalars and tables. Native S/U
+addition preserves padding, embedded NUL, Unicode and descriptor widths. Logical
+promotion retains tiny scalar truth before narrowing floating computations.
+
+Read the [English binary reference](docs/en/binary_math.md) or
+[referencia en español](docs/es/binary_math.md). **4,986 original NumPy2.5.3 cases /
+514,816 checks**,303 directed Lua checks and native tests passed. Full regression:
+**143 fixture files**. Directed ASan/UBSan:25 units,13 native/53 Lua suites.
+[Inventory](docs/en/api_inventory.md):333/675 scoped names available, all partial;
+no overall completion percentage is inferred. Runtime remains Lua/C/C++.
+
 ## LuaRay 0.108.0-dev — native unary mathematics
 
 Native floor, ceil, trunc, rint, fabs, conjugate/conj, square, reciprocal and

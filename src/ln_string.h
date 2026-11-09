@@ -32,6 +32,12 @@ int ln_string_cast_one(const char *src, const ln_dtype_descr *src_dt,
 int ln_string_compare_one(const char *a, const ln_dtype_descr *adt,
                           const char *b, const ln_dtype_descr *bdt,
                           int *cmp, ln_error *err);
+/* Concatenate actual contents (trim trailing padding, retain embedded NUL).
+ * Output must not overlap either input, and its capacity must cover the sum
+ * of the two declared input widths. The ufunc iterator provides staging. */
+int ln_string_add_one(const char *a,const ln_dtype_descr *adt,
+                      const char *b,const ln_dtype_descr *bdt,
+                      char *out,const ln_dtype_descr *outdt,ln_error *err);
 
 #ifdef __cplusplus
 }

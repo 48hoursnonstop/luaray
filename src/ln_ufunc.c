@@ -4,6 +4,7 @@
 #include "ln_datetime.h"
 #include "ln_string.h"
 #include "ln_unary_math.h"
+#include "ln_binary_math.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -137,7 +138,7 @@ legacy_binary_op_for_name(const char *name, ln_binary_op *op)
         {"less_equal",LN_OP_LESS_EQUAL},{"greater",LN_OP_GREATER},{"greater_equal",LN_OP_GREATER_EQUAL},
         {"logical_and",LN_OP_LOGICAL_AND},{"logical_or",LN_OP_LOGICAL_OR},{"logical_xor",LN_OP_LOGICAL_XOR},
         {"maximum",LN_OP_MAXIMUM},{"minimum",LN_OP_MINIMUM},
-        {"floor_divide",LN_OP_FLOOR_DIVIDE},{"remainder",LN_OP_REMAINDER},{"power",LN_OP_POWER},
+        {"floor_divide",LN_OP_FLOOR_DIVIDE},{"remainder",LN_OP_REMAINDER},{"fmod",LN_OP_REMAINDER},{"power",LN_OP_POWER},
         {"bitwise_and",LN_OP_BITWISE_AND},{"bitwise_or",LN_OP_BITWISE_OR},{"bitwise_xor",LN_OP_BITWISE_XOR},
         {"fmax",LN_OP_FMAX},{"fmin",LN_OP_FMIN},{"copysign",LN_OP_COPYSIGN},{"arctan2",LN_OP_ARCTAN2},{"hypot",LN_OP_HYPOT}
     };
@@ -156,6 +157,15 @@ resolve_legacy_binary(const ln_ufunc *u,const ln_array *const *inputs,
         ufunc_error(err,"ufunc has no builtin promotion mapping");return -1;
     }
     const ln_dtype *a=inputs[0]->descr,*b=inputs[1]->descr;
+    /* dispatching.cpp logical_ufunc_promoter overrides numeric/string inputs
+     * to bool before computation. In particular a tiny weak float must not
+     * underflow in the strong operand's narrower floating dtype first. */
+    if(op==LN_OP_LOGICAL_AND||op==LN_OP_LOGICAL_OR||op==LN_OP_LOGICAL_XOR){
+        const ln_dtype *bo=ln_dtype_by_num(LN_BOOL);
+        const ln_ufunc_loop *m=find_loop_2(u,bo,bo);
+        if(m){*resolved=m;return 0;}
+        ufunc_error(err,"logical ufunc has no boolean signature");return -1;
+    }
     if(ln_string_is_dtype(a)||ln_string_is_dtype(b)){
         if(!ln_string_is_dtype(a)||!ln_string_is_dtype(b)||a->cls!=b->cls){ufunc_error(err,"ufunc did not contain a loop for mixed bytes/unicode comparison");return -1;}
         const ln_ufunc_loop *sm=find_loop_2(u,a,b);if(sm){*resolved=sm;return 0;}
@@ -253,6 +263,11 @@ resolve_uniform_binary_common(const ln_ufunc *u,const ln_array *const *inputs,
 }
 
 static int resolve_add(const ln_ufunc*u,const ln_array*const*i,const ln_ufunc_loop**r,ln_error*e){
+    if(ln_string_is_dtype(i[0]->descr)||ln_string_is_dtype(i[1]->descr)){
+        const ln_ufunc_loop *m=find_loop_2(u,i[0]->descr,i[1]->descr);
+        if(!m){ufunc_error(e,"string addition requires matching string dtype classes");return -1;}
+        *r=m;return 0;
+    }
     if(is_time_dtype(i[0]->descr)||is_time_dtype(i[1]->descr)){
         if(!is_time_dtype(i[0]->descr)||!is_time_dtype(i[1]->descr)){ufunc_error(e,"datetime/timedelta addition requires time operands");return -1;}
         const ln_ufunc_loop*m=find_loop_2(u,i[0]->descr,i[1]->descr);if(!m){ufunc_error(e,"ufunc 'add' has no matching datetime signature");return -1;}*r=m;return 0;
@@ -571,6 +586,9 @@ init_registry(void)
                 arithmetic_loops[i][n].resolve_descrs=resolve_time_binary_descrs;++n;
             }
         }
+        if(i==0)for(int k=0;k<2;++k){
+            ln_binary_math_string_add_method(&arithmetic_loops[i][n++],k);
+        }
         append_ufunc(anames[i],2,1,arithmetic_loops[i],n,ares[i]);
     }
 
@@ -648,14 +666,15 @@ ln_ufunc_by_name(const char *name)
 {
     init_registry();if(!name)return NULL;
     for(size_t i=0;i<nufuncs;++i)if(strcmp(name,ufuncs[i].name)==0)return &ufuncs[i];
-    return ln_unary_math_by_name(name);
+    const ln_ufunc *extra=ln_unary_math_by_name(name);
+    return extra?extra:ln_binary_math_by_name(name);
 }
 
 size_t
 ln_ufunc_registry_count(void)
 {
     init_registry();
-    return nufuncs+ln_unary_math_count();
+    return nufuncs+ln_unary_math_count()+ln_binary_math_count();
 }
 
 static int
@@ -664,12 +683,26 @@ materialize_weak_operand(const ln_ufunc *u,const ln_ufunc_operand *operand,
                          ln_error *err)
 {
     if(!u||!operand||!strong||!strong->descr){ufunc_error(err,"invalid weak scalar operand");return -1;}
-    ln_binary_op op;
-    if(!legacy_binary_op_for_name(u->name,&op)){
+    ln_binary_op op=LN_OP_POWER;
+    int float_power=strcmp(u->name,"float_power")==0;
+    if(!float_power&&!legacy_binary_op_for_name(u->name,&op)){
         ufunc_error(err,"weak scalar resolution is not implemented for this ufunc");return -1;
     }
     const ln_dtype *dt=NULL;
-    switch(operand->kind){
+    /* float_power registers double/longdouble loops even for small integers.
+     * Preserve the scalar's full precision until that forced signature is
+     * resolved, rather than overflowing or rounding in the strong input dtype. */
+    if(op==LN_OP_LOGICAL_AND||op==LN_OP_LOGICAL_OR||op==LN_OP_LOGICAL_XOR){
+        dt=ln_dtype_by_num(LN_BOOL);
+    }else if(float_power){
+        switch(operand->kind){
+        case LN_UFUNC_WEAK_BOOL:dt=ln_dtype_by_num(LN_BOOL);break;
+        case LN_UFUNC_WEAK_INT:dt=ln_dtype_by_name("int64");break;
+        case LN_UFUNC_WEAK_FLOAT:dt=ln_dtype_by_num(LN_DOUBLE);break;
+        case LN_UFUNC_WEAK_COMPLEX:dt=ln_dtype_by_num(LN_CDOUBLE);break;
+        default:break;
+        }
+    }else switch(operand->kind){
         case LN_UFUNC_WEAK_BOOL:
             dt=ln_resolve_weak_bool_dtype(strong,op,err);break;
         case LN_UFUNC_WEAK_INT:
@@ -686,6 +719,10 @@ materialize_weak_operand(const ln_ufunc *u,const ln_ufunc_operand *operand,
     memset(storage,0,sizeof(ln_clongdouble));
     tmp->data=(char *)storage;tmp->nd=0;tmp->descr=dt;
     tmp->flags=LN_ARRAY_WRITEABLE|LN_ARRAY_ALIGNED|LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS;
+    if(operand->kind==LN_UFUNC_WEAK_COMPLEX&&dt->type_num==LN_BOOL){
+        int truth=operand->real!=0.0L||operand->imag!=0.0L;
+        return ln_array_pack_number(tmp,NULL,(double)truth,truth,1,err);
+    }
     if(operand->kind==LN_UFUNC_WEAK_COMPLEX)
         return ln_array_pack_complex(tmp,NULL,operand->real,operand->imag,err);
     if(operand->kind==LN_UFUNC_WEAK_BOOL)
@@ -760,7 +797,11 @@ ln_ufunc_execute_operands(const ln_ufunc *u,const ln_ufunc_operand *operands,
         int weak_i=1-strong_i;
         if(operands[weak_i].kind==LN_UFUNC_WEAK_STRING){
             const ln_dtype_descr *sd=inputs[strong_i]->descr;
-            if(!ln_string_is_dtype(sd)){ufunc_error(err,"string scalar requires a string ndarray operand");return -1;}
+            if(!ln_string_is_dtype(sd)){
+                int logical=strcmp(u->name,"logical_and")==0||strcmp(u->name,"logical_or")==0||strcmp(u->name,"logical_xor")==0;
+                if(!logical){ufunc_error(err,"string scalar requires a string ndarray operand");return -1;}
+                sd=ln_string_default_dtype(1);
+            }
             size_t width=operands[weak_i].string_len;
             if(sd->type_num==LN_UNICODE && ln_string_utf8_codepoints(operands[weak_i].string,operands[weak_i].string_len,&width,err)<0)return -1;
             const ln_dtype_descr *dt=ln_string_make_dtype(sd->type_num==LN_UNICODE,width,sd->byteorder,err);if(!dt)return -1;

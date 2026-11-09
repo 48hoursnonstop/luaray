@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.108.0-dev')
+assert(np._version=='0.109.0-dev')
 local r=np.random.default_rng(42)
 assert(r:standard_exponential()==2.4042086039659947)
 assert(r:standard_exponential()==2.3361896558244535)

@@ -1,3 +1,26 @@
+## 0.109.0-dev verification (executed)
+
+- Full native/Lua regression passed **143/143 frozen fixture files**.
+- NumPy2.5.3 fmod: **1,428 cases /189,111 checks**; float_power:
+  **1,428 /205,745**; binary coercion **784 /18,244**; string addition and
+  logical promotion **1,346 /101,716**. Total **4,986 /514,816**.
+- Fmod, coercion and string values/metadata compare exactly, observed error0.
+  Float_power and existing power/arctan2/hypot allow relative2e-12; maximum
+  observed error in float_power3.1974423109205e-14 absolute and
+  3.2300436499022e-15 relative. No tolerance was expanded to hide a failure.
+- Native C tests and **303 Lua regression checks** passed, including weak large
+  exponents, tiny logical scalar values, embedded NUL, Unicode, shape/mask/
+  readonly checks and descriptor overflow without oversized data allocation.
+- ASan/UBSan passed **24C+1Cpp units,13 native and53 Lua suites**. The final
+  fixtures include integer extremes in both operand positions. Other linked
+  dependencies were uninstrumented; leak detection disabled.
+- Runtime inventory observed **333/675** names,341 missing,1N/A,0complete.
+  Four-fixture/inventory reproducibility and the final source extraction/build/
+  regression/twelve-example gate are separately recorded in the versioned
+  release verification JSON/log. Remote CI is verified independently.
+- Old endian blocked states, take/choose variants, legacy astype restriction and
+  all earlier scope limits remain documented; full NumPy compatibility is not claimed.
+
 ## 0.108.0-dev verification (executed)
 
 - Full native/Lua regression passed **139/139 frozen fixture files**.

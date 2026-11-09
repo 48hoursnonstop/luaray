@@ -1,4 +1,5 @@
 #include "ln_matrix.h"
+#include "ln_datetime.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -86,5 +87,16 @@ int main(void)
     assert(ln_matrix_fill_diagonal(destination,values_array,0,&err)<0);
     assert(ln_matrix_fill_diagonal(values_array,destination,0,&err)<0);
     ln_array_free(destination);ln_array_free(values_array);
+    ln_intp pair=2;ln_array *factor=ln_array_new(1,&pair,ln_dtype_by_name("int16"),0,0,&err);
+    ((int16_t*)factor->data)[0]=2;((int16_t*)factor->data)[1]=3;
+    ln_array *tensor=ln_matrix_kron(factor,factor,&err);assert(tensor);
+    assert(tensor->nd==1&&tensor->dimensions[0]==4&&((int16_t*)tensor->data)[3]==9);
+    assert(tensor->owner!=factor->owner);ln_array_free(tensor);ln_array_free(factor);
+    assert(ln_matrix_kron(NULL,NULL,&err)==NULL);
+    const ln_datetime_meta *milliseconds=ln_datetime_metadata(ln_dtype_by_name("timedelta64[ms]"));
+    const ln_datetime_meta *hours=ln_datetime_metadata(ln_dtype_by_name("timedelta64[h]"));
+    int64_t cast_ticks;
+    assert(ln_datetime_cast_value(-1,milliseconds,hours,&cast_ticks,&err)==0&&cast_ticks==-1);
+    assert(ln_datetime_cast_value(INT64_MIN+1,milliseconds,hours,&cast_ticks,&err)<0&&err.kind==LN_ERROR_OVERFLOW);
     puts("matrix native: diagonal layout, shared lifetime, readonly, construction, overflow and staged trace passed");
 }

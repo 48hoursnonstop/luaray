@@ -92,6 +92,12 @@ imaginarias diminutas. Las cadenas se consideran según su contenido almacenado
 no vacío, sin interpretación numérica: `'0'` y `'False'` son verdaderos; la
 cadena vacía es falsa. La operación unaria logical_not tiene firmas distintas.
 
+## Multiplicación de duraciones
+
+`multiply` admite coeficientes enteros, booleanos y flotantes para timedelta64.
+La multiplicación entera comprueba desbordamientos int64 y conserva escrituras
+definidas si falla. Consulta el [escalado temporal](temporal_scaling.md).
+
 ## Pruebas y alcance pendiente
 
 Las referencias originales de NumPy 2.5.3 cubren **4 986 casos / 514 816

@@ -69,9 +69,10 @@ código. Los paquetes se verifican mediante compilaciones limpias.
 Round necesitaba multiplicar/dividir timedelta por flotantes. Las firmas nativas
 m*d, d*m y m/d ahora calculan en double, conservan unidades, truncan ticks
 finitos, propagan NaT y respetan máscaras y conversiones de salida. Los factores
-float16/32/64/longdouble siguen el bucle double upstream. El escalado por enteros,
-las razones timedelta/timedelta y la aritmética temporal completa siguen
-pendientes, sin aproximarlos mediante firmas flotantes. Los resultados NaT
+float16/32/64/longdouble siguen el bucle double upstream. La multiplicación
+entera existe desde0.125 con su propia firma int64. Siguen pendientes la división
+entera, las razones timedelta/timedelta y la aritmética temporal completa.
+Consulta el [escalado temporal](temporal_scaling.md) para errores y destinos. Los resultados NaT
 fuera de rango se auditaron en x86; faltan certificaciones de otras ABI.
 
 ## Alcance ejecutado

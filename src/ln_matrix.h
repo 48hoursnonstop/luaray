@@ -18,4 +18,5 @@ int ln_matrix_trilu_indices(ln_intp rows,ln_intp columns,ln_intp k,int upper,
                            ln_array **outputs,ln_error *err);
 /* Values are read live in logical C order, cycling rather than broadcasting. */
 int ln_matrix_fill_diagonal(ln_array *a,const ln_array *values,int wrap,ln_error *err);
+ln_array *ln_matrix_kron(const ln_array *a,const ln_array *b,ln_error *err);
 #endif

@@ -6,6 +6,7 @@
 #include "ln_select.h"
 #include "ln_string.h"
 #include "ln_ufunc_loops.h"
+#include "ln_ufunc.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -342,4 +343,50 @@ int ln_matrix_fill_diagonal(ln_array *a,const ln_array *values,int wrap,ln_error
     for(ln_intp i=0;i<count;++i)
         memmove(logical_element(a,i*step),logical_element(converted,i%nv),a->descr->elsize);
     ln_array_free(converted);return 0;
+}
+
+/* NumPy _shape_base_impl.py:kron: strong array operands, interleaved axes,
+ * uniform multiply, then C-order reshape. In particular, padding the left
+ * operand before the scalar fast path preserves upstream's rank asymmetry. */
+ln_array *ln_matrix_kron(const ln_array *a,const ln_array *b,ln_error *err)
+{
+    if(!a||!b)return failure(err,"kron requires two arrays");
+    ln_array *left=ln_creation_convert(a,NULL,'K',-1,b->nd,NULL,err),*right=NULL;
+    ln_array *aview=NULL,*bview=NULL,*product=NULL,*result=NULL;
+    if(!left)return NULL;
+    if(b->nd==0){
+        const ln_array *inputs[]={left,b};
+        if(ln_ufunc_execute(ln_ufunc_by_name("multiply"),inputs,&result,NULL,err)<0)result=NULL;
+        ln_array_free(left);return result;
+    }
+    int nd=left->nd>b->nd?left->nd:b->nd;
+    if(nd>LN_MAXDIMS/2){failure(err,"kron expanded rank exceeds the native dimension limit");goto done;}
+    if(!(left->flags&LN_ARRAY_C_CONTIGUOUS)){
+        ln_array *reshaped=ln_layout_reshape(left,left->nd,left->dimensions,'C',-1,err);
+        if(!reshaped)goto done;
+        ln_array_free(left);left=reshaped;
+    }
+    right=!(b->flags&LN_ARRAY_C_CONTIGUOUS)?
+        ln_layout_reshape(b,b->nd,b->dimensions,'C',-1,err):
+        ln_array_view(b,b->nd,b->dimensions,b->strides,b->data,err);
+    if(!right)goto done;
+    ln_intp ashape[LN_MAXDIMS],bshape[LN_MAXDIMS],astrides[LN_MAXDIMS],bstrides[LN_MAXDIMS],output[LN_MAXDIMS];
+    for(int d=0;d<nd;++d){
+        int ai=d-(nd-left->nd),bi=d-(nd-right->nd);
+        ln_intp an=ai<0?1:left->dimensions[ai],bn=bi<0?1:right->dimensions[bi];
+        if(an&&bn>INTPTR_MAX/an){failure(err,"kron output dimension overflows the native index range");goto done;}
+        output[d]=an*bn;
+        ashape[2*d]=an;ashape[2*d+1]=1;
+        bshape[2*d]=1;bshape[2*d+1]=bn;
+        astrides[2*d]=ai<0?0:left->strides[ai];astrides[2*d+1]=0;
+        bstrides[2*d]=0;bstrides[2*d+1]=bi<0?0:right->strides[bi];
+    }
+    aview=ln_array_view(left,2*nd,ashape,astrides,left->data,err);if(!aview)goto done;
+    bview=ln_array_view(right,2*nd,bshape,bstrides,right->data,err);if(!bview)goto done;
+    const ln_array *inputs[]={aview,bview};
+    if(ln_ufunc_execute(ln_ufunc_by_name("multiply"),inputs,&product,NULL,err)<0)goto done;
+    result=ln_layout_reshape(product,nd,output,'C',-1,err);
+ done:
+    ln_array_free(product);ln_array_free(bview);ln_array_free(aview);
+    ln_array_free(right);ln_array_free(left);return result;
 }

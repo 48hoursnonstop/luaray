@@ -31,7 +31,7 @@ Los kernels incluyen booleanos, enteros, float16/32/64/long double, complejos y
 fechas/duraciones. Los metadatos temporales compatibles se combinan, NaT se
 propaga y las mezclas inválidas se rechazan. Los resolutores compartidos
 minimum/maximum/fmin/fmax también admiten combinaciones compatibles de arrays
-enteros y duraciones. La multiplicación temporal entera sigue pendiente.
+enteros y duraciones. La multiplicación temporal entera está disponible; consulta el [escalado temporal](temporal_scaling.md).
 Un límite abierto usa minimum/maximum; ambos abiertos usan positive, por lo que
 booleanos y datetime pueden rechazarse.
 

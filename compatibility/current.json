@@ -1,11 +1,12 @@
 {
-  "version": "0.124.0-dev",
+  "version": "0.125.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "fill_diagonal": 29960
+    "kron_and_integer_scalar_edges": 8242,
+    "integer_duration_outputs_and_masks": 5534
   },
-  "new_lua_regression_checks": 29,
+  "new_lua_regression_checks": 30,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -13,20 +14,23 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.fill_diagonal": "implemented_partial"
+    "numpy.kron": "implemented_partial",
+    "numpy.multiply": "implemented_partial",
+    "numpy.ndarray.astype": "implemented_partial"
   },
   "evidence": [
     "tests/native/test_matrix_core.c",
     "tests/lua/matrix_regression.lua",
     "tests/lua/trace_regression.lua",
     "compatibility/numpy-source.sha256",
-    "tests/lua/fill_diagonal_regression.lua",
-    "docs/fill_diagonal.md"
+    "tests/lua/kron_regression.lua",
+    "docs/kron.md",
+    "docs/temporal_scaling.md"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 371,
-    "missing_bindings": 303,
+    "available_callables": 372,
+    "missing_bindings": 302,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -71,7 +75,7 @@
     "Round preserves typed composition, complex component assignment and root TypeError retry; Lua errors remain ordinary Lua errors rather than Python exception objects",
     "Internal ln_error gained a category field; development-version C consumers must rebuild all native objects; full error-class coverage is not certified",
     "Power-of-ten uses source multiplication order through308 and stabilized infinity from309; INT_MIN/MAX native bounds tested without executing upstream billion-step loops",
-    "Floating timedelta multiply/divide uses the source double loop including longdouble coefficients and x86 NaT overflow results; integer scaling, timedelta ratios and complete temporal arithmetic remain unimplemented",
+    "Floating timedelta multiply/divide uses the source double loop including longdouble coefficients and x86 NaT overflow results; integer division, timedelta ratios and complete temporal arithmetic remain unimplemented",
     "Round Lua options/typed scalar return adaptation and constructor limits remain; every subclass/device/foreign protocol, FP status/rounding mode and host ABI is not certified",
     "Clip supports positional bounds and out/where options; Python keyword aliases and dtype/casting/order/signature/subok are not accepted",
     "Clip resolves strong descriptor categories before weak value packing, implements integer-bound elision and fused numeric/time loops; complete foreign DType and scalar protocols remain unavailable",
@@ -89,16 +93,24 @@
     "Diagonal extraction uses the native C int offset range; construction uses checked native-size dimensions; foreign index objects and complete Python signature/dispatch fidelity are not implemented",
     "Diagonal index helpers return a Lua sequence of shared one-based index vectors; diag_indices_from requires an actual ndarray with equal-sized axes. Python index/tuple/subclass protocols are not reproduced.",
     "Triangular index helpers return two independent contiguous one-based index vectors; _from requires a two-dimensional ndarray and accepts rectangular matrices. Strict Lua integer and Lua sequence conventions replace Python protocols.",
-    "Fill_diagonal uses logical C iteration with live same-dtype aliases, cycling values and Boolean wrap. Lua options and scalar bounds differ from typed unsafe casting; full foreign scalar, subclass and warning protocols are not reproduced."
+    "Fill_diagonal uses logical C iteration with live same-dtype aliases, cycling values and Boolean wrap. Lua options and scalar bounds differ from typed unsafe casting; full foreign scalar, subclass and warning protocols are not reproduced.",
+    "Kron coerces both inputs to strong arrays, interleaves axes and uses C-order reshape. Scalar-right and scalar-left rank limits differ as in NumPy2.5.3; scalar results are typed rank-zero ndarrays.",
+    "General kron random complex64 values use relative3e-7 and wider float/complex relative3e-15; exact ordinary values, signed zeros and metadata are separate. Observed new numerical errors were zero.",
+    "Integer duration multiplication uses int64 coefficient conversion, NaT propagation and checked overflow. Completed writes, mask-run continuation and tested buffer/negative-stride traversal match references; every possible foreign/output/iterator layout is not certified.",
+    "In176 failed buffered unit-conversion cases, upstream flushes nondeterministic uninitialized suffix cells. Only defined prefix values and full metadata are compared; LuaRay preserves unwritten cells. Full suffix/exception-message parity is not claimed."
   ],
   "sanitizers": {
-    "version": "0.124.0-dev",
+    "version": "0.125.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_matrix",
       "ln_linalg",
       "lua_matrix",
-      "lua_module"
+      "lua_module",
+      "ln_time_scale",
+      "ln_ufunc",
+      "ln_nditer_multi",
+      "ln_datetime"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -108,8 +120,9 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.124.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.125.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact tested values, dtype, shape, strides, identity, sharing and backing states; full host scalar precision and Python type/dispatch fidelity are not claimed",
-  "new_reference_checks": 1292460
+  "new_check_semantics": "Defined values and states, dtype, shape, strides, identity and sharing; 48 general random kron cases use fixed numerical tolerances. In176 failed buffered unit-conversion cases only the defined prefix and metadata are certified.",
+  "new_reference_checks": 1018781,
+  "buffered_error_prefix_only_cases": 176
 }

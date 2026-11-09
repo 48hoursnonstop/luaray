@@ -75,8 +75,9 @@ Round exposed a missing prerequisite: timedelta multiplied/divided by floating
 numbers. Native m*d, d*m and m/d signatures now compute in double, preserve
 temporal units, truncate finite ticks, propagate NaT and preserve masks/output
 conversions. Float16/32/64/longdouble coefficients follow the source double loop.
-Integer timedelta scaling, timedelta ratios and complete temporal arithmetic
-remain unimplemented; they are not approximated through a floating signature.
+Integer multiplication is supported since0.125 with a separate int64 signature.
+Integer division, timedelta ratios and complete temporal arithmetic remain
+unimplemented. See [duration scaling](temporal_scaling.md) for overflow and output behavior.
 Out-of-range double-to-tick NaT results were audited on x86; other ABIs need
 separate certification.
 

@@ -191,6 +191,36 @@ static void uniform_buffer_plan(int nin,int nout,const ln_array *const *inputs,
     for(int k=0;k<nin+nout;++k)dense[k]=single[k]<=best_dim;
 }
 
+/* Legacy masked kernels finish later true runs even if a previous run raised.
+ * Keep a separate write mask so failed run suffixes never copy uninitialized
+ * native buffer cells into caller-owned output. */
+static int masked_validated_chunk(int nop,char **args,const ln_intp *steps,ln_intp count,
+        const uint8_t *mask,ln_intp mask_step,uint8_t *written,int *failed_run,
+        ln_strided_loop loop,void *loop_data,ln_nditer_validate_fn validate,void *validate_data,
+        int *partial,int *deferred,ln_error *err)
+{
+    for(ln_intp i=0;i<count;++i)written[i]=mask[i*mask_step]!=0;
+    ln_intp at=0;
+    while(at<count){
+        if(!written[at]){*failed_run=0;++at;continue;}
+        ln_intp end=at+1;while(end<count&&written[end])++end;
+        if(*failed_run){for(ln_intp i=at;i<end;++i)written[i]=0;at=end;continue;}
+        char *subargs[LN_NDITER_MULTI_MAXARGS];for(int k=0;k<nop;++k)subargs[k]=args[k]+at*steps[k];
+        ln_intp dims[]={end-at};
+        int status=validate(subargs,dims,steps,NULL,0,validate_data,err);
+        if(status==-1)return -1;
+        if(status!=0)*partial=1;
+        if(status< -1){
+            ln_intp prefix=-(ln_intp)status-2;
+            if(prefix>dims[0]){iter_error(err,"invalid partial validation prefix");return -1;}
+            dims[0]=prefix;*deferred=1;*failed_run=1;
+            for(ln_intp i=at+prefix;i<end;++i)written[i]=0;
+        }
+        loop(subargs,dims,steps,loop_data);at=end;
+    }
+    return 0;
+}
+
 static int
 execute(int nin,int nout,
         const ln_array *const *inputs,ln_array **outputs,const ln_array *where,
@@ -229,6 +259,7 @@ execute(int nin,int nout,
 
     /* Existing write operands use temporaries.  This is the generalized
      * COPY_IF_OVERLAP/writeback path and also preserves masked-out values. */
+    int partial_writeback=0,deferred_error=0;
     ln_array *work[LN_NDITER_MULTI_MAXARGS]={0};
     char *buffers[LN_NDITER_MULTI_MAXARGS]={0};
     for(int j=0;j<nout;++j){
@@ -237,7 +268,7 @@ execute(int nin,int nout,
             work[j]=ln_array_new(nd,nd?shape:NULL,outputs[j]->descr,0,0,err);
             if(!work[j])goto fail_work;
             apply_keeporder_strides(work[j],order_axes,nd);
-            if(where&&copy_same_shape(outputs[j],work[j],err)<0)goto fail_work;
+            if((where||validate)&&copy_same_shape(outputs[j],work[j],err)<0)goto fail_work;
         }
     }
 
@@ -262,6 +293,27 @@ execute(int nin,int nout,
         if(where&&ln_broadcast_strides(nd,shape,where->nd,where->dimensions,where->strides,
                 "where mask",mstrides,err)<0)goto fail_work;
 
+        /* NpyIter negates unanimous negative strides only when no operand
+         * needs allocation. This also determines which writes precede an
+         * arithmetic error for a reversed in-place output. Use the original
+         * operand strides to choose direction, then transform work storage. */
+        ln_intp origins[LN_NDITER_MULTI_MAXARGS]={0},mask_origin=0;
+        int any_allocate=0;for(int j=0;j<nout;++j)any_allocate|=allocated[j];
+        if(!any_allocate)for(int ia=0;ia<nd;++ia){
+            int negative=0,positive=0,d=order_axes[ia].original_axis;
+            int original_nop=nin+nout+(where?1:0);
+            for(int k=0;k<original_nop;++k){
+                negative|=order_axes[ia].strides[k]<0;
+                positive|=order_axes[ia].strides[k]>0;
+            }
+            if(shape[d]>1&&negative&&!positive){
+                for(int k=0;k<nin+nout;++k){
+                    origins[k]+=(shape[d]-1)*strides[k][d];strides[k][d]=-strides[k][d];
+                }
+                mask_origin+=(shape[d]-1)*mstrides[d];mstrides[d]=-mstrides[d];
+            }
+        }
+
         int dense[LN_NDITER_MULTI_MAXARGS]={0};
         if(uniform)uniform_buffer_plan(nin,nout,inputs,work,where,loop_dtypes,
                 order_axes,nd,shape,strides,mstrides,dense);
@@ -283,13 +335,34 @@ execute(int nin,int nout,
         int inner_axis=nd?order_axes[0].original_axis:0;
         ln_intp inner=(nd==0)?1:shape[inner_axis];
         ln_intp outer=(nd==0)?1:(inner?total/inner:0);
+        int merged_axes=1;ln_intp merged_length=inner;
+        for(int ia=1;ia<nd;++ia){
+            int d=order_axes[ia].original_axis,compatible=1;
+            for(int k=0;k<nop;++k)if(shape[d]>1&&
+                    (strides[k][inner_axis]>INTPTR_MAX/merged_length||
+                     strides[k][inner_axis]<INTPTR_MIN/merged_length||
+                     strides[k][d]!=strides[k][inner_axis]*merged_length)){compatible=0;break;}
+            if(where&&shape[d]>1&&
+                    (mstrides[inner_axis]>INTPTR_MAX/merged_length||
+                     mstrides[inner_axis]<INTPTR_MIN/merged_length||
+                     mstrides[d]!=mstrides[inner_axis]*merged_length))compatible=0;
+            if(!compatible)break;
+            ++merged_axes;merged_length*=shape[d];
+        }
+        int source_buffered=merged_axes<nd;
+        for(int i=0;i<nin;++i)if(inputs[i]->descr!=loop_dtypes[i]||
+                !(inputs[i]->flags&LN_ARRAY_ALIGNED))source_buffered=1;
+        for(int j=0;j<nout;++j)if(outputs[j]->descr!=loop_dtypes[nin+j])source_buffered=1;
+        ln_intp source_span=merged_length>LN_NDITER_MULTI_BUFSIZE?LN_NDITER_MULTI_BUFSIZE:
+            (LN_NDITER_MULTI_BUFSIZE/merged_length)*merged_length;
         ln_intp coord[LN_MAXDIMS]={0};
+        int failed_mask_run=0;
         for(ln_intp oi=0;oi<outer;++oi){
             const char *inrow[LN_NDITER_MULTI_MAXARGS]={0};
             char *outrow[LN_NDITER_MULTI_MAXARGS]={0};
-            const char *mrow=where?where->data:NULL;
-            for(int i=0;i<nin;++i)inrow[i]=inputs[i]->data;
-            for(int j=0;j<nout;++j)outrow[j]=work[j]->data;
+            const char *mrow=where?where->data+mask_origin:NULL;
+            for(int i=0;i<nin;++i)inrow[i]=inputs[i]->data+origins[i];
+            for(int j=0;j<nout;++j)outrow[j]=work[j]->data+origins[nin+j];
             for(int ia=1;ia<nd;++ia){
                 int d=order_axes[ia].original_axis;
                 for(int i=0;i<nin;++i)inrow[i]+=coord[d]*strides[i][d];
@@ -297,8 +370,13 @@ execute(int nin,int nout,
                 if(where)mrow+=coord[d]*mstrides[d];
             }
             ln_intp mstep=(where&&nd)?mstrides[inner_axis]:0;
-            for(ln_intp off=0;off<inner;off+=LN_NDITER_MULTI_BUFSIZE){
+            for(ln_intp off=0;off<inner;){
                 ln_intp count=inner-off;if(count>LN_NDITER_MULTI_BUFSIZE)count=LN_NDITER_MULTI_BUFSIZE;
+                if(source_buffered){
+                    ln_intp global=oi*inner+off,remaining=source_span-global%source_span;
+                    if(global%source_span==0)failed_mask_run=0;
+                    if(count>remaining)count=remaining;
+                }
                 char *args[LN_NDITER_MULTI_MAXARGS]={0};ln_intp steps[LN_NDITER_MULTI_MAXARGS]={0};
                 for(int i=0;i<nin;++i){
                     ln_intp st=nd?strides[i][inner_axis]:0;const char *src=inrow[i]+off*st;
@@ -319,25 +397,44 @@ execute(int nin,int nout,
                 }
                 ln_intp dims[1]={count};
                 const uint8_t *maskp=where?(const uint8_t *)(mrow+off*mstep):NULL;
-                if(validate&&validate(args,dims,steps,maskp,mstep,validate_data,err)<0)goto fail_work;
-                loop(args,dims,steps,loop_data);
+                ln_intp write_mask_step=mstep;uint8_t written[LN_NDITER_MULTI_BUFSIZE];
+                int validation=0;
+                if(where&&validate){
+                    if(masked_validated_chunk(nop,args,steps,count,maskp,mstep,written,&failed_mask_run,
+                            loop,loop_data,validate,validate_data,&partial_writeback,&deferred_error,err)<0)goto fail_work;
+                    maskp=written;write_mask_step=1;
+                }else validation=validate?validate(args,dims,steps,maskp,mstep,validate_data,err):0;
+                if(validation==-1)goto fail_work;
+                if(validation!=0)partial_writeback=1;
+                if(validation< -1){
+                    ln_intp prefix=-(ln_intp)validation-2;
+                    if(prefix>count){iter_error(err,"invalid partial validation prefix");goto fail_work;}
+                    dims[0]=count=prefix;
+                }
+                if(!(where&&validate))loop(args,dims,steps,loop_data);
                 for(int j=0;j<nout;++j){
                     int k=nin+j;if(!buffers[k])continue;
                     ln_intp st=nd?strides[k][inner_axis]:0;char *dst=outrow[j]+off*st;
                     if(!where){
                         if(ln_cast_strided_numeric(buffers[k],(ln_intp)isz[k],loop_dtypes[k],dst,st,work[j]->descr,count,err)<0)goto fail_work;
                     }else{
-                        const char *mp=mrow+off*mstep;
-                        for(ln_intp z=0;z<count;++z)if(*(const uint8_t*)(mp+z*mstep)){
+                        for(ln_intp z=0;z<count;++z)if(maskp[z*write_mask_step]){
                             if(ln_cast_strided_numeric(buffers[k]+z*(ln_intp)isz[k],0,loop_dtypes[k],dst+z*st,0,work[j]->descr,1,err)<0)goto fail_work;
                         }
                     }
                 }
+                if(validation< -1)goto fail_work;
+                off+=count;
             }
-            for(int ia=1;ia<nd;++ia){int d=order_axes[ia].original_axis;if(++coord[d]<shape[d])break;coord[d]=0;}
+            for(int ia=1;ia<nd;++ia){
+                int d=order_axes[ia].original_axis;
+                if(++coord[d]<shape[d])break;
+                coord[d]=0;
+            }
         }
     }
 
+    if(deferred_error)goto fail_work;
     for(int k=0;k<LN_NDITER_MULTI_MAXARGS;++k){free(buffers[k]);buffers[k]=NULL;}
     for(int j=0;j<nout;++j)if(!allocated[j]){
         if(copy_same_shape(work[j],outputs[j],err)<0)goto fail_work;
@@ -346,6 +443,10 @@ execute(int nin,int nout,
     return 0;
 
 fail_work:
+    if(partial_writeback)for(int j=0;j<nout;++j)if(!allocated[j]&&work[j]){
+        ln_error writeback_error={0};
+        if(copy_same_shape(work[j],outputs[j],&writeback_error)<0&&err)*err=writeback_error;
+    }
     for(int k=0;k<LN_NDITER_MULTI_MAXARGS;++k)free(buffers[k]);
     for(int j=0;j<nout;++j)if(!allocated[j]&&work[j])ln_array_free(work[j]);
 fail:

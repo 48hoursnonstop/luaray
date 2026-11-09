@@ -525,7 +525,7 @@ validate_integer_power(char **args,const ln_intp *dimensions,const ln_intp *step
 }
 
 static ln_ufunc_loop frexp_loops[4],modf_loops[4],divmod_loops[14],ldexp_loops[8];
-static ln_ufunc_loop arithmetic_loops[4][24];
+static ln_ufunc_loop arithmetic_loops[4][26];
 static ln_ufunc_loop comparison_loops[6][24];
 static ln_ufunc_loop unary_loops[9][22];
 static ln_legacy_unary_adapter_data unary_data[9][22];
@@ -600,7 +600,8 @@ init_registry(void)
         if(i==0)for(int k=0;k<2;++k){
             ln_binary_math_string_add_method(&arithmetic_loops[i][n++],k);
         }
-        if(i==2){ln_time_scale_method(&arithmetic_loops[i][n++],0,0);ln_time_scale_method(&arithmetic_loops[i][n++],1,0);}
+        if(i==2){ln_time_scale_method(&arithmetic_loops[i][n++],0,0);ln_time_scale_method(&arithmetic_loops[i][n++],1,0);
+            ln_time_integer_multiply_method(&arithmetic_loops[i][n++],0);ln_time_integer_multiply_method(&arithmetic_loops[i][n++],1);}
         if(i==3)ln_time_scale_method(&arithmetic_loops[i][n++],0,1);
         append_ufunc(anames[i],2,1,arithmetic_loops[i],n,ares[i]);
     }
@@ -709,6 +710,9 @@ materialize_weak_operand(const ln_ufunc *u,const ln_ufunc_operand *operand,
      * resolved, rather than overflowing or rounding in the strong input dtype. */
     if(op==LN_OP_LOGICAL_AND||op==LN_OP_LOGICAL_OR||op==LN_OP_LOGICAL_XOR){
         dt=ln_dtype_by_num(LN_BOOL);
+    }else if(strong->descr->kind=='m'&&op==LN_OP_MULTIPLY&&
+            (operand->kind==LN_UFUNC_WEAK_INT||operand->kind==LN_UFUNC_WEAK_BOOL)){
+        dt=ln_dtype_by_name("int64");
     }else if(float_power){
         switch(operand->kind){
         case LN_UFUNC_WEAK_BOOL:dt=ln_dtype_by_num(LN_BOOL);break;

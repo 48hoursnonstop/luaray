@@ -18,6 +18,11 @@ typedef int (*ln_nditer_validate_fn)(
         ln_intp mask_step,
         void *data,
         ln_error *err);
+/* Validation returns 0 on success or -1 for an atomic validation error.
+ * Return 1 on success to preserve completed output if a later cast fails.
+ * A return of -(prefix+2) requests execution/writeback of the valid prefix
+ * before reporting an error, matching kernels that fail after partial writes.
+ * prefix counts logical loop positions, including masked positions. */
 
 /* General elementwise iterator used by the generic ufunc engine.
  *

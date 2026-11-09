@@ -6,8 +6,8 @@
 
 /* Source: NumPy2.5.3 loops.c.src TIMEDELTA_md_m_{multiply,divide} and
  * TIMEDELTA_dm_m_multiply. Floating scaling is a required round dependency.
- * Integer scaling and timedelta ratios have separate signatures, not emulated
- * through float conversion. NumPy BSD attribution is retained. */
+ * Integer multiplication uses its separate int64 signature and overflow rules.
+ * Timedelta ratios remain separate. NumPy BSD attribution is retained. */
 typedef struct {int temporal,divide;} operation;
 static operation operations[]={{0,0},{1,0},{0,1}};
 static void scale_loop(char **args,const ln_intp *dims,const ln_intp *strides,void *data)
@@ -41,19 +41,72 @@ void ln_time_scale_method(ln_ufunc_loop *method,int temporal_index,int divide)
     method->loop=scale_loop;method->data=&operations[divide?2:ti];
     method->resolve_descrs=descriptors;
 }
+static int integer_axes[]={0,1};
+static int validate_integer_multiply(char **args,const ln_intp *dims,const ln_intp *strides,
+        const uint8_t *mask,ln_intp mask_step,void *data,ln_error *err)
+{
+    int ti=*(const int*)data;
+    for(ln_intp i=0;i<dims[0];++i){
+        if(mask&&!mask[i*mask_step])continue;
+        int64_t ticks,factor,result=0;
+        memcpy(&ticks,args[ti]+i*strides[ti],8);
+        memcpy(&factor,args[1-ti]+i*strides[1-ti],8);
+        if(ticks==LN_DATETIME_NAT)continue;
+#if defined(__GNUC__)
+        int overflow=__builtin_mul_overflow(ticks,factor,&result);
+#else
+        int overflow=ticks>0?(factor>0?ticks>INT64_MAX/factor:factor<INT64_MIN/ticks):
+            ticks<0?(factor>0?ticks<INT64_MIN/factor:factor<0&&ticks<INT64_MAX/factor):0;
+        if(!overflow)result=ticks*factor;
+#endif
+        if(overflow||result==LN_DATETIME_NAT){
+            if(err){snprintf(err->message,sizeof err->message,"Overflow in timedelta64 * int64 multiplication");err->kind=LN_ERROR_OVERFLOW;}
+            return -(int)i-2;
+        }
+    }
+    return 1;
+}
+static void integer_multiply_loop(char **args,const ln_intp *dims,const ln_intp *strides,void *data)
+{
+    int ti=*(const int*)data;
+    for(ln_intp i=0;i<dims[0];++i){
+        int64_t ticks,factor;uint64_t bits;
+        memcpy(&ticks,args[ti]+i*strides[ti],8);memcpy(&factor,args[1-ti]+i*strides[1-ti],8);
+        bits=ticks==LN_DATETIME_NAT?(uint64_t)LN_DATETIME_NAT:(uint64_t)ticks*(uint64_t)factor;
+        memcpy(args[2]+i*strides[2],&bits,8);
+    }
+}
+static int integer_descriptors(const ln_ufunc *u,const ln_ufunc_loop *method,
+        const ln_array *const *inputs,const ln_dtype_descr **descrs,ln_error *err)
+{
+    (void)u;(void)err;int ti=*(const int*)method->data;
+    descrs[ti]=descrs[2]=inputs[ti]->descr;descrs[1-ti]=ln_dtype_by_name("int64");return 0;
+}
+void ln_time_integer_multiply_method(ln_ufunc_loop *method,int ti)
+{
+    method->classes[ti]=method->classes[2]=ln_datetime_dtype_class(1);
+    method->classes[1-ti]=ln_dtype_by_name("int64")->cls;
+    method->loop=integer_multiply_loop;method->data=&integer_axes[ti];
+    method->validate=validate_integer_multiply;method->validate_data=&integer_axes[ti];
+    method->resolve_descrs=integer_descriptors;
+}
 int ln_time_scale_resolve(const ln_ufunc *u,const ln_array *const *inputs,
                           const ln_ufunc_loop **method,ln_error *err)
 {
     int ti=inputs[0]->descr->kind=='m'?0:inputs[1]->descr->kind=='m'?1:-1;
     if(ti>=0&&!(ti==1&&strcmp(u->name,"true_divide")==0)){
         const ln_dtype *number=inputs[1-ti]->descr;
-        if(number->kind=='f'){
+        const ln_dtype_class *coefficient=NULL;
+        if(number->kind=='f')coefficient=ln_dtype_class_by_num(LN_DOUBLE);
+        else if(!strcmp(u->name,"multiply")&&(number->kind=='b'||number->kind=='i'||number->kind=='u'))
+            coefficient=ln_dtype_by_name("int64")->cls;
+        if(coefficient){
             for(size_t i=0;i<u->nloops;++i)if(u->loops[i].classes[ti]==inputs[ti]->descr->cls&&
-                    u->loops[i].classes[1-ti]==ln_dtype_class_by_num(LN_DOUBLE)){
+                    u->loops[i].classes[1-ti]==coefficient){
                 *method=&u->loops[i];return 0;
             }
         }
     }
-    if(err){snprintf(err->message,sizeof err->message,"no matching temporal scaling signature (floating timedelta scaling only)");err->kind=LN_ERROR_TYPE;}
+    if(err){snprintf(err->message,sizeof err->message,"no matching temporal scaling signature");err->kind=LN_ERROR_TYPE;}
     return -1;
 }

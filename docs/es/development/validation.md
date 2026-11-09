@@ -37,14 +37,14 @@ Los generadores recientes usan NumPy 2.5.3; los anteriores conservan su atribuci
 NumPy 2.3.5.
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 371 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 372 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.124.0-dev** aprobó **55 suites nativas**, **94 suites Lua**, siete ejemplos
-y 66 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.125.0-dev** aprobó **55 suites nativas**, **95 suites Lua**, siete ejemplos
+y 78 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -65,8 +65,10 @@ Los helpers de índices triangulares aprobaron **9,908 casos / 487,084 comprobac
 
 El relleno diagonal aprobó **29,960 casos / 1,292,460 comprobaciones exactas**, incluidos recorrido plano lógico, repetición/wrap, conversiones de escalares y arrays tipados, destinos de solo lectura y valores compartidos durante la escritura.
 
+Kronecker y duraciones enteras aprobaron **13,776 casos / 1,018,781 comprobaciones**. Los productos complejos64 aleatorios usan tolerancia relativa3e-7; los tipos más anchos,3e-15. El error observado fue cero. Las duraciones cubren NaT, coeficientes, máscaras, conversión de unidades, escrituras previas al error y límites de buffer. En **176 fallos de conversión con buffer**, NumPy produjo sufijos no inicializados variables: solo se comparan el prefijo definido y los metadatos completos. Las observaciones se publican como archivo separado.
+
 La auditoría dirigida ASan/UBSan instrumentó `ln_matrix`, `ln_linalg`, `lua_matrix`
-y `lua_module`, además de la prueba nativa de matrices y el runner Lua. Aprobaron
+`lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi` y `ln_datetime`, además de la prueba nativa de matrices y el runner Lua. Aprobaron
 las regresiones y el corpus nuevo. Las demás dependencias no estaban completamente
 instrumentadas y la detección de fugas estaba desactivada. El alcance es dirigido;
 no certifica la memoria de todas las dependencias.

@@ -298,3 +298,12 @@ int ln_lua_fill_diagonal(lua_State *L)
     ln_array *values=ln_lua_assignment_values(L,2,a->descr);
     ln_error err={0};return ln_matrix_fill_diagonal(a,values,wrap,&err)<0?ln_lua_fail(L,&err):0;
 }
+
+int ln_lua_kron(lua_State *L)
+{
+    if(lua_gettop(L)!=2)return luaL_error(L,"kron accepts exactly two inputs");
+    ln_array *a=ln_lua_test_array(L,1);if(!a)a=ln_lua_legacy_array(L,1,NULL);
+    ln_array *b=ln_lua_test_array(L,2);if(!b)b=ln_lua_legacy_array(L,2,NULL);
+    ln_error err={0};ln_array *result=ln_matrix_kron(a,b,&err);
+    return result?ln_lua_push_array(L,result):ln_lua_fail(L,&err);
+}

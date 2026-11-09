@@ -12,6 +12,16 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.125.0-dev
+
+Added `kron` with strong-array coercion, interleaved axes, typed multiplication,
+C-order reshape, independent storage and reference rank boundaries. Added exact
+int64 duration multiplication with NaT propagation and overflow validation.
+The shared iterator now preserves defined error writes, negative in-place
+traversal and legacy masked-run continuation. Temporal conversion checks pinned
+intermediate int64 bounds. Added EN/ES block-product and duration guides;
+undefined upstream buffered failure suffixes are explicitly excluded from parity.
+
 ## 0.124.0-dev
 
 Added `fill_diagonal` with direct logical writes, repeated C-order values,

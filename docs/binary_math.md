@@ -92,6 +92,12 @@ Fixed-width strings use their nonempty stored contents, not numeric parsing:
 `'0'` and `'False'` are true, an empty string is false. This describes binary
 logical operations; unary logical_not has its own supported signatures.
 
+## Duration multiplication
+
+`multiply` supports integer, Boolean and floating coefficients for timedelta64.
+Integer multiplication uses int64 overflow checks and preserves defined writes
+when an operation raises. See [duration scaling](temporal_scaling.md).
+
 ## Verification and remaining scope
 
 Original NumPy 2.5.3 references cover **4,986 cases / 514,816 checks**:

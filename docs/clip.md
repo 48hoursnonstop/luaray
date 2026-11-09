@@ -37,7 +37,7 @@ long double, all three complex widths and datetime/timedelta. Temporal metadata
 uses the common descriptor; compatible integer/timedelta combinations preserve
 units, and NaT propagates. Incompatible date/time or nonlinear units raise. The
 shared minimum/maximum/fmin/fmax temporal resolver now also accepts compatible
-strong integer/timedelta operands. Integer time scaling remains separate work.
+strong integer/timedelta operands. Integer time multiplication is available; see [duration scaling](temporal_scaling.md).
 
 One open bound delegates to minimum or maximum. Two open bounds delegate to
 positive: boolean and datetime positive still raise. Reversed finite limits

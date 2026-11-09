@@ -171,7 +171,25 @@ const ln_dtype_descr *ln_datetime_parse_dtype(const char *s,ln_error *e){
 }
 
 int ln_datetime_conversion_factor(const ln_datetime_meta*s,const ln_datetime_meta*d,int64_t*outn,int64_t*outd,ln_error*e){if(s->base==LN_FR_GENERIC){*outn=1;*outd=1;return 0;}if(d->base==LN_FR_GENERIC){dterr(e,"cannot convert specific datetime units to generic units");return -1;}int sb=s->base,db=d->base,swap=0;uint64_t n=1,den=1;if(sb>db){int t=sb;sb=db;db=t;swap=1;}if(sb!=db){if(sb==LN_FR_Y){if(db==LN_FR_M)n*=12;else if(db==LN_FR_W){n*=146097;den*=2800;}else{n*=146097;den*=400;n*=factor(LN_FR_D,(ln_datetime_unit)db);}}else if(sb==LN_FR_M){if(db==LN_FR_W){n*=146097;den*=33600;}else{n*=146097;den*=4800;n*=factor(LN_FR_D,(ln_datetime_unit)db);}}else n*=factor((ln_datetime_unit)sb,(ln_datetime_unit)db);}if(!n){dterr(e,"overflow computing datetime conversion factor");return -1;}if(swap){uint64_t t=n;n=den;den=t;}n*=s->num;den*=d->num;uint64_t g=gcd64(n,den);n/=g;den/=g;if(n>INT64_MAX||den>INT64_MAX){dterr(e,"overflow computing datetime conversion factor");return -1;}*outn=(int64_t)n;*outd=(int64_t)den;return 0;}
-int ln_datetime_cast_value(int64_t v,const ln_datetime_meta*s,const ln_datetime_meta*d,int64_t*out,ln_error*e){if(v==LN_DATETIME_NAT){*out=v;return 0;}int64_t n,den;if(ln_datetime_conversion_factor(s,d,&n,&den,e)<0)return -1;ln_i128 z=(ln_i128)v*n;/* NumPy integer cast truncates toward -inf via divmod-style adjustment. */ln_i128 q=z/den,r=z%den;if(r<0)q--;if(q<INT64_MIN||q>INT64_MAX||q==LN_DATETIME_NAT){dterr(e,"datetime cast overflow");return -1;}*out=(int64_t)q;return 0;}
+/* NumPy2.5.3 _datetime.h:_datetime_scale_with_overflow_check validates
+ * intermediate int64 multiplication and floor adjustment, not only quotient. */
+int ln_datetime_cast_value(int64_t v,const ln_datetime_meta *source,const ln_datetime_meta *target,int64_t *out,ln_error *err)
+{
+    if(v==LN_DATETIME_NAT){*out=v;return 0;}
+    int64_t numerator,denominator;
+    if(ln_datetime_conversion_factor(source,target,&numerator,&denominator,err)<0)return -1;
+    int64_t positive=INT64_MAX/numerator;
+    int64_t negative=(INT64_MAX-denominator+1)/numerator;
+    if(v>positive||v< -negative){
+        dterr(err,"Overflow when converting between datetime64 units");
+        if(err)err->kind=LN_ERROR_OVERFLOW;
+        return -1;
+    }
+    ln_i128 product=(ln_i128)v*numerator;
+    ln_i128 quotient=product/denominator,remainder=product%denominator;
+    if(remainder<0)--quotient;
+    *out=(int64_t)quotient;return 0;
+}
 
 static int divides(const ln_datetime_meta*a,const ln_datetime_meta*b,int strict){
     if(a->base==LN_FR_GENERIC)return 1;

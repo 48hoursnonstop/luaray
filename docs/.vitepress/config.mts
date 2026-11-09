@@ -36,6 +36,8 @@ const pages = [
     ['Identity matrices', 'Matrices identidad', 'eye'],
     ['Diagonal indices', 'Índices diagonales', 'diag_indices'],
     ['Fill a diagonal', 'Rellenar una diagonal', 'fill_diagonal'],
+    ['Kronecker product', 'Producto de Kronecker', 'kron'],
+    ['Scale durations', 'Escalar duraciones', 'temporal_scaling'],
   ]],
   ['Compatibility', 'Compatibilidad', [
     ['API availability', 'Disponibilidad de APIs', 'api_inventory'],
@@ -78,7 +80,7 @@ export default defineConfig({
         nav: [
           { text: 'Guide', link: '/getting-started' },
           { text: 'Reference', link: '/creation' },
-          { text: '0.124.0-dev', link: `${repo}/releases/tag/v0.124.0-dev` },
+          { text: '0.125.0-dev', link: `${repo}/releases/tag/v0.125.0-dev` },
         ],
         sidebar: sidebar(),
       },
@@ -89,7 +91,7 @@ export default defineConfig({
         nav: [
           { text: 'Guía', link: '/es/getting-started' },
           { text: 'Referencia', link: '/es/creation' },
-          { text: '0.124.0-dev', link: `${repo}/releases/tag/v0.124.0-dev` },
+          { text: '0.125.0-dev', link: `${repo}/releases/tag/v0.125.0-dev` },
         ],
         sidebar: sidebar(true),
         outline: { label: 'En esta página', level: [2, 3] },

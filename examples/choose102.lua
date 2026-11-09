@@ -1,6 +1,0 @@
-local np=require('luaray')
-local positions=np.array({1,2,1},'int64')
-local selected=np.choose(positions,{{10,11,12},{20,21,22}})
-assert(selected:get(1)==10 and selected:get(2)==21 and selected:get(3)==12)
-assert(positions:choose({10,20}):get(2)==20)
-print('LuaRay native choose example: passed')

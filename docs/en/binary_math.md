@@ -110,13 +110,10 @@ modes are incomplete. Scalar results deliberately remain typed ndarrays. These
 measurements are scoped compatibility evidence, not overall NumPy completion.
 
 ```sh
-make binary109-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make sanitize-binary109
-# Development reference regeneration only:
-/path/to/numpy-python tools/generate_binary109_differential.py
+make -j4 full-test
+make reference-test
 ```
 
 See [unary mathematics](unary_math.md), [creation](creation.md) and the
 [availability inventory](api_inventory.md). Source hashes are recorded in
-[NUMPY_2_5_3_BINARY109_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_BINARY109_FILE_HASHES.sha256); existing NumPy BSD attribution remains.
+[pinned source hashes](../../compatibility/numpy-source.sha256); existing NumPy BSD attribution remains.

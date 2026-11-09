@@ -1,4 +1,1 @@
-# Frozen oracle output stays readable but is collapsed in GitHub diffs.
-tests/*_differential_generated.lua linguist-generated=true
-tests/permuted73_part_*.lua linguist-generated=true
 src/third_party/** linguist-vendored=true

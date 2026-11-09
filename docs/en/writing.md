@@ -86,20 +86,14 @@ not implemented. This release does not claim complete NumPy compatibility.
 
 ## Reproduce the evidence
 
-```sh
-make -j4 full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-LUA_PATH='./lua/?.lua;;' LUA_CPATH='./build/?.so;;' lua5.4 examples/writing98.lua
-python3 tools/sanitize_write98.py
-```
-
-`full-test` runs frozen fixtures without Python or NumPy. Regeneration requires
-an isolated Python environment with **NumPy 2.5.3**:
+Run the maintained regressions and the external frozen NumPy references:
 
 ```sh
-.dev/venv/bin/python tools/generate_write98_differential.py
-make write98-test
+make -j4 full-test
+make reference-test
 ```
 
-The sanitizer tool instruments the three C translation units changed in this
-version, reusing other native objects. Leak detection is disabled; this is not
-an all-dependency memory-safety audit.
+Neither command requires Python or NumPy. The original generators and directed
+sanitizer tooling are preserved in the [released source package](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev).
+The historical write audit instrumented three changed C translation units;
+other dependencies were not fully instrumented and leak detection was disabled.

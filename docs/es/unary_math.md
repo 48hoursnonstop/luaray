@@ -97,13 +97,10 @@ de NumPy, protocolos de dispositivos/subclases y combinaciones de tipos.
 Los alias ofrecen llamadas equivalentes, no identidad de objetos ufunc.
 
 ```sh
-make unary108-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make sanitize-unary108
-# Solo desarrollo, con el intérprete NumPy fijado:
-/ruta/a/numpy-python tools/generate_unary108_differential.py
+make -j4 full-test
+make reference-test
 ```
 
-Hashes: [NUMPY_2_5_3_UNARY108_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_UNARY108_FILE_HASHES.sha256). Véanse el
+Hashes: [pinned source hashes](../../compatibility/numpy-source.sha256). Véanse el
 [inventario](api_inventory.md), la [creación](creation.md) y el
 [muestreo](sampling.md).

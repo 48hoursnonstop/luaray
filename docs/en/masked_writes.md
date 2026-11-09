@@ -80,11 +80,11 @@ Returns `nil`.
 
 ## Evidence and scope
 
-Run `make memory99-test`, `make full-test` or `make sanitize-memory99`. NumPy
-2.5.3 generated 4,914 copyto and 1,481 putmask cases: 175,110 comparisons, plus
-77 targeted Lua checks and C tests. Directed sanitizers instrument the three
-changed C units, both 0.98/0.99 native suites and ten Lua suites; other dependencies
-remain uninstrumented and leak detection is disabled.
+Run `make full-test` for maintained C/Lua regressions and `make reference-test`
+for the external frozen corpus. NumPy 2.5.3 generated 4,914 copyto and 1,481
+putmask cases: 175,110 comparisons, plus 77 targeted Lua checks and C tests.
+The original directed audit instrumented three changed C units; external
+dependencies were not fully instrumented and leak detection was disabled.
 
 No complete NumPy compatibility is claimed. Non-native numeric descriptors,
 object/structured dtypes and full warning/exception-class fidelity remain pending.

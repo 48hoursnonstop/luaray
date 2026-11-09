@@ -7,7 +7,7 @@
 LuaRay ofrece arrays multidimensionales tipados, broadcasting, vistas de memoria,
 operaciones matemáticas y estadísticas, FFT, álgebra lineal y generación de
 números aleatorios. La API usa Lua 5.4 y los kernels están escritos en C y C++.
-Python y NumPy se utilizan únicamente durante el desarrollo.
+Compilar y ejecutar LuaRay no requiere un intérprete Python.
 
 ```lua
 local np = require("luaray")
@@ -22,7 +22,7 @@ compartida, compiladores C11 y C++11, Make, BLAS/CBLAS y LAPACK. `pkg-config`
 ayuda a localizar las bibliotecas instaladas.
 
 ```sh
-git clone https://github.com/48hoursnonstop/luaray.git
+git clone --depth 1 https://github.com/48hoursnonstop/luaray.git
 cd luaray
 make -j4 build/luaray_core.so
 LUA_PATH='./lua/?.lua;;' LUA_CPATH='./build/?.so;;' lua5.4 examples/quickstart.lua
@@ -49,9 +49,13 @@ ancho variable y endian numérico no nativo.
 make -j4 full-test
 ```
 
-La suite ejecuta pruebas nativas y **161 fixtures diferenciales** directamente
-con Make y Lua, sin Python ni NumPy. Regenerar referencias requiere Python y el
-entorno NumPy fijado.
+La suite ejecuta las regresiones mantenidas en C y Lua. `make examples` ejecuta
+los ejemplos. Ninguno de estos comandos requiere Python ni NumPy.
+
+`make reference-test` obtiene el archivo de una versión publicada, comprueba su
+SHA-256 y ejecuta **161 archivos diferenciales** y referencias adicionales de
+aleatoriedad y formato contra el motor actual. Los datos generados y sus
+herramientas se conservan fuera del árbol principal.
 
 Consulta los [resultados y tolerancias](../development/validation.md), las
 [instrucciones de desarrollo](../../CONTRIBUTING.md) y el

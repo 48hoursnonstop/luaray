@@ -1,17 +1,27 @@
 # Tests
 
-Run `make full-test` from the repository root. The suite includes native C/C++
-tests, Lua regression tests, and every checked-in `*_differential_generated.lua`
-fixture.
+Run from the repository root:
 
-Generated fixtures contain frozen expected behavior from the NumPy version
-recorded in their headers. They run through the native Lua public API without
-NumPy installed. Versioned filenames identify the subsystem or development
-milestone that introduced the regression; they are not duplicate releases.
+```sh
+make -j4 full-test
+make examples
+make reference-test
+```
 
-Oracle scripts live in `tools/`. Regeneration requires the pinned NumPy version.
-Keep expected values unchanged unless a verified upstream behavior or a
-reproduced generator defect justifies the change.
+- `native/`: maintained C tests of numerical kernels and memory behavior.
+- `lua/`: public API regressions, boundary cases, invalid inputs, and small support data.
+- `runner.c`: native Lua runner linked to the current engine.
 
-See [validation](../docs/development/validation.md) for executed results,
-numerical tolerances, and sanitizer scope.
+`full-test` runs the native and Lua suites; `examples` exercises the shared module
+through Lua 5.4. Python and NumPy are not required.
+
+`reference-test` uses a SHA-256-pinned 0.116 release archive, downloaded on demand
+or supplied with `LUARAY_REFERENCE_ARCHIVE`. It runs 161 frozen differential files,
+extended random cases, and the large formatting table against the **current** build.
+The cache and temporary extraction are ignored by Git. `curl`, `tar`, and
+`sha256sum` are needed for this optional target.
+
+The original generators and complete test corpus remain in the published source
+package. Preserve assertions and explicit tolerances when changing behavior;
+do not classify an API as compatible based on its name or one successful example.
+See [validation](../docs/development/validation.md) for numerical and sanitizer scope.

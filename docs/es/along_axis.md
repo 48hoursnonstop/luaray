@@ -72,17 +72,16 @@ escalar funciona con aplanado explícito; un eje ordinario no es válido.
 
 ## Verificación y límites
 
-`make along101-test`: pruebas C, **85 comprobaciones Lua**, **2,061 casos de
+La auditoría original cubrió pruebas C, **85 comprobaciones Lua**, **2,061 casos de
 extracción de NumPy 2.5.3 / 109,722 comprobaciones** y **3,599 casos de escritura /
 430,929 comprobaciones**. Incluyen errores reales y estado posterior, broadcasting
 multidimensional en ambas direcciones, memoria compartida, vacíos, escalares,
 tablas y límites enteros. Se verifica el límite de 63/64 índices con NumPy.
 
-`make full-test` incluye **119 archivos diferenciales** y las regresiones C/Lua.
-`make sanitize-along101` instrumenta ocho módulos C y ejecuta cuatro pruebas
-nativas y 19 suites Lua. Las otras dependencias no están instrumentadas y la
-detección de fugas está desactivada. Las pruebas congeladas no requieren Python;
-regenerarlas requiere NumPy 2.5.3 y `tools/generate_along101_differential.py`.
+Ejecuta `make full-test` para las regresiones C/Lua y `make reference-test` para
+el corpus congelado externo. Ninguno requiere Python. Los generadores y
+herramientas de sanitización originales siguen en el [paquete publicado](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev);
+consulta [verificación](../development/validation.md) para el alcance de las auditorías.
 
 La combinación general de slices e índices avanzados sigue siendo un área de
 compatibilidad separada; el buffering nuevo cubre la ruta completamente

@@ -1,10 +1,9 @@
 # API availability inventory
 
 `compatibility/api_inventory.json` records actual Lua callable lookups against
-NumPy 2.5.3 public names. `tools/inventory_api.py` builds it from the pinned
-NumPy interpreter and the compiled native Lua module. Its version must match
-VERSION; release packaging rejects a stale inventory. The generated record is
-reproducible and source-only users can read it without Python.
+NumPy 2.5.3 public names. It was generated from the pinned NumPy interpreter
+and the compiled native Lua module. This is a development reference record;
+reading it requires neither Python nor NumPy.
 
 The current scope contains **675 names**, including aliases and callable Python
 types: root/fft/linalg/random `__all__` callables, and public ndarray, Generator
@@ -37,12 +36,9 @@ a Python exception-class hierarchy. The record includes that justification.
 Other callable types are not automatically exempted. Full Python warning,
 subclass and exception-class fidelity is not claimed.
 
-Development regeneration:
-
-```sh
-/path/to/numpy-2.5.3-python tools/inventory_api.py --module-dir build
-```
-
-The probe queries module fields and real ndarray/Generator/ufunc prototypes,
-including callable userdata. It does not execute every discovered operation.
-Reference and regression suites are the separate evidence for tested behavior.
+The inventory generator is preserved in the
+[0.116 source package](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev)
+for use in a separate NumPy reference workspace. It queries module fields and real
+ndarray/Generator/ufunc prototypes, including callable userdata. It does not execute
+every discovered operation. Regression and differential suites provide the separate
+evidence for tested behavior.

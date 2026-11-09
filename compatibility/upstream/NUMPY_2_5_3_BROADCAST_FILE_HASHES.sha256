@@ -1,5 +1,0 @@
-0db57f30a81b00919e7922828cc23c4c32759c07a647639b76d1e157871fe862  numpy/lib/_stride_tricks_impl.py
-b3e3fa0649b9be51e6adbba4b08bcd536b42161629db310329d144a1015f8d4f  numpy/lib/tests/test_stride_tricks.py
-fa133055e6982f53cac77f3b2d27d9aab7d305c203d303a08598eb77d086fa16  numpy/_core/src/common/array_assign.c
-cc1c4d472e1926cab6e9f6bd8b76bac331946848cd789ffe0d7fc1b7c6e6b031  numpy/_core/src/multiarray/iterators.c
-f1f138f45c0438e797b88ed055a6fd7f2e570517b4ba9f5f63c5f17fa2bd8c08  numpy/_core/src/multiarray/shape.c

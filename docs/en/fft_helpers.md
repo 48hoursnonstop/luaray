@@ -102,7 +102,8 @@ Transforms use3e-6 absolute plus relative tolerance for float32/complex64 and
 1.9073486328125e-6 within the explicit float32 tolerance; wider-output regression
 values are also checked exactly for the known compute-precision defects. These
 tolerances permit arithmetic/FFT implementation rounding, not dtype/layout drift.
-Regenerate with NumPy2.5.3 using `tools/generate_fft105_differential.py`.
+Run `make reference-test` for the external frozen corpus. Original generators
+are preserved in the [released source package](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev).
 
 All18 scoped FFT callable names are available; all remain partially compatible
 in the machine-readable inventory. Name availability is separate from complete

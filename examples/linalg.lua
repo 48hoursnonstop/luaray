@@ -1,0 +1,6 @@
+local np = require('luaray')
+local a = np.array({{3., 1.}, {1., 2.}})
+local b = np.array({9., 8.})
+local x = np.linalg.solve(a, b):tolist()
+assert(math.abs(x[1] - 2.) < 1e-12 and math.abs(x[2] - 3.) < 1e-12)
+print('Linear solve passed')

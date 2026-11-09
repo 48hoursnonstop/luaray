@@ -79,15 +79,12 @@ solo se escalan unidades dentro de la misma clase temporal.
 
 ## Evidencia y límites
 
-`make choose102-test`: pruebas C, **69 comprobaciones Lua** —incluidas las
-variantes protegidas fuera de compatibilidad— y **3,481 casos originales de
-NumPy 2.5.3 / 101,519 comprobaciones**. Se verifican valores, forma, strides,
-dtype, identidad de out y estado posterior a errores. `make full-test` incluye
-**120 archivos diferenciales** y las regresiones C/Lua. `make sanitize-choose102`
-instrumenta nueve módulos C y ejecuta cinco pruebas nativas / 21 suites Lua;
-las dependencias no están completamente instrumentadas y las fugas están
-desactivadas. Las referencias se regeneran con NumPy 2.5.3 y
-`tools/generate_choose102_differential.py`.
+La auditoría original cubrió pruebas C, **69 comprobaciones Lua**, incluidas
+variantes protegidas fuera de compatibilidad, y **3,481 casos NumPy 2.5.3 /
+101,519 comprobaciones** de valores, forma, strides, dtype, identidad de out y
+estado posterior a errores. Ejecuta `make full-test` para las regresiones y
+`make reference-test` para el corpus externo. Consulta [verificación](../development/validation.md)
+para las herramientas de referencia y el alcance de las auditorías anteriores.
 
 Las pruebas nativas de wrap con enteros extremos usan módulo matemático; no se
 ejecutaron los bucles de restas repetidas de NumPy para esos valores enormes.

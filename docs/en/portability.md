@@ -14,14 +14,8 @@ regressions pass. Native GitHub CI run 42526947924 passed all 116 fixture files
 and both public examples on Ubuntu 24.04; the local Arch regression also passed.
 The versioned release gate and its later CI runs are recorded separately.
 
-For diagnosis, `python3 tools/probe_libm.py /path/to/libm.so.6` loads only that
-library in the current process and compares the three exact inputs to 80-digit
-arithmetic. It needs no NumPy. The inspected official Ubuntu package was
-`libc6_2.39-0ubuntu8.9_amd64.deb`, SHA-256
-`ff5557d99b51f761c4b7c92368b9cc45565eda17df9bf9eb4b134d09825008be`.
-It was extracted under `.dev` without installing or replacing system libraries.
-Running the full Arch binary against that older libc is not ABI-compatible;
-the successful Ubuntu run is real remote CI, not a local emulated full build.
+The original bounded libm diagnostic is preserved in the
+[released source package](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev).
 
 This correction is limited to the tested inverse-exponential path. It does not
 promise bit identity for every transcendental function, all libraries, CPU

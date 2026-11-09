@@ -63,11 +63,10 @@ disposiciones, vacíos, NaN/Inf, identidad, propiedad y escrituras reales. Tambi
 pasaron pruebas C y 53 comprobaciones Lua. Todas las API siguen parciales.
 
 ```sh
-make predicates112-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make sanitize-predicates112
+make -j4 full-test
+make reference-test
 ```
 
-Seis hashes: [NUMPY_2_5_3_PREDICATES112_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_PREDICATES112_FILE_HASHES.sha256). Véanse
+Seis hashes: [pinned source hashes](../../compatibility/numpy-source.sha256). Véanse
 [componentes](components.md), [disposición](layout.md) e
 [inventario](api_inventory.md).

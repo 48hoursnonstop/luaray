@@ -70,7 +70,7 @@ es no nulo. Una cadena fija no vacía, incluido el texto `"0"`, es verdadera; un
 cadena vacía es falsa. El cero temporal es falso y NaT es verdadero. Se prueban
 entradas de solo lectura, invertidas, transpuestas, dispersas y con stride cero.
 
-`make condition103-test` ejecuta pruebas C, **95 comprobaciones Lua** y cuatro
+La auditoría original cubrió pruebas C, **95 comprobaciones Lua** y cuatro
 baterías originales de NumPy 2.5.3:
 
 | API | Casos | Comprobaciones de valores y metadatos |
@@ -81,12 +81,9 @@ baterías originales de NumPy 2.5.3:
 | extract | 692 | 21,331 |
 | Total | 3,089 | 121,704 |
 
-`make full-test` incluye **124 archivos diferenciales** y las regresiones C/Lua.
-`make sanitize-condition103` instrumenta diez módulos C y ejecuta seis pruebas
-nativas / 26 suites Lua. Las otras dependencias no están instrumentadas y la
-detección de fugas está desactivada. Los cuatro archivos se regeneran exactamente
-con NumPy 2.5.3 y `tools/generate_condition103_differential.py`. Ejecutar las
-referencias congeladas no requiere Python.
+Ejecuta `make full-test` para las regresiones C/Lua y `make reference-test` para
+el corpus congelado externo. Ninguno requiere Python. Los generadores originales
+y el alcance de las auditorías se describen en [verificación](../development/validation.md).
 
 Object, estructuras, StringDType variable, endianness numérico no nativo,
 subclases y fidelidad completa de errores/advertencias siguen incompletos. Las

@@ -39,8 +39,5 @@ Availability and NumPy compatibility are tracked separately.
 - [Compatibility records](../compatibility/current.json)
 - [Changelog](../CHANGELOG.md)
 
-## History
-
-[Historical notes](history/README.md) preserve the earlier API guide, release
-reports, and detailed development evidence. They describe the releases in which
-they were written; use the current reference for present behavior.
+Published source packages and original reports are available in
+[GitHub Releases](https://github.com/48hoursnonstop/luaray/releases).

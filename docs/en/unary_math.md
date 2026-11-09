@@ -98,13 +98,10 @@ keywords, device/subclass protocols, warnings and every dtype combination are
 not implemented. Aliases provide equivalent calls, not NumPy ufunc identity.
 
 ```sh
-make unary108-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make sanitize-unary108
-# Development only, using the pinned NumPy interpreter:
-/path/to/numpy-python tools/generate_unary108_differential.py
+make -j4 full-test
+make reference-test
 ```
 
-Source hashes: [NUMPY_2_5_3_UNARY108_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_UNARY108_FILE_HASHES.sha256). See
+Source hashes: [pinned source hashes](../../compatibility/numpy-source.sha256). See
 [API inventory](api_inventory.md), [creation](creation.md) and
 [sampling](sampling.md) for related contracts.

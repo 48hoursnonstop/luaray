@@ -70,20 +70,19 @@ real. El solapamiento con la fuente se protege por separado.
 
 ## Evidencia y límites
 
-`make take100-test` ejecuta pruebas C, **63 comprobaciones Lua** y **6,704 casos
-originales de NumPy 2.5.3 / 324,615 comprobaciones** de valores y metadatos,
-incluidos errores y estado posterior. Esas cifras no son un porcentaje de
-avance global. `make full-test` ejecuta **117 archivos diferenciales** y las
-regresiones C/Lua. No requiere Python; regenerar las referencias sí requiere
-NumPy 2.5.3 y `tools/generate_take100_differential.py`.
+La auditoría original cubrió pruebas C, **63 comprobaciones Lua** y **6,704
+casos NumPy 2.5.3 / 324,615 comprobaciones** de valores y metadatos, incluidos
+errores y estado posterior. Ejecuta `make full-test` para las regresiones C/Lua
+y `make reference-test` para el corpus congelado externo. Estas cifras no
+representan un porcentaje de avance global.
 
 Una prueba acotada confirmó que NumPy no regresa en tres segundos después de
 entrar a `take(zeros((3,0,0),int32), [0], axis=1, mode='wrap')`. LuaRay rechaza
 esa situación con un error. Se conservan tres variantes fuera del conteo de
-compatibilidad; solo se ejecutó en NumPy la llamada representativa. El script
-`tools/probe_take100_hang.py` permite repetir ese diagnóstico con tiempo límite.
+compatibilidad; solo se ejecutó en NumPy la llamada representativa. El diagnóstico
+acotado se conserva con las herramientas originales en el [paquete publicado](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev).
 
 No se declara soporte completo para object, estructuras, StringDType variable,
 clases de excepciones Python, advertencias ni endianness numérico no nativo.
 Los 40 estados bloqueados anteriores siguen separados. Consulta
-`compatibility/current.json`, [resultados de verificación](../development/validation.md) y [PROGRESS_0_100.md](../history/releases/PROGRESS_0_100.md).
+`compatibility/current.json`, [resultados de verificación](../development/validation.md) y [historical release notes](https://github.com/48hoursnonstop/luaray/blob/v0.116.0-dev/PROGRESS_0_100.md).

@@ -78,14 +78,12 @@ unit scaling applies within the same temporal kind.
 
 ## Evidence and limitations
 
-`make choose102-test` runs a native C suite, **69 Lua checks** (including guarded
-variants outside parity) and **3,481 original NumPy 2.5.3 cases / 101,519 checks**.
-Fixtures verify values, shape, strides, dtype, out identity and actual backing
-states after errors. `make full-test` includes all **120 frozen fixture files**
-and existing native/Lua tests. `make sanitize-choose102` instruments nine C units
-and runs five native / 21 Lua suites; linked dependencies are not all
-instrumented, and leak detection is disabled. Regeneration is reproducible with
-NumPy 2.5.3 and `tools/generate_choose102_differential.py`.
+The original audit covered a native C suite, **69 Lua checks** (including guarded
+variants outside parity) and **3,481 NumPy 2.5.3 cases / 101,519 checks**.
+Fixtures verify values, shape, strides, dtype, output identity and backing states
+after errors. Run `make full-test` for maintained regressions and
+`make reference-test` for the frozen corpus. See [validation](../development/validation.md)
+for external reference tooling and the scope of historical sanitizer audits.
 
 Extreme native wrap tests use mathematical modulo; upstream repeated-subtraction
 loops were not executed for those huge values. Object/structured/variable-width

@@ -73,17 +73,16 @@ now raise, matching upstream. Ndarray sequence iteration preserves scalar items
 as strong 0-D views, including one-dimensional ndarray choices in choose.
 All 3,481 previous choose cases still pass.
 
-`make select104-test` executes a C suite, **65 Lua checks** and two original
+The original audit covered a C suite, **65 Lua checks** and two original
 NumPy 2.5.3 corpora: **1,487 where cases / 59,988 checks**, and **1,961 select
 cases / 19,688 checks**, total **3,448 / 79,676**. They include dtype pairs,
 weak values, layout/strides, shape errors, binary strings, scalar ndarray
-identity and multi-condition precedence. `make full-test` includes **126 frozen
-fixture files** and all native/Lua regression tests.
+identity and multi-condition precedence.
 
-`make sanitize-select104` instruments thirteen C units and runs seven native /
-29 Lua suites; remaining linked dependencies are uninstrumented and leaks are
-disabled. Original fixtures reproduce exactly with NumPy 2.5.3 and
-`tools/generate_select104_differential.py`. Python is only needed for regeneration.
+Run `make full-test` for maintained C/Lua regressions and `make reference-test`
+for the external frozen corpus. Both run without Python. See
+[validation](../development/validation.md) for the original generators and
+historical sanitizer scope.
 
 The [API inventory](api_inventory.md) separately measures callable availability.
 Object/structured/variable-width string arrays, non-native numeric endian,

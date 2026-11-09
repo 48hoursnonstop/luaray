@@ -1,6 +1,0 @@
-09b04d56271fa78c43f6aca66ec06c802b0b22b026ae2fa6153575459b6dab53  numpy-2.5.3/numpy/_core/fromnumeric.py
-f50ff441491cff49c85e6a5dd5916939698785c5cf5be9e0ed3d45a98ed2276e  numpy-2.5.3/numpy/_core/src/multiarray/item_selection.c
-b550d0cc5e7efe46dc1c77f0286330fcb4100fcbbeb98f41aa9127c2c44e01ec  numpy-2.5.3/numpy/lib/_shape_base_impl.py
-4b51861849e3b456480544dc3176c0b2151aaee2e00460e7ba40891ce8726bec  numpy-2.5.3/numpy/_core/tests/test_multiarray.py
-301adc5258511108eb3d9ea47d14c3aa41b9e6644a0eb3e4f5f6397fd2d4424c  numpy-2.5.3/numpy/_core/tests/test_numeric.py
-6561de582b3dc74b03f8bd3787a9139947511efc47542fbc28ebbc2a89a1c8a4  numpy-2.5.3/numpy/lib/tests/test_shape_base.py

@@ -88,11 +88,10 @@ advertencias, modos de redondeo, ABI y aritmética temporal siguen incompletos.
 La presencia de una función no certifica compatibilidad total.
 
 ```sh
-make round113-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make sanitize-round113
+make -j4 full-test
+make reference-test
 ```
 
-Nueve hashes: [NUMPY_2_5_3_ROUND113_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_ROUND113_FILE_HASHES.sha256). Véanse
+Nueve hashes: [pinned source hashes](../../compatibility/numpy-source.sha256). Véanse
 [matemáticas unarias](unary_math.md), [componentes](components.md),
 [creación](creation.md) e [inventario](api_inventory.md).

@@ -20,12 +20,11 @@
     "numpy.linalg.cross": "implemented_partial"
   },
   "evidence": [
-    "tests/cross116_differential_generated.lua",
-    "tests/meshgrid116_differential_generated.lua",
-    "tests/vector116_regression.lua",
-    "tests/test_vector116_core.c",
+    "tests/lua/vector116_regression.lua",
+    "tests/native/test_vector116_core.c",
     "compatibility/api_inventory.json",
-    "tools/inventory_api.py"
+    "tools/reference-tests.sh",
+    "https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev"
   ],
   "availability_inventory": {
     "scoped_names": 675,

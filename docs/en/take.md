@@ -71,21 +71,20 @@ protected separately.
 
 ## Evidence and limits
 
-`make take100-test` executes a native C suite, 63 Lua checks and **6,704 original
-NumPy 2.5.3 cases / 324,615 value and metadata checks**. Those counts cover tested
-behavior, including real errors and post-error states; they are not an overall
-completion percentage. `make full-test` runs all **117 frozen fixture files**
-and native/Lua regressions. Fixtures need no Python at runtime. Regeneration
-needs NumPy 2.5.3 and `tools/generate_take100_differential.py`.
+The original audit covered a native C suite, 63 Lua checks and **6,704 NumPy
+2.5.3 cases / 324,615 value and metadata checks**, including real errors and
+post-error states. Run `make full-test` for maintained C/Lua regressions and
+`make reference-test` for the external frozen corpus. These counts measure the
+tested behavior, not overall completion.
 
 A separate probe confirmed that NumPy 2.5.3 does not return within three seconds
 for `take(zeros((3,0,0),int32), [0], axis=1, mode='wrap')`, after reaching the call.
 LuaRay rejects this empty-axis situation with an error. Three Lua-coordinate
 variants are retained outside the parity totals; only the representative call
-was actually executed upstream. Run `tools/probe_take100_hang.py` with the
-reference interpreter to reproduce the bounded diagnostic.
+was actually executed upstream. The bounded diagnostic is preserved with the
+original development tooling in the [released source package](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev).
 
 Object/structured/new variable-width StringDType support, Python exception
 classes, complete warning fidelity and non-native numeric byte order are not
 claimed. The earlier 40 blocked numeric-endian states remain separate. See
-`compatibility/current.json`, [validation results](../development/validation.md) and [PROGRESS_0_100.md](../history/releases/PROGRESS_0_100.md).
+`compatibility/current.json`, [validation results](../development/validation.md) and [historical release notes](https://github.com/48hoursnonstop/luaray/blob/v0.116.0-dev/PROGRESS_0_100.md).

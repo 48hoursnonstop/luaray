@@ -37,12 +37,11 @@ exactas** en quince tipos, escalares/vacíos, varias disposiciones, ambas formas
 de llamada, identidad, memoria compartida, escritura y cambios reales en el
 respaldo. Las pruebas C y 33 comprobaciones Lua verifican offsets, propiedad
 después de GC, intercalado y errores. Todas las API siguen parciales. Cinco
-hashes fijan las fuentes en [NUMPY_2_5_3_COMPONENTS111_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_COMPONENTS111_FILE_HASHES.sha256).
+hashes fijan las fuentes en [pinned source hashes](../../compatibility/numpy-source.sha256).
 
 ```sh
-make components111-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make sanitize-components111
+make -j4 full-test
+make reference-test
 ```
 
 Véanse [disposición](layout.md), [creación](creation.md) e

@@ -72,17 +72,14 @@ error original. Los elementos escalares de una secuencia ndarray conservan su
 dtype fuerte como vistas 0-D, incluidas opciones ndarray unidimensionales en
 choose. Sus 3,481 casos anteriores siguen aprobando.
 
-`make select104-test`: pruebas C, **65 comprobaciones Lua**, **1,487 casos de
+La auditoría original cubrió pruebas C, **65 comprobaciones Lua**, **1,487 casos de
 where / 59,988 comprobaciones** y **1,961 casos de select / 19,688 comprobaciones**
 contra NumPy 2.5.3. Total: **3,448 / 79,676**. Incluyen pares de dtypes, valores
 débiles, forma/strides, cadenas binarias, escalares ndarray y precedencia.
-`make full-test` ejecuta **126 archivos diferenciales** y las regresiones C/Lua.
-
-`make sanitize-select104` instrumenta trece módulos C y ejecuta siete pruebas
-nativas / 29 suites Lua; otras dependencias no están instrumentadas y la detección
-de fugas está desactivada. Las referencias se regeneran exactamente con NumPy
-2.5.3 y `tools/generate_select104_differential.py`; solo esa regeneración requiere
-Python.
+Ejecuta `make full-test` para las regresiones C/Lua y `make reference-test` para
+el corpus congelado externo. Ninguno requiere Python. Consulta
+[verificación](../development/validation.md) para los generadores originales y
+el alcance de las auditorías de memoria.
 
 El [inventario de API](api_inventory.md) mide disponibilidad por separado. Object,
 estructuras, StringDType variable, endianness numérico no nativo, subclases y

@@ -32,30 +32,9 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y --no-install-recommends "${packages[@]}"
           fi
-      - name: Build and execute all frozen native and Lua regressions
+      - name: Build and execute maintained native and Lua regressions
         run: make -j4 full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-      - name: Execute public Lua module examples
-        env:
-          LUA_PATH: './lua/?.lua;;'
-          LUA_CPATH: './build/?.so;;'
-        run: |
-          lua5.4 examples/quickstart.lua
-          lua5.4 examples/writing98.lua
-          lua5.4 examples/masked_writes99.lua
-          lua5.4 examples/take100.lua
-          lua5.4 examples/along101.lua
-          lua5.4 examples/choose102.lua
-          lua5.4 examples/condition103.lua
-          lua5.4 examples/select104.lua
-          lua5.4 examples/fft105.lua
-          lua5.4 examples/sampling106.lua
-          lua5.4 examples/creation107.lua
-          lua5.4 examples/unary108.lua
-          lua5.4 examples/binary109.lua
-          lua5.4 examples/layout110.lua
-          lua5.4 examples/components111.lua
-          lua5.4 examples/predicates112.lua
-          lua5.4 examples/round113.lua
-          lua5.4 examples/clip114.lua
-          lua5.4 examples/bytes115.lua
-          lua5.4 examples/vector116.lua
+      - name: Execute public Lua examples
+        run: make examples
+      - name: Check the current engine against external NumPy references
+        run: make reference-test

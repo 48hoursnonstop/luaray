@@ -1,16 +1,9 @@
-# Development tools
+# External reference checks
 
-These scripts support development and release verification. They are not needed
-by a running LuaRay application.
+`reference-tests.sh` is used by `make reference-test`. It verifies the SHA-256 of
+the immutable 0.116 source archive, then executes its frozen references against
+the current native build. Downloaded data stays under the ignored `.dev/` directory.
 
-- `generate_*`: regenerate original NumPy reference fixtures. Each script states
-  its required oracle version; generated fixtures are checked into `tests/`.
-- `inventory_api.py`: probe the compiled Lua module and produce the scoped API
-  availability inventory.
-- `sanitize_write98.py`: compile and run the progressively extended directed
-  ASan/UBSan audit. Use its Makefile targets rather than assembling flags manually.
-- `release.py`: build a source archive and verify it through a clean rebuild.
-- `fetch_pinned_numpy.sh`: fetch the original pinned source snapshot into
-  `.dev/upstream/` by default, or into an explicitly supplied directory.
-
-See [Contributing](../CONTRIBUTING.md) for build settings and validation rules.
+Set `LUARAY_REFERENCE_ARCHIVE` to use an existing copy of that exact archive.
+The full Python oracle and release tooling is preserved in the published source
+package; it is not needed by this checkout.

@@ -89,20 +89,14 @@ excepción ni todas las advertencias. No se declara compatibilidad NumPy complet
 
 ## Reproducir las comprobaciones
 
-```sh
-make -j4 full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-LUA_PATH='./lua/?.lua;;' LUA_CPATH='./build/?.so;;' lua5.4 examples/writing98.lua
-python3 tools/sanitize_write98.py
-```
-
-`full-test` ejecuta referencias congeladas sin Python/NumPy. Regenerarlas
-requiere un entorno Python aislado con **NumPy 2.5.3**:
+Ejecuta las regresiones mantenidas y las referencias NumPy congeladas externas:
 
 ```sh
-.dev/venv/bin/python tools/generate_write98_differential.py
-make write98-test
+make -j4 full-test
+make reference-test
 ```
 
-El análisis ASan/UBSan instrumenta las tres unidades C modificadas y reutiliza
-los demás objetos nativos sin instrumentar. La detección de fugas está desactivada;
-no es una auditoría de memoria de todas las dependencias.
+Ningún comando requiere Python ni NumPy. Los generadores originales y las
+herramientas de sanitización se conservan en el [paquete publicado](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev).
+La auditoría original instrumentó tres unidades C modificadas; las demás
+dependencias no se instrumentaron por completo y la detección de fugas estaba desactivada.

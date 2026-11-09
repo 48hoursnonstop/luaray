@@ -71,7 +71,7 @@ nonzero. Nonempty fixed strings, including the text `"0"`, are true; empty
 strings are false. Temporal zero counts as false and NaT counts as true.
 Readonly, reversed, transposed, sparse and zero-stride inputs are covered.
 
-`make condition103-test` runs a native C suite, **95 Lua checks** and four
+The original audit covered a native C suite, **95 Lua checks** and four
 original NumPy 2.5.3 corpora:
 
 | API | Cases | Value and metadata checks |
@@ -82,11 +82,9 @@ original NumPy 2.5.3 corpora:
 | extract | 692 | 21,331 |
 | Total | 3,089 | 121,704 |
 
-`make full-test` includes **124 frozen fixture files** and native/Lua regressions.
-`make sanitize-condition103` instruments ten C units and runs six native / 26 Lua
-suites. Other linked dependencies are not instrumented; leak detection is off.
-All four generated files reproduce exactly using NumPy 2.5.3 and
-`tools/generate_condition103_differential.py`; frozen execution needs no Python.
+Run `make full-test` for maintained C/Lua regressions and `make reference-test`
+for the external frozen corpus. Both run without Python. For original generators
+and historical sanitizer scope, see [validation](../development/validation.md).
 
 Object/structured/variable-width string arrays, non-native numeric byte order,
 Python subclasses and full exception/warning fidelity remain unsupported or

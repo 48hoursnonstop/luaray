@@ -22,18 +22,34 @@ algorithm, external BLAS/LAPACK routine, host ABI, or floating-point environment
 
 ```sh
 make -j4 full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make sanitize-vector116
+make examples
+make reference-test
 ```
 
-Frozen fixtures execute native C/C++ and Lua directly, without Python or NumPy.
-Regenerating them requires Python and the pinned oracle version identified by
-each generator. Recent generators assert NumPy 2.5.3;
-older NumPy 2.3.5 fixtures keep their original attribution.
+`full-test` executes the maintained native and Lua regressions. `reference-test`
+obtains the immutable 0.116 source archive, verifies SHA-256, and executes its
+161 differential fixture files plus extended random and formatting references
+against the current engine. The generated data is cached outside the tracked tree.
+Both targets run without Python or NumPy.
+
+The complete oracle generators and directed sanitizer tooling remain in the
+[released source package](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev).
+Use that separate workspace to regenerate fixtures or reproduce the historical
+`sanitize-vector116` audit. Recent generators assert NumPy 2.5.3; older fixtures
+retain their original NumPy 2.3.5 attribution.
 
 `compatibility/current.json` records the release-specific behavioral evidence.
 `compatibility/api_inventory.json` records runtime availability. The latter
 reports 352 of 675 scoped names as available and classifies all available APIs
 as partial; it is not a measure of overall NumPy completion.
+
+## Current source-tree checks
+
+The source-tree cleanup passed a clean native build, **54 native suites**,
+**86 Lua suites**, and **seven public examples** on Linux. External reference
+validation passed all **161 differential files**, 23 extended permutation parts,
+the two additional random edge fixtures, and the 70,828-state formatting reference.
+The current kernels were used for these checks; no numerical source was changed.
 
 ## Release integrity
 
@@ -42,9 +58,7 @@ verification JSON. The archive contains `PROJECT_SHA256SUMS`, generated during
 packaging. This manifest is not kept in the working tree, where ordinary edits
 would immediately make it stale.
 
-`tools/release.py` verifies the embedded manifest after extracting the archive,
+The release tooling preserved in the source package verifies the embedded
+manifest after extracting the archive,
 then builds and executes its checks from that clean source directory. Verified
 assets and release tags remain immutable.
-
-Older detailed reports are retained in the
-[historical test record](../history/test-results.md).

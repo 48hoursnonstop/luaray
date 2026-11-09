@@ -1,8 +1,0 @@
-local np=require('luaray')
-local values,step=np.linspace(-1,1,5,{retstep=true})
-assert(step==.5 and values:get(3)==0 and values:get(5)==1)
-local logs=np.logspace(0,2,3)
-assert(logs:get(1)==1 and logs:get(2)==10 and logs:get(3)==100)
-local geometric=np.geomspace(-1,-16,5)
-assert(geometric:get(1)==-1 and math.abs(geometric:get(3)+4)<1e-12 and geometric:get(5)==-16)
-print('LuaRay native sequence sampling example: passed')

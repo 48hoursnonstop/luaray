@@ -94,13 +94,10 @@ certificar. Se conservan las limitaciones del constructor. Esta auditoría de
 disposición no certifica compatibilidad completa con NumPy.
 
 ```sh
-make layout110-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make sanitize-layout110
-# Solo oráculo de desarrollo:
-/ruta/a/numpy-python tools/generate_layout110_differential.py
+make -j4 full-test
+make reference-test
 ```
 
-Ocho hashes fijan las fuentes en [NUMPY_2_5_3_LAYOUT110_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_LAYOUT110_FILE_HASHES.sha256).
+Ocho hashes fijan las fuentes en [pinned source hashes](../../compatibility/numpy-source.sha256).
 Véanse [creación](creation.md), [matemáticas binarias](binary_math.md) e
 [inventario](api_inventory.md).

@@ -79,11 +79,11 @@ de los valores compatibles compartidos de place. Devuelve `nil`.
 
 ## Evidencia y alcance
 
-Ejecuta `make memory99-test`, `make full-test` o `make sanitize-memory99`. NumPy
-2.5.3 generó 4,914 casos copyto y 1,481 putmask: 175,110 comparaciones, además de
-77 comprobaciones Lua y pruebas C. ASan/UBSan instrumenta las tres unidades C
-modificadas, ambas suites nativas 0.98/0.99 y diez suites Lua. Las dependencias
-no están instrumentadas y se desactiva detectar fugas.
+Ejecuta `make full-test` para las regresiones C/Lua y `make reference-test` para
+el corpus congelado externo. NumPy 2.5.3 generó 4,914 casos copyto y 1,481 putmask:
+175,110 comparaciones, además de 77 comprobaciones Lua y pruebas C. La auditoría
+original instrumentó tres unidades C modificadas; las dependencias no se
+instrumentaron por completo y la detección de fugas estaba desactivada.
 
 No se declara compatibilidad NumPy completa. Siguen pendientes descriptores
 numéricos con otro orden de bytes, objetos/estructuras y todas las advertencias/

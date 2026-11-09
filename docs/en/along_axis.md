@@ -72,18 +72,17 @@ flattening; an explicit/default ordinary axis on a scalar is invalid.
 
 ## Verification and limitations
 
-`make along101-test` runs native C tests, **85 Lua checks**, **2,061 original
+The original audit covered native C tests, **85 Lua checks**, **2,061 original
 NumPy 2.5.3 gather cases / 109,722 checks**, and **3,599 assignment cases /
 430,929 checks**. This includes actual error acceptance and post-error backing
 states, multidimensional/bidirectional broadcasting, F/reversed indices,
 shared operands, empty shapes, scalar/table values and integer bounds.
 The 63/64-index operand limit is also checked against upstream.
 
-`make full-test` includes all **119 frozen fixture files** and existing native
-and Lua tests. `make sanitize-along101` instruments eight C units and executes
-four native/19 Lua suites; other linked dependencies remain uninstrumented,
-with leak detection disabled. Frozen tests need no Python. Regeneration needs
-NumPy 2.5.3 and `tools/generate_along101_differential.py`.
+Run `make full-test` for maintained C/Lua regressions and `make reference-test`
+for the external frozen corpus. Neither requires Python. Original generators and
+directed sanitizer tooling remain in the [released source package](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev);
+see [validation](../development/validation.md) for audit limitations.
 
 The general mixed slice/fancy-index iterator remains a separate compatibility
 area; the new buffered path specifically covers all-fancy indexing. Numeric

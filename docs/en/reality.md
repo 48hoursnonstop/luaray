@@ -67,11 +67,10 @@ layouts, empty arrays, NaN/Inf, ownership, identity and actual writes. Native C
 and 53 directed Lua checks also passed. All APIs remain implemented_partial.
 
 ```sh
-make predicates112-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make sanitize-predicates112
+make -j4 full-test
+make reference-test
 ```
 
-Six source/test hashes: [NUMPY_2_5_3_PREDICATES112_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_PREDICATES112_FILE_HASHES.sha256).
+Six source/test hashes: [pinned source hashes](../../compatibility/numpy-source.sha256).
 See [component views](components.md), [layout](layout.md) and
 [API availability](api_inventory.md).

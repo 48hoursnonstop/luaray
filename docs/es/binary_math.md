@@ -111,13 +111,10 @@ los modos de redondeo. Los escalares devuelven ndarrays tipados por diseño.
 Estas mediciones no representan un porcentaje global de NumPy completado.
 
 ```sh
-make binary109-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
-make sanitize-binary109
-# Solo regeneración de referencias de desarrollo:
-/ruta/a/numpy-python tools/generate_binary109_differential.py
+make -j4 full-test
+make reference-test
 ```
 
 Véanse [matemáticas unarias](unary_math.md), [creación](creation.md) e
 [inventario](api_inventory.md). Los hashes se encuentran en
-[NUMPY_2_5_3_BINARY109_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_BINARY109_FILE_HASHES.sha256); se conserva la atribución BSD de NumPy.
+[pinned source hashes](../../compatibility/numpy-source.sha256); se conserva la atribución BSD de NumPy.

@@ -5,6 +5,7 @@
 #include "ln_write.h"
 #include "ln_select.h"
 #include "ln_string.h"
+#include "ln_ufunc_loops.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -201,4 +202,35 @@ ln_array *ln_matrix_trilu(const ln_array *a,ln_intp k,int upper,ln_error *err)
     if(!dtype){ln_array_free(zero);ln_array_free(mask);return failure(err,"triangle input has no selection dtype");}
     ln_array *result=ln_array_where(mask,upper?zero:a,upper?a:zero,dtype,err);
     ln_array_free(zero);ln_array_free(mask);return result;
+}
+
+ln_array *ln_matrix_vander(const ln_array *x,ln_intp columns,int increasing,ln_error *err)
+{
+    if(!x||x->nd!=1)return failure(err,"vander input must be one-dimensional");
+    if(columns<0)return failure(err,"vander column count must be nonnegative");
+    const ln_dtype *dtype=ln_common_dtype_descr(x->descr,ln_dtype_by_name("int64"));
+    if(!dtype)return failure(err,"vander input has no common dtype with native int");
+    ln_intp shape[]={x->dimensions[0],columns};
+    ln_array *out=ln_array_new(2,shape,dtype,0,0,err);if(!out||columns==0)return out;
+    ln_intp strides[]={out->strides[0],increasing?out->strides[1]:-out->strides[1]};
+    char *start=out->data+(increasing?0:(columns-1)*out->strides[1]);
+    ln_array *first=ln_array_view(out,1,shape,strides,start,err),*tail=NULL,*column=NULL;
+    if(!first)goto failed;
+    int64_t value=1;
+    ln_array one={.data=(char *)&value,.nd=0,.descr=ln_dtype_by_name("int64"),
+        .flags=LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS|LN_ARRAY_ALIGNED};
+    if(ln_array_copyto(first,&one,NULL,1,LN_UNSAFE_CASTING,err)<0)goto failed;
+    if(columns>1){
+        /* NumPy resolves multiply.accumulate even when the row count is zero. */
+        if(!ln_get_multiply_loop(dtype->type_num)){failure(err,"vander has no multiply accumulation loop");goto failed;}
+        ln_intp tail_shape[]={shape[0],columns-1};
+        tail=ln_array_view(out,2,tail_shape,strides,start+strides[1],err);
+        ln_intp column_shape[]={shape[0],1},column_strides[]={x->strides[0],0};
+        column=ln_array_view(x,2,column_shape,column_strides,x->data,err);
+        if(!tail||!column||ln_array_copyto(tail,column,NULL,1,LN_UNSAFE_CASTING,err)<0||
+                ln_accumulate_into_ex(tail,1,NULL,tail,LN_REDUCE_PROD,err)<0)goto failed;
+    }
+    ln_array_free(first);ln_array_free(tail);ln_array_free(column);return out;
+failed:
+    ln_array_free(first);ln_array_free(tail);ln_array_free(column);ln_array_free(out);return NULL;
 }

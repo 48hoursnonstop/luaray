@@ -137,3 +137,29 @@ static int trilu(lua_State *L,int upper)
 }
 int ln_lua_tril(lua_State *L){return trilu(L,0);}
 int ln_lua_triu(lua_State *L){return trilu(L,1);}
+
+int ln_lua_vander(lua_State *L)
+{
+    int top=lua_gettop(L),increasing=0,has_columns=0;lua_Integer columns=0;
+    if(top<1||top>3)return luaL_error(L,"vander accepts input, columns and increasing");
+    if(lua_type(L,2)==LUA_TTABLE){
+        if(top!=2)return luaL_error(L,"vander options cannot be combined with positional options");
+        lua_pushnil(L);
+        while(lua_next(L,2)){
+            size_t n=0;const char *key=lua_type(L,-2)==LUA_TSTRING?lua_tolstring(L,-2,&n):NULL;
+            if(!key||!((n==1&&*key=='n')||(n==10&&!memcmp(key,"increasing",10))))
+                return luaL_error(L,"unknown vander option");
+            lua_pop(L,1);
+        }
+        lua_getfield(L,2,"n");if(lua_type(L,-1)!=LUA_TNIL){columns=integer(L,-1);has_columns=1;}lua_pop(L,1);
+        lua_getfield(L,2,"increasing");
+        if(lua_type(L,-1)!=LUA_TNIL){if(lua_type(L,-1)!=LUA_TBOOLEAN)return luaL_error(L,"increasing must be boolean");increasing=lua_toboolean(L,-1);}lua_pop(L,1);
+    }else{
+        if(top>=2&&lua_type(L,2)!=LUA_TNIL){columns=integer(L,2);has_columns=1;}
+        if(top>=3&&lua_type(L,3)!=LUA_TNIL){if(lua_type(L,3)!=LUA_TBOOLEAN)return luaL_error(L,"increasing must be boolean");increasing=lua_toboolean(L,3);}
+    }
+    ln_array *x=ln_lua_test_array(L,1);if(!x)x=ln_lua_legacy_array(L,1,NULL);
+    if(!has_columns)columns=x->nd==1?x->dimensions[0]:0;
+    ln_error err={0};ln_array *result=ln_matrix_vander(x,(ln_intp)columns,increasing,&err);
+    return result?ln_lua_push_array(L,result):ln_lua_fail(L,&err);
+}

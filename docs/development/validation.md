@@ -45,13 +45,17 @@ as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.119.0-dev** passed **55 native suites**, **89 Lua suites**, seven public
-examples and 38 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
+LuaRay **0.120.0-dev** passed **55 native suites**, **90 Lua suites**, seven public
+examples and 44 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
 passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
 metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
 Triangular references passed **18,142 cases / 1,754,183 exact checks**, including
 batch storage order, typed mask conversion, empty axes, and extreme index rules.
+
+Vandermonde references passed **11,584 cases / 441,741 checks**. Ordinary cases
+and metadata compare exactly; general random floating/complex values use a fixed
+relative3e-15 budget. Observed absolute and relative numerical errors were zero.
 
 The directed ASan/UBSan run instrumented `ln_matrix`, `ln_linalg`, `lua_matrix`,
 and `lua_module`, plus the native matrix test and Lua runner. All maintained tests

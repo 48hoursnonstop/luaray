@@ -8,4 +8,5 @@ int ln_lua_trace(lua_State *L);
 int ln_lua_tri(lua_State *L);
 int ln_lua_tril(lua_State *L);
 int ln_lua_triu(lua_State *L);
+int ln_lua_vander(lua_State *L);
 #endif

@@ -50,5 +50,12 @@ int main(void)
     mask=ln_matrix_trilu(a,0,0,&err);assert(mask&&mask->strides[0]==4&&mask->strides[1]==32&&mask->strides[2]==8);
     ln_intp location[]={1,2,1};assert(ln_array_get_number(mask,location,&numeric,&iv,&is_integer,&err)==0&&iv==11);
     assert(mask->owner!=a->owner);ln_array_free(mask);ln_array_free(a);
+    a=ln_array_new(1,n,ln_dtype_by_name("int8"),0,0,&err);assert(a);
+    int8_t vector[]={1,2,3};memcpy(a->data,vector,sizeof vector);
+    ln_array *powers=ln_matrix_vander(a,4,1,&err);assert(powers&&powers->nd==2&&powers->dimensions[1]==4);
+    ln_intp last[]={2,3};assert(ln_array_get_number(powers,last,&numeric,&iv,&is_integer,&err)==0&&iv==27);
+    assert(powers->owner!=a->owner);ln_array_free(powers);
+    powers=ln_matrix_vander(a,0,0,&err);assert(powers&&ln_array_size(powers)==0);ln_array_free(powers);
+    assert(ln_matrix_vander(a,-1,0,&err)==NULL);ln_array_free(a);
     puts("matrix native: diagonal layout, shared lifetime, readonly, construction, overflow and staged trace passed");
 }

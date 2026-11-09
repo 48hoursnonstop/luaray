@@ -12,6 +12,12 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.120.0-dev
+
+Added native `vander` with source-ordered multiply accumulation, native-int dtype
+promotion, increasing/decreasing columns, typed empty/string/duration edge cases,
+and independently writable results. Added EN/ES polynomial-fitting examples.
+
 ## 0.119.0-dev
 
 Added `tri`, `tril`, and `triu`, preserving boolean-to-dtype mask conversion,

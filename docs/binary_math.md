@@ -116,4 +116,4 @@ make reference-test
 
 See [unary mathematics](unary_math.md), [creation](creation.md) and the
 [availability inventory](api_inventory.md). Source hashes are recorded in
-[pinned source hashes](../../compatibility/numpy-source.sha256); existing NumPy BSD attribution remains.
+[pinned source hashes](https://github.com/48hoursnonstop/luaray/blob/main/compatibility/numpy-source.sha256); existing NumPy BSD attribution remains.

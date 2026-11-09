@@ -11,7 +11,7 @@ The release added 8,141 cross/meshgrid cases and 787,265 checks. General complex
 cross comparisons use fixed budgets of 6e-7 for complex64 and 2e-15 for wider
 complex types, scaled by `max(1, abs(component))`. Metadata, ordinary exact
 references, and grid state comparisons retain exact assertions. The
-[vector/grid reference](../en/vectors_and_grids.md) describes the contract.
+[vector/grid reference](../vectors_and_grids.md) describes the contract.
 
 The directed ASan/UBSan audit passed with **38 C units and one C++ unit**,
 20 native suites, and 78 Lua suites. Other linked dependencies were not fully

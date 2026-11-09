@@ -84,7 +84,7 @@ original NumPy 2.5.3 corpora:
 
 Run `make full-test` for maintained C/Lua regressions and `make reference-test`
 for the external frozen corpus. Both run without Python. For original generators
-and historical sanitizer scope, see [validation](../development/validation.md).
+and historical sanitizer scope, see [validation](development/validation.md).
 
 Object/structured/variable-width string arrays, non-native numeric byte order,
 Python subclasses and full exception/warning fidelity remain unsupported or

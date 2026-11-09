@@ -96,7 +96,7 @@ make -j4 full-test
 make reference-test
 ```
 
-Eight source/test hashes are pinned in [pinned source hashes](../../compatibility/numpy-source.sha256).
+Eight source/test hashes are pinned in [pinned source hashes](https://github.com/48hoursnonstop/luaray/blob/main/compatibility/numpy-source.sha256).
 See [creation](creation.md) for array conversion and copying,
 [binary mathematics](binary_math.md) for ordinary inputs, and the
 [API inventory](api_inventory.md) for measured callable availability.

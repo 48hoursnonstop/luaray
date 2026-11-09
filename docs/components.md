@@ -38,7 +38,7 @@ negative/strided/broadcast layouts, both call forms, identity, component sharing
 writeability and actual post-write backing values. A native C suite and 33 Lua
 checks verify offsets, owner lifetime after collection, interleaving and errors.
 All APIs remain partial. Five source/test hashes pin the getset/type-check
-reference in [pinned source hashes](../../compatibility/numpy-source.sha256).
+reference in [pinned source hashes](https://github.com/48hoursnonstop/luaray/blob/main/compatibility/numpy-source.sha256).
 
 ```sh
 make -j4 full-test

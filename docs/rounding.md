@@ -98,6 +98,6 @@ make -j4 full-test
 make reference-test
 ```
 
-Nine source/test hashes: [pinned source hashes](../../compatibility/numpy-source.sha256). See
+Nine source/test hashes: [pinned source hashes](https://github.com/48hoursnonstop/luaray/blob/main/compatibility/numpy-source.sha256). See
 [unary math](unary_math.md), [component views](components.md),
 [casting/creation](creation.md) and [API inventory](api_inventory.md).

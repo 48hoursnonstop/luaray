@@ -1,0 +1,119 @@
+import { defineConfig } from 'vitepress'
+
+const repo = 'https://github.com/48hoursnonstop/luaray'
+const pages = [
+  ['Start here', 'Empieza aquí', [
+    ['Overview', 'Introducción', ''],
+    ['Getting started', 'Primeros pasos', 'getting-started'],
+    ['Array fundamentals', 'Fundamentos de arrays', 'arrays'],
+  ]],
+  ['Arrays and memory', 'Arrays y memoria', [
+    ['Creation and copying', 'Creación y copias', 'creation'],
+    ['Shape and layout', 'Forma y disposición', 'layout'],
+    ['Indexing and assignment', 'Índices y asignación', 'writing'],
+    ['Masked writes', 'Escrituras con máscara', 'masked_writes'],
+    ['Gathering values', 'Extracción por índices', 'take'],
+    ['Along an axis', 'Operaciones por eje', 'along_axis'],
+    ['Choosing values', 'Selección con choose', 'choose'],
+    ['Conditions and extraction', 'Condiciones y extracción', 'condition_selection'],
+    ['Selection and broadcasting', 'Selección y broadcasting', 'selection'],
+    ['Typed views and bytes', 'Vistas tipadas y bytes', 'byte_views'],
+  ]],
+  ['Mathematics', 'Matemáticas', [
+    ['Unary operations', 'Operaciones unarias', 'unary_math'],
+    ['Binary operations', 'Operaciones binarias', 'binary_math'],
+    ['Real and imaginary parts', 'Partes real e imaginaria', 'components'],
+    ['Comparing values', 'Comparación de valores', 'reality'],
+    ['Rounding', 'Redondeo', 'rounding'],
+    ['Clipping', 'Recorte de valores', 'clip'],
+    ['Sequences and sampling', 'Secuencias y muestreo', 'sampling'],
+    ['FFT helpers', 'Funciones FFT', 'fft_helpers'],
+    ['Vectors and grids', 'Vectores y mallas', 'vectors_and_grids'],
+  ]],
+  ['Compatibility', 'Compatibilidad', [
+    ['API availability', 'Disponibilidad de APIs', 'api_inventory'],
+    ['Numerical portability', 'Portabilidad numérica', 'portability'],
+  ]],
+] as const
+
+function sidebar(spanish = false) {
+  const prefix = spanish ? '/es/' : '/'
+  return [
+    ...pages.map(([en, es, items], group) => ({
+      text: spanish ? es : en,
+      ...(group > 0 ? { collapsed: group > 1 } : {}),
+      items: items.map(([en, es, path]) => ({ text: spanish ? es : en, link: prefix + path })),
+    })),
+    {
+      text: spanish ? 'Desarrollo' : 'Development', collapsed: true,
+      items: [
+        { text: spanish ? 'Compilación y contribuciones' : 'Build and contribute', link: prefix + 'development/contributing' },
+        { text: spanish ? 'Verificación' : 'Validation', link: prefix + 'development/validation' },
+        { text: spanish ? 'Referencias y licencias' : 'Upstream and licenses', link: prefix + 'development/upstream' },
+      ],
+    },
+  ]
+}
+
+export default defineConfig({
+  title: 'LuaRay',
+  description: 'Typed arrays and numerical computing for Lua 5.4.',
+  base: '/luaray/',
+  cleanUrls: true,
+  srcExclude: ['README.md'],
+  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/luaray/logo.svg' }]],
+  sitemap: { hostname: 'https://48hoursnonstop.github.io/luaray/' },
+  markdown: { lineNumbers: true },
+  locales: {
+    root: {
+      label: 'English', lang: 'en',
+      themeConfig: {
+        nav: [
+          { text: 'Guide', link: '/getting-started' },
+          { text: 'Reference', link: '/creation' },
+          { text: '0.116.0-dev', link: `${repo}/releases/tag/v0.116.0-dev` },
+        ],
+        sidebar: sidebar(),
+      },
+    },
+    es: {
+      label: 'Español', lang: 'es', description: 'Arrays tipados y cómputo numérico para Lua 5.4.',
+      themeConfig: {
+        nav: [
+          { text: 'Guía', link: '/es/getting-started' },
+          { text: 'Referencia', link: '/es/creation' },
+          { text: '0.116.0-dev', link: `${repo}/releases/tag/v0.116.0-dev` },
+        ],
+        sidebar: sidebar(true),
+        outline: { label: 'En esta página', level: [2, 3] },
+        docFooter: { prev: 'Anterior', next: 'Siguiente' },
+        sidebarMenuLabel: 'Contenido', returnToTopLabel: 'Volver arriba',
+        darkModeSwitchLabel: 'Apariencia', lightModeSwitchTitle: 'Usar tema claro',
+        darkModeSwitchTitle: 'Usar tema oscuro', langMenuLabel: 'Cambiar idioma',
+        skipToContentLabel: 'Ir al contenido',
+        editLink: { pattern: `${repo}/edit/main/docs/:path`, text: 'Editar esta página en GitHub' },
+      },
+    },
+  },
+  themeConfig: {
+    logo: '/logo.svg',
+    outline: { level: [2, 3] },
+    socialLinks: [{ icon: 'github', link: repo }],
+    editLink: { pattern: `${repo}/edit/main/docs/:path`, text: 'Edit this page on GitHub' },
+    search: {
+      provider: 'local',
+      options: {
+        locales: {
+          es: { translations: {
+            button: { buttonText: 'Buscar', buttonAriaLabel: 'Buscar en la documentación' },
+            modal: {
+              displayDetails: 'Mostrar detalles', resetButtonTitle: 'Limpiar búsqueda',
+              backButtonTitle: 'Cerrar búsqueda', noResultsText: 'Sin resultados para',
+              footer: { selectText: 'seleccionar', navigateText: 'navegar', closeText: 'cerrar' },
+            },
+          } },
+        },
+      },
+    },
+  },
+})

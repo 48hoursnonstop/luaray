@@ -81,7 +81,7 @@ identity and multi-condition precedence.
 
 Run `make full-test` for maintained C/Lua regressions and `make reference-test`
 for the external frozen corpus. Both run without Python. See
-[validation](../development/validation.md) for the original generators and
+[validation](development/validation.md) for the original generators and
 historical sanitizer scope.
 
 The [API inventory](api_inventory.md) separately measures callable availability.

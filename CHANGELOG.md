@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Published a searchable documentation website with topic navigation, page outlines,
+  English/Spanish switching, mobile navigation, and light/dark appearance.
+- Added getting-started and array fundamentals guides with executable Lua examples.
+
 - Reduced the main source tree to the library, subject-based examples, maintained
   tests, and current English/Spanish documentation.
 - Moved generated oracle data and development generators out of the main tree.

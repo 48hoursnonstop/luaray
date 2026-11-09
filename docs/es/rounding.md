@@ -92,6 +92,6 @@ make -j4 full-test
 make reference-test
 ```
 
-Nueve hashes: [pinned source hashes](../../compatibility/numpy-source.sha256). Véanse
+Nueve hashes: [pinned source hashes](https://github.com/48hoursnonstop/luaray/blob/main/compatibility/numpy-source.sha256). Véanse
 [matemáticas unarias](unary_math.md), [componentes](components.md),
 [creación](creation.md) e [inventario](api_inventory.md).

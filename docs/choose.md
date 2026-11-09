@@ -82,7 +82,7 @@ The original audit covered a native C suite, **69 Lua checks** (including guarde
 variants outside parity) and **3,481 NumPy 2.5.3 cases / 101,519 checks**.
 Fixtures verify values, shape, strides, dtype, output identity and backing states
 after errors. Run `make full-test` for maintained regressions and
-`make reference-test` for the frozen corpus. See [validation](../development/validation.md)
+`make reference-test` for the frozen corpus. See [validation](development/validation.md)
 for external reference tooling and the scope of historical sanitizer audits.
 
 Extreme native wrap tests use mathematical modulo; upstream repeated-subtraction

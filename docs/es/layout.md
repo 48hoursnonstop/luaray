@@ -98,6 +98,6 @@ make -j4 full-test
 make reference-test
 ```
 
-Ocho hashes fijan las fuentes en [pinned source hashes](../../compatibility/numpy-source.sha256).
+Ocho hashes fijan las fuentes en [pinned source hashes](https://github.com/48hoursnonstop/luaray/blob/main/compatibility/numpy-source.sha256).
 Véanse [creación](creation.md), [matemáticas binarias](binary_math.md) e
 [inventario](api_inventory.md).

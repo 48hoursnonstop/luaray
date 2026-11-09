@@ -87,4 +87,4 @@ original development tooling in the [released source package](https://github.com
 Object/structured/new variable-width StringDType support, Python exception
 classes, complete warning fidelity and non-native numeric byte order are not
 claimed. The earlier 40 blocked numeric-endian states remain separate. See
-`compatibility/current.json`, [validation results](../development/validation.md) and [historical release notes](https://github.com/48hoursnonstop/luaray/blob/v0.116.0-dev/PROGRESS_0_100.md).
+`compatibility/current.json`, [validation results](development/validation.md) and [historical release notes](https://github.com/48hoursnonstop/luaray/blob/v0.116.0-dev/PROGRESS_0_100.md).

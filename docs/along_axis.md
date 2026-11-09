@@ -82,7 +82,7 @@ The 63/64-index operand limit is also checked against upstream.
 Run `make full-test` for maintained C/Lua regressions and `make reference-test`
 for the external frozen corpus. Neither requires Python. Original generators and
 directed sanitizer tooling remain in the [released source package](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev);
-see [validation](../development/validation.md) for audit limitations.
+see [validation](development/validation.md) for audit limitations.
 
 The general mixed slice/fancy-index iterator remains a separate compatibility
 area; the new buffered path specifically covers all-fancy indexing. Numeric

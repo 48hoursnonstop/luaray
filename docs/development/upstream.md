@@ -6,7 +6,7 @@ The original imported implementation also records NumPy source commit
 `286e698f1dcf601648b165f48485ceaeec9c6231`.
 
 Pinned source-file checksums live in
-[`compatibility/numpy-source.sha256`](../../compatibility/numpy-source.sha256).
+[`compatibility/numpy-source.sha256`](https://github.com/48hoursnonstop/luaray/blob/main/compatibility/numpy-source.sha256).
 They identify the source files inspected for individual subsystems and releases.
 Reference generators are development tools; the running Lua library does not
 execute Python or upstream NumPy.
@@ -14,9 +14,9 @@ execute Python or upstream NumPy.
 ## Notices
 
 - NumPy-derived components retain the
-  [NumPy BSD notice](../../THIRD_PARTY_NUMPY_LICENSE.txt).
+  [NumPy BSD notice](https://github.com/48hoursnonstop/luaray/blob/main/THIRD_PARTY_NUMPY_LICENSE.txt).
 - Vendored PocketFFT retains its
-  [license](../../src/third_party/pocketfft/LICENSE.md).
+  [license](https://github.com/48hoursnonstop/luaray/blob/main/src/third_party/pocketfft/LICENSE.md).
 - BLAS/CBLAS and LAPACK are external native dependencies.
 
 Preserve these notices when redistributing source or binaries. Detailed original

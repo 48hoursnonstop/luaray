@@ -46,4 +46,4 @@ ni opciones dtype/casting/order/signature/subok. Objetos, tipos estructurados,
 StringDType variable y endian numérico no nativo siguen pendientes. No se declara
 fidelidad completa de warnings, clases de error, payloads NaN, configuración de
 búfer Python ni plataformas. La disponibilidad del nombre sigue clasificada
-como parcial. La [referencia inglesa](../en/clip.md) detalla estas reglas.
+como parcial. La [referencia inglesa](../clip.md) detalla estas reglas.

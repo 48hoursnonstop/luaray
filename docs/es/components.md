@@ -37,7 +37,7 @@ exactas** en quince tipos, escalares/vacíos, varias disposiciones, ambas formas
 de llamada, identidad, memoria compartida, escritura y cambios reales en el
 respaldo. Las pruebas C y 33 comprobaciones Lua verifican offsets, propiedad
 después de GC, intercalado y errores. Todas las API siguen parciales. Cinco
-hashes fijan las fuentes en [pinned source hashes](../../compatibility/numpy-source.sha256).
+hashes fijan las fuentes en [pinned source hashes](https://github.com/48hoursnonstop/luaray/blob/main/compatibility/numpy-source.sha256).
 
 ```sh
 make -j4 full-test

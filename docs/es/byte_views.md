@@ -46,5 +46,5 @@ El padding de longdouble puede diferir entre valores construidos por separado.
 La interfaz acepta nombres de dtype, no subclases Python. Objetos, tipos
 estructurados/subarray/void, StringDType variable y endian numérico no nativo
 siguen pendientes. Se conserva el endian de Unicode fijo. No se añade pickle ni
-serialización de archivos. La [referencia inglesa](../en/byte_views.md) detalla
+serialización de archivos. La [referencia inglesa](../byte_views.md) detalla
 el alcance; todas las APIs continúan clasificadas como parciales.

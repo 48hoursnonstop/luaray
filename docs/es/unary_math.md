@@ -101,6 +101,6 @@ make -j4 full-test
 make reference-test
 ```
 
-Hashes: [pinned source hashes](../../compatibility/numpy-source.sha256). Véanse el
+Hashes: [pinned source hashes](https://github.com/48hoursnonstop/luaray/blob/main/compatibility/numpy-source.sha256). Véanse el
 [inventario](api_inventory.md), la [creación](creation.md) y el
 [muestreo](sampling.md).

@@ -102,6 +102,6 @@ make -j4 full-test
 make reference-test
 ```
 
-Source hashes: [pinned source hashes](../../compatibility/numpy-source.sha256). See
+Source hashes: [pinned source hashes](https://github.com/48hoursnonstop/luaray/blob/main/compatibility/numpy-source.sha256). See
 [API inventory](api_inventory.md), [creation](creation.md) and
 [sampling](sampling.md) for related contracts.

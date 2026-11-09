@@ -117,4 +117,4 @@ make reference-test
 
 Véanse [matemáticas unarias](unary_math.md), [creación](creation.md) e
 [inventario](api_inventory.md). Los hashes se encuentran en
-[pinned source hashes](../../compatibility/numpy-source.sha256); se conserva la atribución BSD de NumPy.
+[pinned source hashes](https://github.com/48hoursnonstop/luaray/blob/main/compatibility/numpy-source.sha256); se conserva la atribución BSD de NumPy.

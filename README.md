@@ -4,7 +4,7 @@
 
 [![Native Lua regression](https://github.com/48hoursnonstop/luaray/actions/workflows/native.yml/badge.svg?branch=main)](https://github.com/48hoursnonstop/luaray/actions/workflows/native.yml)
 
-[Documentation](docs/README.md) · [Español](docs/es/README.md) · [Releases](https://github.com/48hoursnonstop/luaray/releases) · [Changelog](CHANGELOG.md)
+[Documentation](https://48hoursnonstop.github.io/luaray/) · [Español](https://48hoursnonstop.github.io/luaray/es/) · [Releases](https://github.com/48hoursnonstop/luaray/releases) · [Changelog](CHANGELOG.md)
 
 LuaRay provides typed multidimensional arrays, broadcasting, shared memory views,
 mathematical and statistical operations, FFTs, linear algebra, and random number
@@ -61,7 +61,7 @@ options, copying, and memory ownership.
 LuaRay is under development. NumPy 2.5.3 is the primary behavioral reference;
 compatibility varies by operation, dtype, and option.
 
-The [API inventory](docs/en/api_inventory.md) records available names and known
+The [API inventory](docs/api_inventory.md) records available names and known
 gaps. Available APIs remain classified as partial. Object and structured arrays,
 variable-width strings, and non-native numeric byte order are among the remaining
 limitations. Read the relevant reference before adapting NumPy code.

@@ -49,5 +49,5 @@ tipos, aliasing, escrituras constantes/variables y vida útil tras recolectar Lu
 Siguen pendientes subclases/dispatch Python, warnings/clases de error completas,
 objetos y tipos estructurados/subarray/void/StringDType variable, endian numérico
 no nativo y todos los ABI. Todas las APIs siguen clasificadas como parciales.
-La [referencia inglesa](../en/vectors_and_grids.md) detalla el contrato; los
+La [referencia inglesa](../vectors_and_grids.md) detalla el contrato; los
 resultados ejecutados y el inventario están en [resultados de verificación](../development/validation.md) y compatibility/.

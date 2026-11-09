@@ -1,43 +1,20 @@
-# Documentation
+# LuaRay documentation
 
-[Project overview](../README.md) · [Introducción en español](es/README.md)
+Read the **[documentation website](https://48hoursnonstop.github.io/luaray/)**:
+search, topic navigation, an outline on each page, and English/Spanish guides.
 
-The guides describe the implemented Lua interfaces and their supported behavior.
-Availability and NumPy compatibility are tracked separately.
+- [Get started](getting-started.md) · [Primeros pasos](es/getting-started.md)
+- [Array fundamentals](arrays.md) · [Fundamentos de arrays](es/arrays.md)
+- [Reference](creation.md) · [Referencia](es/creation.md)
 
-## Reference
+The Markdown files here are the editable sources. To preview the site:
 
-| English | Español |
-| --- | --- |
-| [Array creation and conversion](en/creation.md) | [Creación y conversión](es/creation.md) |
-| [Shape, order, and flattening](en/layout.md) | [Forma, orden y aplanado](es/layout.md) |
-| [Indexing and assignment](en/writing.md) | [Indexación y asignación](es/writing.md) |
-| [Masked writes and shared memory](en/masked_writes.md) | [Escrituras con máscara y memoria compartida](es/masked_writes.md) |
-| [Gather operations](en/take.md) | [Lecturas por índices](es/take.md) |
-| [Along-axis operations](en/along_axis.md) | [Operaciones por eje](es/along_axis.md) |
-| [Choosing values](en/choose.md) | [Selección con choose](es/choose.md) |
-| [Conditions and extraction](en/condition_selection.md) | [Condiciones y extracción](es/condition_selection.md) |
-| [Selection and broadcasting](en/selection.md) | [Selección y broadcasting](es/selection.md) |
-| [Unary mathematics](en/unary_math.md) | [Matemática unaria](es/unary_math.md) |
-| [Binary mathematics](en/binary_math.md) | [Matemática binaria](es/binary_math.md) |
-| [Real and imaginary components](en/components.md) | [Componentes reales e imaginarias](es/components.md) |
-| [Reality and closeness](en/reality.md) | [Valores reales y tolerancias](es/reality.md) |
-| [Decimal rounding](en/rounding.md) | [Redondeo decimal](es/rounding.md) |
-| [Value clipping](en/clip.md) | [Recorte de valores](es/clip.md) |
-| [Typed views and raw bytes](en/byte_views.md) | [Vistas tipadas y bytes](es/byte_views.md) |
-| [Sampling and numerical sequences](en/sampling.md) | [Muestreo y secuencias numéricas](es/sampling.md) |
-| [FFT helpers](en/fft_helpers.md) | [Funciones FFT](es/fft_helpers.md) |
-| [Cross products and coordinate grids](en/vectors_and_grids.md) | [Productos vectoriales y mallas](es/vectors_and_grids.md) |
-| [Portability](en/portability.md) | [Portabilidad](es/portability.md) |
-| [API availability](en/api_inventory.md) | [Disponibilidad de APIs](es/api_inventory.md) |
+```sh
+cd docs
+npm ci
+npm run dev
+```
 
-## Development
-
-- [Build and contribution guide](../CONTRIBUTING.md)
-- [Validation and numerical tolerances](development/validation.md)
-- [Upstream provenance and notices](development/upstream.md)
-- [Compatibility records](../compatibility/current.json)
-- [Changelog](../CHANGELOG.md)
-
-Published source packages and original reports are available in
-[GitHub Releases](https://github.com/48hoursnonstop/luaray/releases).
+Node.js is needed only to work on the documentation website. The numerical
+library keeps its native build dependencies. Generated site files and dependencies
+are ignored by Git; GitHub Actions builds and deploys the site to Pages.

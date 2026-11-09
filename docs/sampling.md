@@ -140,7 +140,7 @@ A separate C oracle checks **70,828 raw-bit states**: all65,536 half encodings,
 It passed **141,656 exact ASCII/Unicode comparisons**, unaligned buffers and
 output guards. Eight threads performed16,384 additional formatter calls. Native
 sampling boundary tests and154 direct Lua checks also passed. Full regression,
-final sanitizer and clean-package results are recorded in [validation results](../development/validation.md) and
+final sanitizer and clean-package results are recorded in [validation results](development/validation.md) and
 the versioned release verification JSON/log. The raw-bit corpus is ABI-specific;
 regeneration requires the pinned NumPy interpreter on the same tested ABI.
 

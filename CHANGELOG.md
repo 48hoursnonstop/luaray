@@ -12,6 +12,12 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.119.0-dev
+
+Added `tri`, `tril`, and `triu`, preserving boolean-to-dtype mask conversion,
+KEEPORDER batch layouts, typed zeros, Unicode byte-order promotion, and defined
+fixed-width index wrapping. Added EN/ES guides and differential boundary tests.
+
 ## 0.118.0-dev
 
 Added root and ndarray `trace` with arbitrary axes, dtype/output handling, staged

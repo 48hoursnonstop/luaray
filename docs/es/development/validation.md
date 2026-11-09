@@ -43,11 +43,14 @@ el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.118.0-dev** aprobó **55 suites nativas**, **88 suites Lua**, siete ejemplos
-y 32 bloques ejecutables de documentación. Las referencias de diagonales
-conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas nuevas aprobaron
+LuaRay **0.119.0-dev** aprobó **55 suites nativas**, **89 suites Lua**, siete ejemplos
+y 38 bloques ejecutables de documentación. Las referencias de diagonales
+conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
+
+Las matrices triangulares aprobaron **18,142 casos / 1,754,183 comprobaciones
+exactas**, incluidos orden de memoria, dtypes, ejes vacíos e índices extremos.
 
 La auditoría dirigida ASan/UBSan instrumentó `ln_matrix`, `ln_linalg`, `lua_matrix`
 y `lua_module`, además de la prueba nativa de matrices y el runner Lua. Aprobaron

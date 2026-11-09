@@ -3,6 +3,8 @@
 #include "ln_datetime.h"
 #include "ln_creation.h"
 #include "ln_write.h"
+#include "ln_select.h"
+#include "ln_string.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -147,4 +149,56 @@ ln_array *ln_matrix_trace(const ln_array *a,ln_intp offset,int axis1,int axis2,
     ln_array_free(diagonal);return result;
 unsupported:
     ln_array_free(diagonal);return failure(err,"trace has no compatible reduction signature");
+}
+
+/* _twodim_base_impl.py: tri casts a boolean mask; tril/triu select between
+ * input and a typed zero using KEEPORDER iteration. */
+static ln_array *triangle_mask(ln_intp rows,ln_intp columns,ln_intp k,int strict,ln_error *err)
+{
+    rows=rows<0?0:rows;columns=columns<0?0:columns;
+    ln_intp effective=0;
+    if(columns>0){
+        if(k==INTPTR_MIN||(strict&&k==INTPTR_MIN+1))
+            return failure(err,"triangle index range exceeds the native integer range");
+        effective=k-(strict?1:0);
+        /* arange converts its first two values before its fixed-width fill
+         * loop. Match those conversion errors, then emulate later wrapping
+         * with unsigned arithmetic rather than signed overflow. */
+        if(columns>1&&effective==INTPTR_MIN+1)
+            return failure(err,"triangle index range exceeds the native integer range");
+    }
+    ln_intp shape[]={rows,columns};
+    ln_array *mask=ln_array_new(2,shape,ln_dtype_by_num(LN_BOOL),0,0,err);
+    if(!mask)return NULL;
+    for(ln_intp row=0;row<rows;++row)for(ln_intp column=0;column<columns;++column){
+        uintptr_t bits=(uintptr_t)column-(uintptr_t)effective;ln_intp shifted;
+        memcpy(&shifted,&bits,sizeof shifted);
+        mask->data[(size_t)row*(size_t)columns+(size_t)column]=(char)(row>=shifted);
+    }
+    return mask;
+}
+ln_array *ln_matrix_tri(ln_intp rows,ln_intp columns,ln_intp k,const ln_dtype *dtype,ln_error *err)
+{
+    ln_array *mask=triangle_mask(rows,columns,k,0,err);if(!mask)return NULL;
+    if(!dtype)dtype=ln_dtype_by_num(LN_DOUBLE);
+    if(dtype->type_num==LN_BOOL)return mask;
+    if(ln_string_is_dtype(dtype)&&ln_string_nchars(dtype)==0){
+        dtype=ln_string_make_dtype(dtype->type_num==LN_UNICODE,
+                ln_legacy_string_width_for_dtype(mask->descr),dtype->byteorder,err);
+        if(!dtype){ln_array_free(mask);return NULL;}
+    }
+    ln_array *result=ln_creation_convert(mask,dtype,'C',-1,0,NULL,err);
+    ln_array_free(mask);return result;
+}
+ln_array *ln_matrix_trilu(const ln_array *a,ln_intp k,int upper,ln_error *err)
+{
+    if(!a||a->nd<1)return failure(err,"tril/triu require an array with at least one dimension");
+    ln_intp rows=a->dimensions[a->nd>1?a->nd-2:0],columns=a->dimensions[a->nd-1],one=1;
+    ln_array *mask=triangle_mask(rows,columns,k,upper!=0,err);if(!mask)return NULL;
+    ln_array *zero=ln_array_new(1,&one,a->descr,0,1,err);
+    if(!zero){ln_array_free(mask);return NULL;}
+    const ln_dtype *dtype=ln_common_dtype_descr(a->descr,zero->descr);
+    if(!dtype){ln_array_free(zero);ln_array_free(mask);return failure(err,"triangle input has no selection dtype");}
+    ln_array *result=ln_array_where(mask,upper?zero:a,upper?a:zero,dtype,err);
+    ln_array_free(zero);ln_array_free(mask);return result;
 }

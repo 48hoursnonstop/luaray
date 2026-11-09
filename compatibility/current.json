@@ -1,11 +1,11 @@
 {
-  "version": "0.118.0-dev",
+  "version": "0.119.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "trace_family": 20861
+    "triangular_family": 18142
   },
-  "new_lua_regression_checks": 39,
+  "new_lua_regression_checks": 36,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -13,20 +13,22 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.trace": "implemented_partial",
-    "numpy.ndarray.trace": "implemented_partial",
-    "numpy.linalg.trace": "implemented_partial"
+    "numpy.tri": "implemented_partial",
+    "numpy.tril": "implemented_partial",
+    "numpy.triu": "implemented_partial"
   },
   "evidence": [
     "tests/native/test_matrix_core.c",
     "tests/lua/matrix_regression.lua",
     "tests/lua/trace_regression.lua",
-    "compatibility/numpy-source.sha256"
+    "compatibility/numpy-source.sha256",
+    "tests/lua/triangle_regression.lua",
+    "docs/triangles.md"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 358,
-    "missing_bindings": 316,
+    "available_callables": 361,
+    "missing_bindings": 313,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -89,7 +91,7 @@
     "Diagonal extraction uses the native C int offset range; construction uses checked native-size dimensions; foreign index objects and complete Python signature/dispatch fidelity are not implemented"
   ],
   "sanitizers": {
-    "version": "0.118.0-dev",
+    "version": "0.119.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_matrix",
@@ -105,8 +107,8 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.118.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.119.0-dev-sanitizers.log"
   },
   "new_check_semantics": "Exact tested values, dtype, shape, strides, identity, sharing and backing states; full host scalar precision and Python type/dispatch fidelity are not claimed",
-  "new_reference_checks": 853519
+  "new_reference_checks": 1754183
 }

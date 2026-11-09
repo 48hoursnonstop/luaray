@@ -41,5 +41,14 @@ int main(void)
     assert(ln_matrix_trace(a,0,0,0,NULL,NULL,&err)==NULL);
     assert(ln_matrix_trace(a,0,0,1,NULL,a,&err)==NULL);
     ln_array_free(alias);ln_array_free(a);
+    ln_array *mask=ln_matrix_tri(2,3,0,ln_dtype_by_num(LN_BOOL),&err);assert(mask);
+    const char flags[]={1,0,0,1,1,0};assert(!memcmp(mask->data,flags,sizeof flags));ln_array_free(mask);
+    mask=ln_matrix_tri(-2,3,0,NULL,&err);assert(mask&&mask->dimensions[0]==0&&mask->dimensions[1]==3);ln_array_free(mask);
+    assert(ln_matrix_tri(2,3,INTPTR_MIN,NULL,&err)==NULL);
+    a=ln_array_new(3,shape,ln_dtype_by_name("int32"),1,0,&err);assert(a);
+    for(int i=0;i<24;++i)((int32_t *)a->data)[i]=i;
+    mask=ln_matrix_trilu(a,0,0,&err);assert(mask&&mask->strides[0]==4&&mask->strides[1]==32&&mask->strides[2]==8);
+    ln_intp location[]={1,2,1};assert(ln_array_get_number(mask,location,&numeric,&iv,&is_integer,&err)==0&&iv==11);
+    assert(mask->owner!=a->owner);ln_array_free(mask);ln_array_free(a);
     puts("matrix native: diagonal layout, shared lifetime, readonly, construction, overflow and staged trace passed");
 }

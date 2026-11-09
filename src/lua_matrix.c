@@ -23,7 +23,7 @@ static void options(lua_State *L,int index,int diagonal)
             (n==5&&(!memcmp(k,"axis1",5)||!memcmp(k,"axis2",5)))||
             (diagonal==2&&((n==5&&!memcmp(k,"dtype",5))||(n==3&&!memcmp(k,"out",3)))))
             :(n==1&&*k=='k'));
-        if(!valid)luaL_error(L,"unknown diagonal option");
+        if(!valid)luaL_error(L,"unknown matrix option");
         lua_pop(L,1);
     }
 }
@@ -69,7 +69,7 @@ static const ln_dtype *dtype(lua_State *L,int index)
     if(lua_type(L,index)==LUA_TNIL||lua_type(L,index)==LUA_TNONE)return NULL;
     size_t length=0;const char *name=lua_type(L,index)==LUA_TSTRING?lua_tolstring(L,index,&length):NULL;
     const ln_dtype *result=name&&strlen(name)==length?ln_dtype_by_name(name):NULL;
-    if(!result)luaL_error(L,"unsupported trace dtype");
+    if(!result)luaL_error(L,"unsupported matrix dtype");
     return result;
 }
 int ln_lua_trace(lua_State *L)
@@ -100,3 +100,40 @@ int ln_lua_trace(lua_State *L)
     if(output){lua_pushvalue(L,output_index);return 1;}
     return ln_lua_push_scalar_or_array(L,result);
 }
+
+int ln_lua_tri(lua_State *L)
+{
+    int top=lua_gettop(L);lua_Integer rows=0,columns=0,k=0;const ln_dtype *target=NULL;
+    if(top<1||top>4)return luaL_error(L,"tri accepts rows, columns, k and dtype");
+    rows=integer(L,1);columns=rows;
+    if(lua_type(L,2)==LUA_TTABLE){
+        if(top!=2)return luaL_error(L,"tri options cannot be combined with positional options");
+        lua_pushnil(L);
+        while(lua_next(L,2)){
+            size_t n=0;const char *key=lua_type(L,-2)==LUA_TSTRING?lua_tolstring(L,-2,&n):NULL;
+            if(!key||!((n==1&&(*key=='m'||*key=='k'))||(n==5&&!memcmp(key,"dtype",5))))
+                return luaL_error(L,"unknown tri option");
+            lua_pop(L,1);
+        }
+        columns=field(L,2,"m",rows);k=field(L,2,"k",0);
+        lua_getfield(L,2,"dtype");target=dtype(L,-1);lua_pop(L,1);
+    }else{
+        if(top>=2&&lua_type(L,2)!=LUA_TNIL)columns=integer(L,2);
+        if(top>=3&&lua_type(L,3)!=LUA_TNIL)k=integer(L,3);
+        if(top>=4)target=dtype(L,4);
+    }
+    ln_error err={0};ln_array *result=ln_matrix_tri((ln_intp)rows,(ln_intp)columns,(ln_intp)k,target,&err);
+    return result?ln_lua_push_array(L,result):ln_lua_fail(L,&err);
+}
+static int trilu(lua_State *L,int upper)
+{
+    int top=lua_gettop(L);lua_Integer k=0;
+    if(top<1||top>2)return luaL_error(L,"tril/triu accept input and optional k");
+    if(lua_type(L,2)==LUA_TTABLE){options(L,2,0);k=field(L,2,"k",0);}
+    else if(top==2&&lua_type(L,2)!=LUA_TNIL)k=integer(L,2);
+    ln_array *a=ln_lua_test_array(L,1);if(!a)a=ln_lua_legacy_array(L,1,NULL);
+    ln_error err={0};ln_array *result=ln_matrix_trilu(a,(ln_intp)k,upper,&err);
+    return result?ln_lua_push_array(L,result):ln_lua_fail(L,&err);
+}
+int ln_lua_tril(lua_State *L){return trilu(L,0);}
+int ln_lua_triu(lua_State *L){return trilu(L,1);}

@@ -99,6 +99,6 @@ make full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
 make sanitize-round113
 ```
 
-Nine source/test hashes: `NUMPY_2_5_3_ROUND113_FILE_HASHES.sha256`. See
+Nine source/test hashes: [NUMPY_2_5_3_ROUND113_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_ROUND113_FILE_HASHES.sha256). See
 [unary math](unary_math.md), [component views](components.md),
 [casting/creation](creation.md) and [API inventory](api_inventory.md).

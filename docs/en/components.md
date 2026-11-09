@@ -38,7 +38,7 @@ negative/strided/broadcast layouts, both call forms, identity, component sharing
 writeability and actual post-write backing values. A native C suite and 33 Lua
 checks verify offsets, owner lifetime after collection, interleaving and errors.
 All APIs remain partial. Five source/test hashes pin the getset/type-check
-reference in `NUMPY_2_5_3_COMPONENTS111_FILE_HASHES.sha256`.
+reference in [NUMPY_2_5_3_COMPONENTS111_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_COMPONENTS111_FILE_HASHES.sha256).
 
 ```sh
 make components111-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'

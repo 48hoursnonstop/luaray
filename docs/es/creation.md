@@ -125,7 +125,7 @@ vistas compartidas y rechazo de escritura de solo lectura. También se ejecutan
 pruebas C,164 comprobaciones Lua y rango64 en proceso nuevo. El generador
 reproduce exactamente los cuatro archivos con el intérprete fijado.
 
-TEST_RESULTS.md y el JSON/log de entrega separan regresión, sanitizadores y
+[resultados de verificación](../development/validation.md) y el JSON/log de entrega separan regresión, sanitizadores y
 reconstrucción limpia. El inventario mide nombres disponibles; todos siguen
 parcialmente compatibles. Objetos/estructuras/strings variables, endian numérico
 no nativo, protocolos externos, subclases generales, todas las advertencias/

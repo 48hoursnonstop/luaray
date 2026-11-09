@@ -119,4 +119,4 @@ make sanitize-binary109
 
 See [unary mathematics](unary_math.md), [creation](creation.md) and the
 [availability inventory](api_inventory.md). Source hashes are recorded in
-`NUMPY_2_5_3_BINARY109_FILE_HASHES.sha256`; existing NumPy BSD attribution remains.
+[NUMPY_2_5_3_BINARY109_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_BINARY109_FILE_HASHES.sha256); existing NumPy BSD attribution remains.

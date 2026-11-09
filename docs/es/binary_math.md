@@ -120,4 +120,4 @@ make sanitize-binary109
 
 Véanse [matemáticas unarias](unary_math.md), [creación](creation.md) e
 [inventario](api_inventory.md). Los hashes se encuentran en
-`NUMPY_2_5_3_BINARY109_FILE_HASHES.sha256`; se conserva la atribución BSD de NumPy.
+[NUMPY_2_5_3_BINARY109_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_BINARY109_FILE_HASHES.sha256); se conserva la atribución BSD de NumPy.

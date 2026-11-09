@@ -104,6 +104,6 @@ make sanitize-unary108
 /ruta/a/numpy-python tools/generate_unary108_differential.py
 ```
 
-Hashes: `NUMPY_2_5_3_UNARY108_FILE_HASHES.sha256`. Véanse el
+Hashes: [NUMPY_2_5_3_UNARY108_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_UNARY108_FILE_HASHES.sha256). Véanse el
 [inventario](api_inventory.md), la [creación](creation.md) y el
 [muestreo](sampling.md).

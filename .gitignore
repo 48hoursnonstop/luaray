@@ -5,3 +5,6 @@
 /releases/
 __pycache__/
 *.pyc
+
+# Integrity manifests are generated inside release archives.
+/PROJECT_SHA256SUMS

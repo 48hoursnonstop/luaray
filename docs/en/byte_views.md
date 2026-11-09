@@ -79,4 +79,4 @@ Lua accepts dtype strings, not Python ndarray subtype/type arguments. Object,
 structured/subarray/void and variable-width StringDType arrays remain unavailable,
 as does non-native numeric endian. Fixed Unicode endian is retained. No Python
 pickle/file serialization is implied. Runtime availability remains partial;
-see compatibility records and TEST_RESULTS.md for executed checks.
+see compatibility records and [validation results](../development/validation.md) for executed checks.

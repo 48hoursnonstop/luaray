@@ -2,6 +2,7 @@
 """Source-only archive, SHA-256 manifest and an actual clean build/test gate."""
 from pathlib import Path
 import hashlib
+import io
 import json
 import os
 import subprocess
@@ -31,12 +32,14 @@ for directory,dirs,names in os.walk(ROOT):
             assert p.suffix not in {'.o','.so'},f'compiled file in source tree: {p}'
             files.append(p)
 files.sort()
-manifest=ROOT/'PROJECT_SHA256SUMS'
-manifest.write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.relative_to(ROOT).as_posix()+'\n' for p in files))
-files.append(manifest)
+manifest_data=''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.relative_to(ROOT).as_posix()+'\n' for p in files).encode()
+source_count=len(files)+1
 archive=RELEASES/(NAME+'-source.tar.gz')
 with tarfile.open(archive,'w:gz') as tar:
-    for path in sorted(files):tar.add(path,arcname=NAME+'/'+path.relative_to(ROOT).as_posix(),recursive=False)
+    for path in files:tar.add(path,arcname=NAME+'/'+path.relative_to(ROOT).as_posix(),recursive=False)
+    manifest=tarfile.TarInfo(NAME+'/PROJECT_SHA256SUMS')
+    manifest.size=len(manifest_data);manifest.mode=0o644
+    tar.addfile(manifest,io.BytesIO(manifest_data))
 digest=hashlib.sha256(archive.read_bytes()).hexdigest()
 archive.with_suffix(archive.suffix+'.sha256').write_text(digest+'  '+archive.name+'\n')
 log=RELEASES/(NAME+'-clean-build.log')
@@ -50,6 +53,7 @@ with tempfile.TemporaryDirectory(prefix='clean-release-',dir=ROOT/'.dev') as tem
         subprocess.run(['make','-j4','full-test','CXXFLAGS=-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
         env['LUA_PATH']=str(clean/'lua/?.lua')+';;'
         env['LUA_CPATH']=str(clean/'build/?.so')+';;'
+        subprocess.run(['lua5.4','examples/quickstart.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
         subprocess.run(['lua5.4','examples/writing98.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
         subprocess.run(['lua5.4','examples/masked_writes99.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
         subprocess.run(['lua5.4','examples/take100.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
@@ -69,8 +73,8 @@ with tempfile.TemporaryDirectory(prefix='clean-release-',dir=ROOT/'.dev') as tem
         subprocess.run(['lua5.4','examples/clip114.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
         subprocess.run(['lua5.4','examples/bytes115.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
         subprocess.run(['lua5.4','examples/vector116.lua'],cwd=clean,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
-report=dict(version=VERSION,archive=archive.name,sha256=digest,source_files=len(files),
-            manifest_entries=len(files)-1,clean_build='passed',clean_log=log.name,
+report=dict(version=VERSION,archive=archive.name,sha256=digest,source_files=source_count,
+            manifest_entries=len(files),clean_build='passed',clean_log=log.name,
             differential_fixture_files=len(list((ROOT/'tests').glob('*_differential_generated.lua'))),
             new_oracle=coverage['new_oracle'],new_reference_cases=coverage['new_reference_cases'],
             blocked_original_states=coverage['blocked_original_states'],

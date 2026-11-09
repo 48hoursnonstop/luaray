@@ -133,7 +133,7 @@ boundary tests,164 direct Lua checks and a fresh-process rank64 test add coverag
 The generator reproduces all four frozen files exactly with the pinned oracle.
 
 Full regression, sanitizer and clean archive execution are recorded separately
-in TEST_RESULTS.md and the versioned release verification JSON/log. The API
+in [validation results](../development/validation.md) and the versioned release verification JSON/log. The API
 inventory measures observed callable names only; all remain partially compatible.
 Object/structured/variable strings, non-native numeric endian, foreign array
 protocols, general subclasses, all warnings/exceptions and complete coercion are

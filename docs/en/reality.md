@@ -72,6 +72,6 @@ make full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
 make sanitize-predicates112
 ```
 
-Six source/test hashes: `NUMPY_2_5_3_PREDICATES112_FILE_HASHES.sha256`.
+Six source/test hashes: [NUMPY_2_5_3_PREDICATES112_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_PREDICATES112_FILE_HASHES.sha256).
 See [component views](components.md), [layout](layout.md) and
 [API availability](api_inventory.md).

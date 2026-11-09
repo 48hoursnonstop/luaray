@@ -101,6 +101,6 @@ make sanitize-layout110
 /ruta/a/numpy-python tools/generate_layout110_differential.py
 ```
 
-Ocho hashes fijan las fuentes en `NUMPY_2_5_3_LAYOUT110_FILE_HASHES.sha256`.
+Ocho hashes fijan las fuentes en [NUMPY_2_5_3_LAYOUT110_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_LAYOUT110_FILE_HASHES.sha256).
 Véanse [creación](creation.md), [matemáticas binarias](binary_math.md) e
 [inventario](api_inventory.md).

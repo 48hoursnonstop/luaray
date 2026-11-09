@@ -89,5 +89,5 @@ arguments and every host ABI remain outside the certified contract. Meshgrid
 writes do not reproduce Python warning objects. Object/structured/subarray/void/
 variable-width StringDType and non-native numeric endian remain pending. Raw
 constructor limits and the linalg wrapper's earlier argument adaptation remain.
-All inventory entries remain partial; see TEST_RESULTS.md and compatibility/
+All inventory entries remain partial; see [validation results](../development/validation.md) and compatibility/
 for executed evidence and measured availability rather than a completion claim.

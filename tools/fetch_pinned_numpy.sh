@@ -1,7 +1,9 @@
 #!/usr/bin/env sh
 set -eu
 COMMIT=286e698f1dcf601648b165f48485ceaeec9c6231
-OUT="${1:-$HOME/Downloads}"
+source_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+OUT="${1:-$source_root/.dev/upstream}"
+mkdir -p "$OUT"
 TREE="$OUT/numpy-source-$COMMIT"
 ARCHIVE="$OUT/numpy-$COMMIT.tar.gz"
 rm -rf "$TREE"

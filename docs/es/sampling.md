@@ -134,7 +134,7 @@ La referencia C cubre **70,828 estados de bits**: todos los65,536 half,2,063
 float32,2,063 float64,576 complex64,576 complex128 y14 extendidos x86. Pasaron
 **141,656 comparaciones ASCII/Unicode exactas**, buffers desalineados y guardas.
 Ocho hilos ejecutaron16,384 llamadas adicionales. También pasaron pruebas nativas
-y154 comprobaciones Lua. TEST_RESULTS.md y el JSON/log de entrega registran
+y154 comprobaciones Lua. [resultados de verificación](../development/validation.md) y el JSON/log de entrega registran
 regresión completa, sanitizadores y extracción limpia. El corpus de bits depende
 del ABI y se regenera con el intérprete NumPy fijado en ese mismo ABI.
 

@@ -86,4 +86,4 @@ compatibilidad; solo se ejecutó en NumPy la llamada representativa. El script
 No se declara soporte completo para object, estructuras, StringDType variable,
 clases de excepciones Python, advertencias ni endianness numérico no nativo.
 Los 40 estados bloqueados anteriores siguen separados. Consulta
-`compatibility/current.json`, `TEST_RESULTS.md` y `PROGRESS_0_100.md`.
+`compatibility/current.json`, [resultados de verificación](../development/validation.md) y [PROGRESS_0_100.md](../history/releases/PROGRESS_0_100.md).

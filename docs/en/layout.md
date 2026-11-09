@@ -99,7 +99,7 @@ make sanitize-layout110
 /path/to/numpy-python tools/generate_layout110_differential.py
 ```
 
-Eight source/test hashes are pinned in `NUMPY_2_5_3_LAYOUT110_FILE_HASHES.sha256`.
+Eight source/test hashes are pinned in [NUMPY_2_5_3_LAYOUT110_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_LAYOUT110_FILE_HASHES.sha256).
 See [creation](creation.md) for array conversion and copying,
 [binary mathematics](binary_math.md) for ordinary inputs, and the
 [API inventory](api_inventory.md) for measured callable availability.

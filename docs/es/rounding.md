@@ -93,6 +93,6 @@ make full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
 make sanitize-round113
 ```
 
-Nueve hashes: `NUMPY_2_5_3_ROUND113_FILE_HASHES.sha256`. Véanse
+Nueve hashes: [NUMPY_2_5_3_ROUND113_FILE_HASHES.sha256](../../compatibility/upstream/NUMPY_2_5_3_ROUND113_FILE_HASHES.sha256). Véanse
 [matemáticas unarias](unary_math.md), [componentes](components.md),
 [creación](creation.md) e [inventario](api_inventory.md).

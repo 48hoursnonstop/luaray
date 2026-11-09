@@ -88,4 +88,4 @@ reference interpreter to reproduce the bounded diagnostic.
 Object/structured/new variable-width StringDType support, Python exception
 classes, complete warning fidelity and non-native numeric byte order are not
 claimed. The earlier 40 blocked numeric-endian states remain separate. See
-`compatibility/current.json`, `TEST_RESULTS.md` and `PROGRESS_0_100.md`.
+`compatibility/current.json`, [validation results](../development/validation.md) and [PROGRESS_0_100.md](../history/releases/PROGRESS_0_100.md).

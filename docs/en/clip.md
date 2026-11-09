@@ -70,4 +70,4 @@ Object, structured and variable-width StringDType arrays are unavailable; fixed
 strings have no clip signature. Non-native numeric endian remains unsupported.
 Warnings, exception classes, NaN payloads, foreign DTypes and every architecture
 are not certified. See the measured records in `compatibility/` and
-`TEST_RESULTS.md`; a callable binding does not imply full API compatibility.
+[validation results](../development/validation.md); a callable binding does not imply full API compatibility.

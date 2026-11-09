@@ -49,9 +49,9 @@ ancho variable y endian numérico no nativo.
 make -j4 full-test
 ```
 
-La suite ejecuta pruebas nativas y **161 fixtures diferenciales** incluidos en el
-repositorio. El lanzador necesita Python 3; no necesita NumPy para ejecutar los
-fixtures. Regenerar referencias requiere el entorno NumPy fijado.
+La suite ejecuta pruebas nativas y **161 fixtures diferenciales** directamente
+con Make y Lua, sin Python ni NumPy. Regenerar referencias requiere Python y el
+entorno NumPy fijado.
 
 Consulta los [resultados y tolerancias](../development/validation.md), las
 [instrucciones de desarrollo](../../CONTRIBUTING.md) y el

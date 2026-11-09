@@ -23,10 +23,11 @@ Use `make clean` when changing compiler settings or native interfaces.
 
 ## Tests and references
 
-`make full-test` executes the checked-in native and Lua regression suites.
-The fixture launcher requires Python 3, but not NumPy. Oracle generators under
-`tools/` require the version stated in each generator; most recent references
-use NumPy 2.5.3, while older fixtures retain their recorded provenance.
+`make full-test` executes the checked-in native and Lua regression suites through
+Make and the shell, without Python or NumPy. Oracle generators under `tools/`
+require Python and the NumPy version stated in each generator; most recent
+references use NumPy 2.5.3, while older fixtures retain their recorded provenance.
+The inventory, release, and directed sanitizer automation also use Python.
 
 Run affected feature tests while developing, then the full suite before merging.
 For changes to native memory handling, use the appropriate directed sanitizer

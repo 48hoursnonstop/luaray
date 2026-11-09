@@ -72,9 +72,9 @@ limitations. Read the relevant reference before adapting NumPy code.
 make -j4 full-test
 ```
 
-The suite runs native tests and **161 checked-in differential fixtures**. Python 3
-is needed for the test launcher; running these fixtures does not require NumPy.
-Regenerating reference results requires the pinned NumPy environment.
+The suite runs native tests and **161 checked-in differential fixtures** directly
+through Make and Lua, without Python or NumPy. Regenerating reference results
+requires Python and the pinned NumPy environment.
 
 [Validation details](docs/development/validation.md) document executed checks,
 numerical tolerances, and sanitizer scope. [Upstream provenance](docs/development/upstream.md)

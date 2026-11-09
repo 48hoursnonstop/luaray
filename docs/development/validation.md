@@ -25,8 +25,9 @@ make -j4 full-test CXXFLAGS='-O0 -g -std=c++11 -Wall -Wextra -Wpedantic'
 make sanitize-vector116
 ```
 
-Frozen fixtures run without NumPy. Regenerating them requires the pinned oracle
-version identified by each generator. Recent generators assert NumPy 2.5.3;
+Frozen fixtures execute native C/C++ and Lua directly, without Python or NumPy.
+Regenerating them requires Python and the pinned oracle version identified by
+each generator. Recent generators assert NumPy 2.5.3;
 older NumPy 2.3.5 fixtures keep their original attribution.
 
 `compatibility/current.json` records the release-specific behavioral evidence.

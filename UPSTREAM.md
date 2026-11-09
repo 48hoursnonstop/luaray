@@ -1,3 +1,31 @@
+## 0.108 — NumPy2.5.3 typed unary loops and physical iteration
+
+Ten source/test hashes in NUMPY_2_5_3_UNARY108_FILE_HASHES.sha256 pin signatures
+from generate_umath.py, scalar/half/complex formulas from loops.c.src, modular
+integer behavior from loops_autovec.dispatch.c.src, FP/SIMD math dispatch and
+npy_math_internal.h.src angle constants. The existing NumPy BSD attribution is
+retained. ln_unary_math.c registers ten operations independently of the legacy
+binary-op enum, with three equivalent public aliases. The shared Lua unary
+entry point parses options before coercing ordinary scalar/table inputs.
+
+Complex-square differential tests exposed two source-level requirements: the
+FMA product ordering used by eligible SIMD paths, and traversal of the actual
+KEEPORDER axis permutation rather than always taking the last logical axis.
+The generalized iterator now uses its computed physical permutation. Existing
+staged output/writeback remains safe for shared views. Exact equal memory ranges
+are vector-eligible in upstream loops_utils.h.src; they do not imply a scalar
+fallback. Thirty-eight additional strict cases verify layouts, masks, in-place
+and reversed overlapping writeback. No per-call alias-context extension was
+needed. Full139-fixture regression passed after the iterator change.
+
+Integer square uses explicit unsigned modular operations without signed C UB.
+Integer reciprocal zero preserves the audited x86 results without undefined
+infinity-to-integer casts. Other ABI/CPU dispatch and nondefault rounding modes
+remain uncertified. General complex square/reciprocal tolerances and all API
+limits are stated in English/Spanish docs. New fixtures use NumPy2.5.3; historical
+fixtures retain their provenance and assertions except the intentional native
+registry count increase61 to71 and release version assertions. No Python runtime.
+
 ## 0.107 — NumPy2.5.3 creation and explicit Lua ownership
 
 Creation/conversion follows multiarraymodule.c array/asarray/contiguity entry

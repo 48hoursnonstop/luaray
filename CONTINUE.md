@@ -1,3 +1,29 @@
+# Current checkpoint — unary0.108 clean release gate preparation
+
+Active /mnt/datos/luaray/.dev/math108 VERSION0.108.0-dev. Directed5589cases/
+501064checks(max0),358Lua andnativeC pass. Full139/139fixtures pass. ASan24units
+(23C+1Cpp),12native48Lua pass. Inventory331/675,343missing,1N/A(allpartial).
+Needfinalpublicexample/reproduction, tools/release.py cleanextract/fullsuite/
+11examples, manifest/gzipSHA;commitFFmain/tagv0.108/publicassets/Downloads/exactCI.
+Continueafterrelease, userrequestsworkuntilcompleteorusageout. Noagentsauthorized.
+
+Newln_unary_math independentregistry addsfloor/ceil/trunc/rint/fabs/conjugate/
+square/reciprocal/degrees/radians +3aliases. Genericunary parsesoptions BEFORE
+coercion, returnsstrong0Darrayforscalars. NativeUFcount71 (oldtest61updated).
+GeneraliteratorphysicallytraversesitsKEEPORDERaxispermutation fixingF-order
+complexsquareFMAselection. Equalinplacerangesvectorizeupstream, noadditional
+aliascontextAPInescessary. 38newFMAcasesstrict;generalcomplexsquare/reciprocal
+relativebudgets6e-7/2e-15,observed0. Integerreciprocal0explicitx86signedminfor
+int32/64,smallerunsigned0. OtherABIs/nondefaultroundinguncertified.
+
+Latestpublic0.107commit7348a1d1c26af6221420ff8dfaaa1ac140d935a0 SHA
+3b7b347cb8a90b5b546558b74535396f680bf7b63b46e1bf1faf0d38cc766427;
+exactCI42547753269success/publicassetdigestverified/DownloadssameSHA.
+Allold40endianblockedstates,takehang/chooseunsafevariantsandlegacyastype
+restrictionsretained. luanimathgoalunfinished/suspendedfordependencies.
+After0.108missingbinarymathfmod/float_power and scalar/tablecalls arecoherent.
+Oldercheckpointsbelowhistoricalonly.
+
 # Current checkpoint — creation0.107 final clean package gate
 
 Active /mnt/datos/luaray/.dev/creation107 VERSION0.107.0-dev. All136frozen fixtures

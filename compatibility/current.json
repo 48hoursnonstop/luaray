@@ -1,15 +1,14 @@
 {
-  "version": "0.107.0-dev",
+  "version": "0.108.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "conversion": 4726,
-    "copy": 740,
-    "like_constructors": 5624,
-    "dense_constructors": 1461
+    "rounding": 2135,
+    "algebra": 1746,
+    "angles": 1708
   },
-  "new_numeric_checks": 1041748,
-  "new_lua_regression_checks": 164,
+  "new_numeric_checks": 501064,
+  "new_lua_regression_checks": 358,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -17,38 +16,33 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.array": "implemented_partial",
-    "numpy.asarray": "implemented_partial",
-    "numpy.asanyarray": "implemented_partial",
-    "numpy.ascontiguousarray": "implemented_partial",
-    "numpy.asfortranarray": "implemented_partial",
-    "numpy.asarray_chkfinite": "implemented_partial",
-    "numpy.copy": "implemented_partial",
-    "numpy.empty_like": "implemented_partial",
-    "numpy.zeros_like": "implemented_partial",
-    "numpy.ones_like": "implemented_partial",
-    "numpy.full_like": "implemented_partial",
-    "numpy.full": "implemented_partial",
-    "numpy.empty": "implemented_partial",
-    "numpy.zeros": "implemented_partial",
-    "numpy.ones": "implemented_partial",
-    "numpy.ndarray.copy": "implemented_partial"
+    "numpy.floor": "implemented_partial",
+    "numpy.ceil": "implemented_partial",
+    "numpy.trunc": "implemented_partial",
+    "numpy.rint": "implemented_partial",
+    "numpy.fabs": "implemented_partial",
+    "numpy.conjugate": "implemented_partial",
+    "numpy.conj": "implemented_partial",
+    "numpy.square": "implemented_partial",
+    "numpy.reciprocal": "implemented_partial",
+    "numpy.degrees": "implemented_partial",
+    "numpy.radians": "implemented_partial",
+    "numpy.rad2deg": "implemented_partial",
+    "numpy.deg2rad": "implemented_partial"
   },
   "evidence": [
-    "tests/conversion107_differential_generated.lua",
-    "tests/copy107_differential_generated.lua",
-    "tests/like107_differential_generated.lua",
-    "tests/dense_creation107_differential_generated.lua",
-    "tests/creation107_regression.lua",
-    "tests/creation107_stack.lua",
-    "tests/test_creation107_core.c",
+    "tests/rounding108_differential_generated.lua",
+    "tests/algebra108_differential_generated.lua",
+    "tests/angles108_differential_generated.lua",
+    "tests/unary108_regression.lua",
+    "tests/test_unary108_core.c",
     "compatibility/api_inventory.json",
     "tools/inventory_api.py"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 318,
-    "missing_bindings": 356,
+    "available_callables": 331,
+    "missing_bindings": 343,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -68,7 +62,12 @@
     "Creation uses Lua options and copy=if_needed to express copy=None; foreign array protocols, device/like dispatch, general subclasses, ndarray-valued shapes and full positional signatures are unsupported",
     "Nested Lua sequences containing ndarrays or temporal scalar userdata are not fully implemented; subok is validated but only the native array class exists",
     "Historical LuaRay np.astype/ndarray:astype numeric-to-generic-datetime rejection remains as an explicit partial compatibility contract; creation uses a separate source-derived raw-array cast path",
-    "Empty constructor values are uninitialized; tests compare metadata then perform actual writes before inspecting values"
+    "Empty constructor values are uninitialized; tests compare metadata then perform actual writes before inspecting values",
+    "Unary operations return typed zero-dimensional arrays for Lua scalars; this is a Lua return-type adaptation",
+    "Only out/where unary options are supported; complete dtype/casting/order/subok/device, ufunc object methods, warning and floating status protocols remain incomplete",
+    "Integer reciprocal-zero explicitly follows audited x86 NumPy loops; other ABI and nondefault rounding-mode behavior need separate verification",
+    "General complex square/reciprocal tolerance is relative6e-7 for complex64 and2e-15 for wider complex types; thirty-eight FMA layout/writeback cases compare exactly; all observed new numerical errors were zero",
+    "Coercion uses the existing constructor; ordinary string-to-numeric table construction and all nested typed-array combinations remain incomplete"
   ],
-  "sanitizers": "Directed audit: twenty-two C units (ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string, ln_along, ln_mapping, ln_choose, ln_condition, ln_select, ln_nditer_multi, ln_datetime, ln_fft_helpers, ln_roll, ln_sampling, ln_creation, ln_float_format, ln_ufunc, ln_ufunc_loops, ln_core, lua_creation) plus C++ ln_fft; eleven native and forty-four Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops compiled with -fwrapv"
+  "sanitizers": "Directed audit: twenty-three C units (ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string, ln_along, ln_mapping, ln_choose, ln_condition, ln_select, ln_nditer_multi, ln_datetime, ln_fft_helpers, ln_roll, ln_sampling, ln_creation, ln_float_format, ln_ufunc, ln_ufunc_loops, ln_core, lua_creation, ln_unary_math) plus C++ ln_fft; twelve native and forty-eight Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops compiled with -fwrapv; unary math compiled with -ffp-contract=off and explicit eligible complex FMA"
 }

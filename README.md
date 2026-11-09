@@ -1,3 +1,17 @@
+## LuaRay 0.108.0-dev — native unary mathematics
+
+Native floor, ceil, trunc, rint, fabs, conjugate/conj, square, reciprocal and
+radians/degrees (including deg2rad/rad2deg) use a separate typed registry.
+The shared unary entry point accepts Lua scalars and tables; KEEPORDER iteration
+now follows physical axes, including Fortran layouts and complex FMA paths.
+
+Read the [English mathematics reference](docs/en/unary_math.md) or
+[referencia en español](docs/es/unary_math.md). **5,589 original NumPy2.5.3 cases /
+501,064 checks**,358 directed Lua checks and native tests passed, with observed
+numeric error0. Full regression: **139 fixture files**. Directed ASan/UBSan:
+24 units,12 native and48 Lua suites. [Inventory](docs/en/api_inventory.md):331/675
+callable names observed; all remain partial. No Python runtime is required.
+
 ## LuaRay 0.107.0-dev — creation, conversion and copying
 
 Native `asarray`, `asanyarray`, C/F conversions, finite checks, copy, `*_like`

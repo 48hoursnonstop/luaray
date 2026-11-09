@@ -3,6 +3,7 @@
 #include "ln_complex.h"
 #include "ln_datetime.h"
 #include "ln_string.h"
+#include "ln_unary_math.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -647,14 +648,14 @@ ln_ufunc_by_name(const char *name)
 {
     init_registry();if(!name)return NULL;
     for(size_t i=0;i<nufuncs;++i)if(strcmp(name,ufuncs[i].name)==0)return &ufuncs[i];
-    return NULL;
+    return ln_unary_math_by_name(name);
 }
 
 size_t
 ln_ufunc_registry_count(void)
 {
     init_registry();
-    return nufuncs;
+    return nufuncs+ln_unary_math_count();
 }
 
 static int

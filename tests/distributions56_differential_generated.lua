@@ -1,6 +1,6 @@
 -- NumPy 2.3.5 oracle; no Python required to replay
 local np=require('luaray_core')
-assert(np._version=='0.107.0-dev')
+assert(np._version=='0.108.0-dev')
 local cases=0
 local function eq(a,b) assert(a==b, tostring(a).." ~= "..tostring(b));cases=cases+1 end
 local function eqnum(a,b) assert(a==b or (a~=a and b~=b), tostring(a).." ~= "..tostring(b));cases=cases+1 end

@@ -49,3 +49,4 @@ jobs:
           lua5.4 examples/fft105.lua
           lua5.4 examples/sampling106.lua
           lua5.4 examples/creation107.lua
+          lua5.4 examples/unary108.lua

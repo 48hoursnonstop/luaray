@@ -250,7 +250,11 @@ ln_nditer_multi_execute(int nin,int nout,
             }
         }
 
-        ln_intp inner=(nd==0)?1:shape[nd-1];
+        /* Traverse the same KEEPORDER axis permutation used for allocation.
+         * Fixed C-order traversal made F-contiguous arrays take an unrelated
+         * scalar arithmetic path despite a vector-eligible physical layout. */
+        int inner_axis=nd?order_axes[0].original_axis:0;
+        ln_intp inner=(nd==0)?1:shape[inner_axis];
         ln_intp outer=(nd==0)?1:(inner?total/inner:0);
         ln_intp coord[LN_MAXDIMS]={0};
         for(ln_intp oi=0;oi<outer;++oi){
@@ -259,24 +263,25 @@ ln_nditer_multi_execute(int nin,int nout,
             const char *mrow=where?where->data:NULL;
             for(int i=0;i<nin;++i)inrow[i]=inputs[i]->data;
             for(int j=0;j<nout;++j)outrow[j]=work[j]->data;
-            for(int d=0;d<nd-1;++d){
+            for(int ia=1;ia<nd;++ia){
+                int d=order_axes[ia].original_axis;
                 for(int i=0;i<nin;++i)inrow[i]+=coord[d]*strides[i][d];
                 for(int j=0;j<nout;++j)outrow[j]+=coord[d]*strides[nin+j][d];
                 if(where)mrow+=coord[d]*mstrides[d];
             }
-            ln_intp mstep=(where&&nd)?mstrides[nd-1]:0;
+            ln_intp mstep=(where&&nd)?mstrides[inner_axis]:0;
             for(ln_intp off=0;off<inner;off+=LN_NDITER_MULTI_BUFSIZE){
                 ln_intp count=inner-off;if(count>LN_NDITER_MULTI_BUFSIZE)count=LN_NDITER_MULTI_BUFSIZE;
                 char *args[LN_NDITER_MULTI_MAXARGS]={0};ln_intp steps[LN_NDITER_MULTI_MAXARGS]={0};
                 for(int i=0;i<nin;++i){
-                    ln_intp st=nd?strides[i][nd-1]:0;const char *src=inrow[i]+off*st;
+                    ln_intp st=nd?strides[i][inner_axis]:0;const char *src=inrow[i]+off*st;
                     if(buffers[i]){
                         if(ln_cast_strided_numeric(src,st,inputs[i]->descr,buffers[i],(ln_intp)isz[i],loop_dtypes[i],count,err)<0)goto fail_work;
                         args[i]=buffers[i];steps[i]=(ln_intp)isz[i];
                     }else{args[i]=(char*)src;steps[i]=st;}
                 }
                 for(int j=0;j<nout;++j){
-                    int k=nin+j;ln_intp st=nd?strides[k][nd-1]:0;char *dst=outrow[j]+off*st;
+                    int k=nin+j;ln_intp st=nd?strides[k][inner_axis]:0;char *dst=outrow[j]+off*st;
                     if(buffers[k]){args[k]=buffers[k];steps[k]=(ln_intp)isz[k];}
                     else{args[k]=dst;steps[k]=st;}
                 }
@@ -286,7 +291,7 @@ ln_nditer_multi_execute(int nin,int nout,
                 loop(args,dims,steps,loop_data);
                 for(int j=0;j<nout;++j){
                     int k=nin+j;if(!buffers[k])continue;
-                    ln_intp st=nd?strides[k][nd-1]:0;char *dst=outrow[j]+off*st;
+                    ln_intp st=nd?strides[k][inner_axis]:0;char *dst=outrow[j]+off*st;
                     if(!where){
                         if(ln_cast_strided_numeric(buffers[k],(ln_intp)isz[k],loop_dtypes[k],dst,st,work[j]->descr,count,err)<0)goto fail_work;
                     }else{
@@ -297,7 +302,7 @@ ln_nditer_multi_execute(int nin,int nout,
                     }
                 }
             }
-            for(int d=nd-2;d>=0;--d){if(++coord[d]<shape[d])break;coord[d]=0;}
+            for(int ia=1;ia<nd;++ia){int d=order_axes[ia].original_axis;if(++coord[d]<shape[d])break;coord[d]=0;}
         }
     }
 

@@ -1,3 +1,24 @@
+## 0.108.0-dev verification (executed)
+
+- Full native/Lua regression passed **139/139 frozen fixture files**.
+- NumPy2.5.3 rounding: **2,135 cases /176,894 checks**; algebra:
+  **1,746 /186,658**; angles: **1,708 /137,512**. Total **5,589 /501,064**.
+  All observed errors were zero. General complex square/reciprocal allows
+  relative6e-7 (complex64) or2e-15 (wider);38 additional FMA layout/mask/
+  overlap cases require exact agreement. Signed zero and special values checked.
+- Native C boundary suite and **358 directed Lua checks** passed, including
+  ordinary scalar/table coercion for existing unary operations, invalid shapes,
+  read-only outputs and exact integer reciprocal/square boundaries.
+- Directed ASan/UBSan passed **23C+1Cpp units,12 native and48 Lua suites**.
+  Other dependencies uninstrumented; leaks disabled. New math explicitly disables
+  implicit FP contraction and selects the eligible complex FMA kernel.
+- Runtime inventory observed **331/675** scoped names:343 missing and1 N/A;
+  every available API remains partial, zero complete APIs declared.
+- New fixture and inventory reproducibility and source archive verification
+  are checked as separate gates; their definitive report is the versioned JSON.
+  Eleven public examples run again from the extracted archive. Remote CI is
+  verified separately. All earlier blocked states and explicit differences remain.
+
 ## 0.107.0-dev verification (executed)
 
 - Full native/Lua regression passed **136/136 frozen fixture files**. Final

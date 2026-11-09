@@ -1,15 +1,15 @@
 {
   "upstream": "NumPy 2.5.3",
-  "lua_version": "0.107.0-dev",
+  "lua_version": "0.108.0-dev",
   "scope": "Public callable names in numpy/fft/linalg/random __all__, ndarray/Generator/ufunc public methods. Aliases counted separately; not constants, properties, all submodules or dtype loop combinations.",
   "interpretation": "Availability is observed at runtime; every available callable remains partial. This inventory alone verifies no behavior or full compatibility. Release-specific original fixtures provide separate behavioral evidence.",
   "complete_apis_declared": 0,
   "groups": {
     "numpy": {
       "scoped_names": 462,
-      "available_callables": 193,
+      "available_callables": 206,
       "not_applicable_to_lua": 0,
-      "missing_callables": 269
+      "missing_callables": 256
     },
     "numpy.fft": {
       "scoped_names": 18,
@@ -1110,9 +1110,9 @@
         "ceil"
       ],
       "upstream_kind": "ufunc",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -1292,9 +1292,9 @@
         "conj"
       ],
       "upstream_kind": "ufunc",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -1305,9 +1305,9 @@
         "conjugate"
       ],
       "upstream_kind": "ufunc",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -1565,9 +1565,9 @@
         "deg2rad"
       ],
       "upstream_kind": "ufunc",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -1578,9 +1578,9 @@
         "degrees"
       ],
       "upstream_kind": "ufunc",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -1955,9 +1955,9 @@
         "fabs"
       ],
       "upstream_kind": "ufunc",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -2415,9 +2415,9 @@
         "floor"
       ],
       "upstream_kind": "ufunc",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -5932,9 +5932,9 @@
         "rad2deg"
       ],
       "upstream_kind": "ufunc",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -5945,9 +5945,9 @@
         "radians"
       ],
       "upstream_kind": "ufunc",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -7435,9 +7435,9 @@
         "reciprocal"
       ],
       "upstream_kind": "ufunc",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -7552,9 +7552,9 @@
         "rint"
       ],
       "upstream_kind": "ufunc",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -8020,9 +8020,9 @@
         "square"
       ],
       "upstream_kind": "ufunc",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -8384,9 +8384,9 @@
         "trunc"
       ],
       "upstream_kind": "ufunc",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {

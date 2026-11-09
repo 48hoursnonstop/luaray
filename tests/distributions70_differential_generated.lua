@@ -1,6 +1,6 @@
 -- Wald/logseries independent NumPy 2.3.5 differential oracle
 local np=require("luaray_core")
-assert(np._version=="0.107.0-dev")
+assert(np._version=="0.108.0-dev")
 local checks=0
 local function eq(a,b) assert(a==b,("check %d: %s ~= %s"):format(checks,tostring(a),tostring(b))); checks=checks+1 end
 local function eqnum(a,b) if b~=b then assert(a~=a,"expected NaN "..checks) else assert(a==b,("check %d: %.17g ~= %.17g"):format(checks,a,b)) end; checks=checks+1 end

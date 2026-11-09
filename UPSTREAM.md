@@ -1,3 +1,26 @@
+## 0.114 — NumPy2.5.3 fused clip and uniform iterator buffering
+
+Eleven hashes in NUMPY_2_5_3_CLIP114_FILE_HASHES.sha256 pin clip.cpp,
+_methods.py/fromnumeric.py, uniform type resolution, most-knowledgeable dtype
+promotion, iterator buffering/cost setup, generated signatures and source tests.
+Native ln_clip.c implements twenty numeric/time uniform signatures, including
+half-specific tie retention, complex lexicographic NaN propagation and the real
+scalar-bound strict-comparison path. Fixed strings have no clip signature.
+
+Integer-bound elision precedes all promotion. Strong categories resolve before
+weak values are packed; (int8,uint8,float16) avoids a spurious intermediate int16.
+Compatible strong integer/timedelta minmax now uses the common descriptor and
+same_kind input validation. The existing iterator keeps converted scalars at
+stride zero. Clip additionally uses a non-reduction source cost plan so expanded
+broadcast bounds receive dense buffers, preserving signed-zero behavior across
+4096/8192 cost boundaries. Other kernels retain their current iteration policy.
+
+The registry increases73 to74 with an explicit twenty-signature clip native test.
+Historical fixtures change their exact runtime version assertions only; old
+numeric expected states remain. All source licensing/NumPy BSD attribution stays
+in THIRD_PARTY_NUMPY_LICENSE.txt. EN/ES references state API/protocol/platform
+limits; available names remain partial, never certified by name alone.
+
 ## 0.113 — NumPy2.5.3 typed round, wrapper retry and floating time scaling
 
 Nine hashes in NUMPY_2_5_3_ROUND113_FILE_HASHES.sha256 pin calculation.c

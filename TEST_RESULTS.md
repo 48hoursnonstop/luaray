@@ -1,3 +1,26 @@
+## 0.114.0-dev verification (executed)
+
+- Full native/Lua regression passed **156/156 frozen fixture files**.
+- NumPy2.5.3 clipping **4,415 cases /298,784 checks**; output/aliasing
+  **2,112 /165,170**; buffering **80 /3,973,384**. Combined **6,607 /
+  4,437,338 exact checks**, including signed zero, type/shape/strides, masks,
+  NaT and post-error states. Buffer tests cross4096/8192 cost boundaries.
+- Native C tests and **26 direct Lua checks** passed, including writable/readonly
+  output, weak integer overflow on empty arrays, invalid options, dtype promotion
+  and rank64 input. The public module example passed without Python.
+- Directed ASan/UBSan passed **32C+1Cpp units,18native /71Lua suites**.
+  Other dependencies uninstrumented; leaks disabled. Shared iterator/ufunc/core
+  changes are included; all earlier directed suites remain in this audit.
+- Exact regeneration of three new fixtures and runtime inventory passed.
+  Runtime inventory observed **348/675** names,326 missing,1N/A,0complete.
+- Historical fixture edits only advance exact runtime version assertions;
+  existing numerical expected states remain. The registry's intended addition
+  changes73 to74 and has an explicit20-signature native clip check.
+- Final source archive uses the independent tools/release.py gate: clean
+  extraction, manifest verification, rebuild, full regression and17 public
+  examples. See the release's separate verification JSON for that actual result;
+  this document does not substitute for execution of that gate.
+
 ## 0.113.0-dev verification (executed)
 
 - Full native/Lua regression passed **153/153 frozen fixture files**.

@@ -1,14 +1,14 @@
 {
-  "version": "0.113.0-dev",
+  "version": "0.114.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "rounding": 2780,
-    "round_outputs": 2346,
-    "floating_timedelta_scale": 3100
+    "clip": 4415,
+    "clip_outputs": 2112,
+    "clip_buffering": 80
   },
-  "new_numeric_checks": 481492,
-  "new_lua_regression_checks": 42,
+  "new_numeric_checks": 4437338,
+  "new_lua_regression_checks": 26,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -16,25 +16,26 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.round": "implemented_partial",
-    "numpy.around": "implemented_partial",
-    "numpy.ndarray.round": "implemented_partial",
-    "numpy.multiply": "implemented_partial",
-    "numpy.true_divide": "implemented_partial"
+    "numpy.clip": "implemented_partial",
+    "numpy.ndarray.clip": "implemented_partial",
+    "numpy.minimum": "implemented_partial",
+    "numpy.maximum": "implemented_partial",
+    "numpy.fmin": "implemented_partial",
+    "numpy.fmax": "implemented_partial"
   },
   "evidence": [
-    "tests/round113_differential_generated.lua",
-    "tests/round_out113_differential_generated.lua",
-    "tests/time_scale113_differential_generated.lua",
-    "tests/round113_regression.lua",
-    "tests/test_round113_core.c",
+    "tests/clip114_differential_generated.lua",
+    "tests/clip_out114_differential_generated.lua",
+    "tests/clip_buffer114_differential_generated.lua",
+    "tests/clip114_regression.lua",
+    "tests/test_clip114_core.c",
     "compatibility/api_inventory.json",
     "tools/inventory_api.py"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 346,
-    "missing_bindings": 328,
+    "available_callables": 348,
+    "missing_bindings": 326,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -80,7 +81,10 @@
     "Internal ln_error gained a category field; development-version C consumers must rebuild all native objects; full error-class coverage is not certified",
     "Power-of-ten uses source multiplication order through308 and stabilized infinity from309; INT_MIN/MAX native bounds tested without executing upstream billion-step loops",
     "Floating timedelta multiply/divide uses the source double loop including longdouble coefficients and x86 NaT overflow results; integer scaling, timedelta ratios and complete temporal arithmetic remain unimplemented",
-    "Round Lua options/typed scalar return adaptation and constructor limits remain; every subclass/device/foreign protocol, FP status/rounding mode and host ABI is not certified"
+    "Round Lua options/typed scalar return adaptation and constructor limits remain; every subclass/device/foreign protocol, FP status/rounding mode and host ABI is not certified",
+    "Clip supports positional bounds and out/where options; Python keyword aliases and dtype/casting/order/signature/subok are not accepted",
+    "Clip resolves strong descriptor categories before weak value packing, implements integer-bound elision and fused numeric/time loops; complete foreign DType and scalar protocols remain unavailable",
+    "Uniform non-reduction buffer cost planning is currently selected for clip, using the source default8192; Python setbufsize, every possible memory layout, warnings, NaN payloads and host floating environment remain uncertified"
   ],
-  "sanitizers": "Directed audit: thirty-one C units plus C++ ln_fft, including round kernels/bindings, floating temporal scaling, shared dtype/ufunc/iterator and error category changes; seventeen native and sixty-seven Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops use -fwrapv; unary math uses explicit eligible FMA"
+  "sanitizers": "Directed audit: thirty-two C units plus C++ ln_fft, including fused clip, shared dtype/ufunc/iterator and Lua binding changes; eighteen native and seventy-one Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops use -fwrapv; unary math uses explicit eligible FMA"
 }

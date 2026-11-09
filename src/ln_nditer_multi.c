@@ -146,11 +146,56 @@ build_shape(int nin,int nout,const ln_array *const *inputs,
     return 0;
 }
 
-int
-ln_nditer_multi_execute(int nin,int nout,
+/* Non-reduction portion of NumPy2.5.3 nditer_constr.c buffering setup.
+ * This predicts which operands acquire dense strides when NpyIter amortizes
+ * calls by buffering across axes. Physical work may still use smaller rows;
+ * keeping the predicted scalar/dense stride distinction is observable for
+ * uniform clip. Reduction operands and foreign iterator protocols are outside
+ * this elementwise executor's scope. */
+static void uniform_buffer_plan(int nin,int nout,const ln_array *const *inputs,
+        ln_array *const *outputs,const ln_array *where,const ln_dtype_descr *const *dtypes,
+        const ln_multi_order_axis *order,int nd,const ln_intp *shape,
+        ln_intp strides[][LN_MAXDIMS],const ln_intp *mstrides,int *dense)
+{
+    int nop=nin+nout+(where!=NULL),axes[LN_MAXDIMS],na=0;
+    for(int j=0;j<nd;++j)if(shape[order[j].original_axis]>1)axes[na++]=order[j].original_axis;
+    if(!na)return;
+    ln_intp bs[LN_NDITER_MULTI_ORDER_MAXOPS][LN_MAXDIMS];memset(bs,0,sizeof bs);
+    for(int k=0;k<nin+nout;++k)memcpy(bs[k],strides[k],sizeof bs[k]);
+    if(where)memcpy(bs[nin+nout],mstrides,sizeof bs[0]);
+    int cast[LN_NDITER_MULTI_ORDER_MAXOPS]={0},single[LN_NDITER_MULTI_ORDER_MAXOPS];
+    int cost=1;
+    for(int k=0;k<nop;++k){
+        single[k]=1;
+        if(k<nin)cast[k]=inputs[k]->descr!=dtypes[k];
+        else if(k<nin+nout)cast[k]=outputs[k-nin]->descr!=dtypes[k];
+        cost+=cast[k];
+    }
+    ln_intp size=shape[axes[0]],best_size=size;
+    int best_cost=cost,best_dim=0;
+    for(int j=1;j<na;++j){
+        if(size>=LN_NDITER_MULTI_BUFSIZE&&cost>1)break;
+        int previous=axes[j-1],current=axes[j];
+        for(int k=0;k<nop;++k)if(single[k]==j){
+            /* size*stride is bounded by valid ndarray metadata in ordinary
+             * contiguous layouts; checked multiply also handles exotic strides. */
+            ln_intp expected;
+            int overflow=__builtin_mul_overflow(bs[k][previous],shape[previous],&expected);
+            if(!overflow&&expected==bs[k][current])single[k]++;
+            else if(!cast[k])cost++;
+        }
+        size*=shape[current]; /* bounded by already validated total size */
+        double effective=(size>LN_NDITER_MULTI_BUFSIZE&&cost>1)?LN_NDITER_MULTI_BUFSIZE:(double)size;
+        if(cost*(double)best_size<=best_cost*effective){best_cost=cost;best_size=size;best_dim=j;}
+    }
+    for(int k=0;k<nin+nout;++k)dense[k]=single[k]<=best_dim;
+}
+
+static int
+execute(int nin,int nout,
         const ln_array *const *inputs,ln_array **outputs,const ln_array *where,
         const ln_dtype_descr *const *loop_dtypes,ln_strided_loop loop,void *loop_data,
-        ln_nditer_validate_fn validate,void *validate_data,ln_error *err)
+        ln_nditer_validate_fn validate,void *validate_data,int uniform,ln_error *err)
 {
     if(nin<1||nout<1||nin+nout>LN_NDITER_MULTI_MAXARGS||!inputs||!outputs||!loop_dtypes||!loop){
         iter_error(err,"invalid generalized iterator call");return -1;
@@ -217,13 +262,16 @@ ln_nditer_multi_execute(int nin,int nout,
         if(where&&ln_broadcast_strides(nd,shape,where->nd,where->dimensions,where->strides,
                 "where mask",mstrides,err)<0)goto fail_work;
 
+        int dense[LN_NDITER_MULTI_MAXARGS]={0};
+        if(uniform)uniform_buffer_plan(nin,nout,inputs,work,where,loop_dtypes,
+                order_axes,nd,shape,strides,mstrides,dense);
         size_t isz[LN_NDITER_MULTI_MAXARGS]={0};
         for(int k=0;k<nop;++k){
             isz[k]=loop_dtypes[k]->elsize;
             int needs;
             if(k<nin)needs=inputs[k]->descr!=loop_dtypes[k];
             else{int j=k-nin;needs=work[j]->descr!=loop_dtypes[k]||where!=NULL;}
-            if(needs){
+            if(needs||dense[k]){
                 buffers[k]=(char*)malloc((size_t)LN_NDITER_MULTI_BUFSIZE*isz[k]);
                 if(!buffers[k]){iter_error(err,"out of memory");goto fail_work;}
             }
@@ -255,8 +303,13 @@ ln_nditer_multi_execute(int nin,int nout,
                 for(int i=0;i<nin;++i){
                     ln_intp st=nd?strides[i][inner_axis]:0;const char *src=inrow[i]+off*st;
                     if(buffers[i]){
-                        if(ln_cast_strided_numeric(src,st,inputs[i]->descr,buffers[i],(ln_intp)isz[i],loop_dtypes[i],count,err)<0)goto fail_work;
-                        args[i]=buffers[i];steps[i]=(ln_intp)isz[i];
+                        /* NpyIter retains broadcast scalar stride zero even
+                         * when dtype conversion needs a buffer. Expanding a
+                         * scalar to dense storage changes clip's real loop
+                         * selection and observable signed-zero semantics. */
+                        ln_intp converted=(st||dense[i])?count:1;
+                        if(ln_cast_strided_numeric(src,st,inputs[i]->descr,buffers[i],(ln_intp)isz[i],loop_dtypes[i],converted,err)<0)goto fail_work;
+                        args[i]=buffers[i];steps[i]=(st||dense[i])?(ln_intp)isz[i]:0;
                     }else{args[i]=(char*)src;steps[i]=st;}
                 }
                 for(int j=0;j<nout;++j){
@@ -299,3 +352,12 @@ fail:
     for(int j=0;j<nout;++j)if(allocated[j]&&outputs[j]){ln_array_free(outputs[j]);outputs[j]=NULL;}
     return -1;
 }
+
+int ln_nditer_multi_execute(int nin,int nout,const ln_array *const *inputs,
+        ln_array **outputs,const ln_array *where,const ln_dtype_descr *const *dtypes,
+        ln_strided_loop loop,void *data,ln_nditer_validate_fn validate,void *validation,ln_error *err)
+{return execute(nin,nout,inputs,outputs,where,dtypes,loop,data,validate,validation,0,err);}
+int ln_nditer_multi_execute_uniform(int nin,int nout,const ln_array *const *inputs,
+        ln_array **outputs,const ln_array *where,const ln_dtype_descr *const *dtypes,
+        ln_strided_loop loop,void *data,ln_nditer_validate_fn validate,void *validation,ln_error *err)
+{return execute(nin,nout,inputs,outputs,where,dtypes,loop,data,validate,validation,1,err);}

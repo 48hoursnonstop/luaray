@@ -1,6 +1,6 @@
 -- Generated from independent NumPy 2.3.5 oracle
 local np=require('luaray_core')
-assert(np._version=='0.113.0-dev')
+assert(np._version=='0.114.0-dev')
 local n=0
 local function eq(a,b) assert(a==b or (a~=a and b~=b), tostring(n).." :: "..tostring(a).." ~= "..tostring(b));n=n+1 end
 do local r=np.random.default_rng(0); local v=r:chisquare(0.05,nil)

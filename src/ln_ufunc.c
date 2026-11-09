@@ -5,6 +5,8 @@
 #include "ln_string.h"
 #include "ln_unary_math.h"
 #include "ln_binary_math.h"
+#include "ln_clip.h"
+#include "ln_dtype_transfer.h"
 #include "ln_time_scale.h"
 
 #include <stdio.h>
@@ -173,11 +175,13 @@ resolve_legacy_binary(const ln_ufunc *u,const ln_array *const *inputs,
         ufunc_error(err,"string comparison loop resolution failed");return -1;
     }
     if(is_time_dtype(a)||is_time_dtype(b)){
-        if(!(op==LN_OP_MAXIMUM||op==LN_OP_MINIMUM||op==LN_OP_FMAX||op==LN_OP_FMIN) ||
-           !is_time_dtype(a)||!is_time_dtype(b)||a->cls!=b->cls){
+        const ln_dtype *common=ln_common_dtype_descr(a,b);
+        if(!(op==LN_OP_MAXIMUM||op==LN_OP_MINIMUM||op==LN_OP_FMAX||op==LN_OP_FMIN)||!common||
+           !ln_dtype_can_cast(a,common,LN_SAME_KIND_CASTING)||
+           !ln_dtype_can_cast(b,common,LN_SAME_KIND_CASTING)){
             ufunc_error(err,"ufunc has no matching datetime/timedelta signature");return -1;
         }
-        const ln_ufunc_loop *tm=find_loop_2(u,a,b);
+        const ln_ufunc_loop *tm=find_loop_2(u,common,common);
         if(tm){*resolved=tm;return 0;}
         ufunc_error(err,"datetime/timedelta minmax loop resolution failed");return -1;
     }
@@ -676,14 +680,16 @@ ln_ufunc_by_name(const char *name)
     init_registry();if(!name)return NULL;
     for(size_t i=0;i<nufuncs;++i)if(strcmp(name,ufuncs[i].name)==0)return &ufuncs[i];
     const ln_ufunc *extra=ln_unary_math_by_name(name);
-    return extra?extra:ln_binary_math_by_name(name);
+    if(extra)return extra;
+    extra=ln_binary_math_by_name(name);
+    return extra?extra:strcmp(name,"clip")==0?ln_clip_ufunc():NULL;
 }
 
 size_t
 ln_ufunc_registry_count(void)
 {
     init_registry();
-    return nufuncs+ln_unary_math_count()+ln_binary_math_count();
+    return nufuncs+ln_unary_math_count()+ln_binary_math_count()+1;
 }
 
 static int
@@ -834,7 +840,7 @@ ln_ufunc_execute_operands(const ln_ufunc *u,const ln_ufunc_operand *operands,
      * for an exact contiguous input and optional scalar. Singleton strides
      * follow NewLikeArray, rather than general iterator permutation strides. */
     ln_array *trivial_output=NULL;
-    if(!where&&u->nout==1&&!outputs[0]&&(u->nin==1||u->nin==2)) {
+    if(!where&&u->nout==1&&!outputs[0]&&(u->nin>=1&&u->nin<=3)) {
         int candidate=-1,eligible=1;
         for(int j=0;j<u->nin;++j)if(inputs[j]->nd) {
             if(candidate>=0){eligible=0;break;}
@@ -856,7 +862,8 @@ ln_ufunc_execute_operands(const ln_ufunc *u,const ln_ufunc_operand *operands,
             }
         }
     }
-    int rc=ln_nditer_multi_execute(u->nin,u->nout,inputs,outputs,where,
+    int uniform=strcmp(u->name,"clip")==0;
+    int rc=(uniform?ln_nditer_multi_execute_uniform:ln_nditer_multi_execute)(u->nin,u->nout,inputs,outputs,where,
             resolution.descrs,method->loop,loop_data,method->validate,method->validate_data,err);
     if(rc<0&&trivial_output){ln_array_free(trivial_output);outputs[0]=NULL;}
     if(method->resolve_loop_data && method->free_loop_data)method->free_loop_data(loop_data);

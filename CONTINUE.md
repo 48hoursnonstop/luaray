@@ -1,3 +1,33 @@
+# Current checkpoint — clip0.114 release preparation
+
+Active /mnt/datos/luaray/.dev/clip114 VERSION0.114.0-dev.6,607cases /
+4,437,338exactchecks,26Lua/native C passed. Full156/156 fixtures passed.
+ASan33units(32C+1Cpp),18native71Lua passed, session35655 complete.
+Inventory348/675,326missing,1N/A,allpartial. Public example passed.
+Exact three-fixture/inventory regeneration passed (session31359).
+Next: tools/release.py clean source extraction/fullsuite/17examples,
+manifest/gzip/SHA; commitFFmain/tag/publicassets/Downloads/exactCI.
+Continue autonomously; no subagents authorized, no arbitrary quota stop.
+
+Native ln_clip uniform signatures use source-specific half/complex/real loops,
+integer-bound elision and strongest-category promotion before weak packing.
+Converted scalar stride0 is preserved; fused clip selects a source non-reduction
+buffer cost plan for broadcast expansion around8192. Other kernels keep their
+existing iteration policy. EN/ES docs detail unsupported keyword/UF options.
+Shared minmax temporal resolver accepts compatible strong integers/timedelta.
+Exact runtime assertions advanced154historical fixtures only; numeric states
+retained. Cregistry73→74, explicitly tested20clip signatures. No Python runtime.
+
+Latest public0.113 41d3210a446949c4004757767b13dccdd237524a SHA
+8d5e9fd27d5bf6935009a4e267c2c58d1f1ae875e1b90734ad2715f4455cb975,
+842files/841manifest,153fixtures/16examples,ASan32units17native67Lua.
+Exact CI42560226060 SUCCESS; public digest/Downloads verified.
+Latest quota15%used85%remaining04:28UTC in renewed telemetry window;
+previous99% is historical. User requests work until complete/usage exhausted;
+revoked50%stop must not be applied. luanimath goal unfinished/dependencies first.
+Next prioritize dtype views, temporal integer arithmetic and Manim numerical
+operations among remaining NumPy inventory. Older checkpoints below historical.
+
 # Current checkpoint — round0.113 release preparation
 
 Active /mnt/datos/luaray/.dev/round113 VERSION0.113.0-dev.8,226cases /

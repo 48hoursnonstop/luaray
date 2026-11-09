@@ -43,6 +43,19 @@ int ln_nditer_multi_execute(
         void *validate_data,
         ln_error *err);
 
+/* Uniform kernels whose observable behavior depends on buffered strides. */
+int ln_nditer_multi_execute_uniform(
+        int nin, int nout,
+        const ln_array *const *inputs,
+        ln_array **outputs,
+        const ln_array *where,
+        const ln_dtype_descr *const *loop_dtypes,
+        ln_strided_loop loop,
+        void *loop_data,
+        ln_nditer_validate_fn validate,
+        void *validate_data,
+        ln_error *err);
+
 #ifdef __cplusplus
 }
 #endif

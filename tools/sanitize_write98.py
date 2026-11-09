@@ -30,6 +30,7 @@ parser.add_argument('--layout110',action='store_true',help='instrument reshape, 
 parser.add_argument('--components111',action='store_true',help='instrument native component views and their bindings')
 parser.add_argument('--predicates112',action='store_true',help='execute source-derived reality and complex parsing suites')
 parser.add_argument('--round113',action='store_true',help='instrument rounding, bindings and floating timedelta scaling')
+parser.add_argument('--clip114',action='store_true',help='instrument native fused clip and execute its suites')
 options=parser.parse_args()
 
 def run(args,**kwargs):
@@ -56,6 +57,7 @@ if options.unary108:changed.append('ln_unary_math')
 if options.binary109:changed.append('ln_binary_math')
 if options.layout110:changed+=['ln_layout','lua_layout']
 if options.components111:changed+=['ln_components','lua_components']
+if options.clip114:changed+=['ln_clip']
 if options.round113:changed+=['ln_round','lua_round','ln_time_scale']
 for name in changed:
     run(cc+flags+(['-fwrapv'] if name=='ln_ufunc_loops' else ['-ffp-contract=off'] if name=='ln_unary_math' else [])+['-c',f'src/{name}.c','-o',BUILD/f'{name}.o'])
@@ -83,6 +85,7 @@ if options.binary109:core_objects.append(BUILD/'ln_binary_math.o')
 if options.layout110:core_objects.append(BUILD/'ln_layout.o')
 if options.components111:core_objects.append(BUILD/'ln_components.o')
 if options.round113:core_objects += [BUILD/'ln_round.o',BUILD/'ln_time_scale.o']
+if options.clip114:core_objects.append(BUILD/'ln_clip.o')
 bindings=[BUILD/'lua_module.o']
 if (ROOT/'src/lua_creation.c').exists():bindings.append((BUILD if options.creation107 else ROOT/'build')/'lua_creation.o')
 if (ROOT/'src/lua_layout.c').exists():bindings.append((BUILD if options.layout110 else ROOT/'build')/'lua_layout.o')
@@ -158,6 +161,10 @@ if options.round113:
     run(cc+flags+['-c','tests/test_round113_core.c','-o',BUILD/'test_round113.o'])
     run(cxx+link+[BUILD/'test_round113.o']+core_objects+native_libs+['-o',BUILD/'test_round113'])
     run([BUILD/'test_round113'],env=env)
+if options.clip114:
+    run(cc+flags+['-c','tests/test_clip114_core.c','-o',BUILD/'test_clip114.o'])
+    run(cxx+link+[BUILD/'test_clip114.o']+core_objects+native_libs+['-o',BUILD/'test_clip114'])
+    run([BUILD/'test_clip114'],env=env)
 asan=subprocess.check_output(cc+['-print-file-name=libasan.so'],text=True).strip()
 env['LD_PRELOAD']=asan;env['LUA_CPATH']=str(BUILD/'?.so')+';;'
 tests=['write98_regression','put98_differential_generated','place98_differential_generated',
@@ -179,6 +186,7 @@ if options.layout110:tests+=['layout110_regression','ravel110_differential_gener
 if options.components111:tests+=['components111_regression','components111_differential_generated']
 if options.predicates112:tests+=['predicates112_regression','predicates112_differential_generated','close112_differential_generated','complex_text112_differential_generated']
 if options.round113:tests+=['round113_regression','round113_differential_generated','round_out113_differential_generated','time_scale113_differential_generated']
+if options.clip114:tests+=['clip114_regression','clip114_differential_generated','clip_out114_differential_generated','clip_buffer114_differential_generated']
 for test in tests:
     run(['lua5.4',f'tests/{test}.lua'],env=env)
 print('PASS: changed '+', '.join(changed)+' instrumented; other dependencies uninstrumented; leak detection disabled')

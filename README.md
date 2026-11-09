@@ -1,3 +1,16 @@
+## LuaRay 0.114.0-dev — fused clipping
+
+Native `np.clip` and `a:clip` provide broadcasting, open bounds, typed output,
+boolean masks and overlapping views. Source-derived dtype and buffer planning
+preserves NumPy's distinct scalar/array signed-zero and NaN behavior.
+
+Read the [English clip reference](docs/en/clip.md) or
+[referencia en español](docs/es/clip.md). **6,607 NumPy2.5.3 cases /4,437,338
+exact checks**,26 direct Lua checks and native tests passed. Full regression
+passed156 fixture files; final sanitizer/clean-package gates are recorded in
+TEST_RESULTS.md. [Inventory](docs/en/api_inventory.md):348/675 scoped names,
+all partial. Runtime remains Lua/C/C++, without Python.
+
 ## LuaRay 0.113.0-dev — typed decimal rounding
 
 Native round/around and ndarray:round preserve NumPy's typed composition,

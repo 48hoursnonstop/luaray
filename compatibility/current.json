@@ -1,14 +1,12 @@
 {
-  "version": "0.110.0-dev",
+  "version": "0.111.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "ravel": 2664,
-    "flatten": 2640,
-    "reshape": 19830
+    "components": 3300
   },
-  "new_numeric_checks": 1759008,
-  "new_lua_regression_checks": 61,
+  "new_numeric_checks": 273192,
+  "new_lua_regression_checks": 33,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -16,25 +14,22 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.ravel": "implemented_partial",
-    "numpy.reshape": "implemented_partial",
-    "numpy.ndarray.ravel": "implemented_partial",
-    "numpy.ndarray.flatten": "implemented_partial",
-    "numpy.ndarray.reshape": "implemented_partial"
+    "numpy.real": "implemented_partial",
+    "numpy.imag": "implemented_partial",
+    "numpy.ndarray.real": "implemented_partial",
+    "numpy.ndarray.imag": "implemented_partial"
   },
   "evidence": [
-    "tests/ravel110_differential_generated.lua",
-    "tests/flatten110_differential_generated.lua",
-    "tests/reshape110_differential_generated.lua",
-    "tests/layout110_regression.lua",
-    "tests/test_layout110_core.c",
+    "tests/components111_differential_generated.lua",
+    "tests/components111_regression.lua",
+    "tests/test_components111_core.c",
     "compatibility/api_inventory.json",
     "tools/inventory_api.py"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 336,
-    "missing_bindings": 338,
+    "available_callables": 338,
+    "missing_bindings": 336,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -68,7 +63,9 @@
     "Layout values, metadata, sharing, actual writable status and post-write backing states compare exactly in 25134 new cases; empty allocations and reshape views can have distinct strides",
     "Reshape accepts one Lua integer/table shape plus C/F/A and copy=true/false/if_needed; full historical NumPy variadic shape signatures, device/subclass/foreign protocols remain incomplete",
     "Ravel/flatten K-order preserves negative logical traversal and stable zero-stride ambiguity; all host ABI/foreign malformed array layouts are not certified",
-    "Reshape copy=false applies after ordinary Lua inputs are coerced to a temporary array; this differs from asarray copy=false, which forbids its own necessary allocation"
+    "Reshape copy=false applies after ordinary Lua inputs are coerced to a temporary array; this differs from asarray copy=false, which forbids its own necessary allocation",
+    "Component real/imag views preserve typed storage and identity; direct ndarray.real/imag property replacement setters remain unsupported; write through the returned view instead",
+    "Root real/imag ordinary scalar results follow the typed rank-zero ndarray convention; full Python scalar/subclass/device protocols remain incomplete"
   ],
-  "sanitizers": "Directed audit: twenty-six C units (ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string, ln_along, ln_mapping, ln_choose, ln_condition, ln_select, ln_nditer_multi, ln_datetime, ln_fft_helpers, ln_roll, ln_sampling, ln_creation, ln_float_format, ln_ufunc, ln_ufunc_loops, ln_core, lua_creation, ln_unary_math, ln_binary_math, ln_layout, lua_layout) plus C++ ln_fft; fourteen native and fifty-seven Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops use -fwrapv; unary math uses explicit eligible FMA"
+  "sanitizers": "Directed audit: twenty-eight C units including ln_components and lua_components plus C++ ln_fft; fifteen native and fifty-nine Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops use -fwrapv; unary math uses explicit eligible FMA"
 }

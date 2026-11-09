@@ -1,3 +1,17 @@
+## LuaRay 0.111.0-dev — real and imaginary views
+
+Native real/imag calls and array properties preserve component offsets, dtype,
+strides, read-only flags and buffer lifetime. Noncomplex real retains identity;
+imaginary zeros are independent and read-only. Write through complex component
+views using indexing or copyto; direct property replacement remains unsupported.
+
+Read the [English component reference](docs/en/components.md) or
+[referencia en español](docs/es/components.md). **3,300 NumPy2.5.3 cases /
+273,192 exact checks**,33 directed Lua checks and native tests passed; full
+regression has147 fixture files. [Inventory](docs/en/api_inventory.md):338/675
+scoped names available, all partial. Final sanitizer and archive results are
+recorded independently in TEST_RESULTS.md and release verification JSON.
+
 ## LuaRay 0.110.0-dev — reshape, ravel and flatten
 
 Native C/F/A reshape supports always/never/if-needed copying and compatible

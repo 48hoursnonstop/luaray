@@ -1,3 +1,21 @@
+## 0.111.0-dev verification (executed)
+
+- Full native/Lua regression passed **147/147 frozen fixtures**.
+- Original NumPy2.5.3 component tests: **3,300 cases /273,192 exact checks**
+  for values, shape/dtype/strides, identity, interleaved sharing, writeability
+  and actual post-write input/backing states across fifteen dtypes.
+- Native C tests and **33 Lua checks** passed, including owner lifetime after
+  collection and independent read-only imaginary zeros for noncomplex arrays.
+- ASan/UBSan passed **28C+1Cpp units,15 native /59 Lua suites**. Other linked
+  dependencies uninstrumented; leaks disabled. No assertion was weakened.
+- Component fixture and runtime inventory regenerated exactly. Inventory:
+  **338/675** scoped names,336 missing,1N/A,allpartial,0complete.
+- Public example passed. Final source extraction/manifest/build/full regression/
+  fourteen examples and archive integrity are independently recorded by the
+  versioned release JSON/log. Remote CI is checked separately.
+- Direct component property setters remain unsupported. Scalar adaptation,
+  constructor limitations and all earlier blocked states/differences remain.
+
 ## 0.110.0-dev verification (executed)
 
 - Full native/Lua regression passed **146/146 frozen fixture files**.

@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.110.0-dev')
+assert(np._version=='0.111.0-dev')
 for _,method in ipairs({'count','marginals'}) do
  local r=np.random.default_rng(42)
  local colors={15,15,10}

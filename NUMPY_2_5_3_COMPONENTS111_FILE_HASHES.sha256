@@ -1,0 +1,5 @@
+b8d4179359fbdaa549c82c4e97b295e0bb1b83b92cfa2fe3472d25e288d02aa1  numpy/_core/src/multiarray/getset.c
+1ce26bfea10ea10ac624ef6b317eb76229294f3989432d98aa912f0f25f90ea5  numpy/_core/src/multiarray/dtypemeta.h
+53a091170f8fe5fafb13e7b241f8d04c352185c1253125c389aba52ee37e4939  numpy/lib/_type_check_impl.py
+4b51861849e3b456480544dc3176c0b2151aaee2e00460e7ba40891ce8726bec  numpy/_core/tests/test_multiarray.py
+d8ceaec8b488f823f5dc2032967067de46d3ea7acaeb06165be49cc35defb004  numpy/lib/tests/test_type_check.py

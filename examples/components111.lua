@@ -1,0 +1,12 @@
+local np=require('luaray')
+local z=np.array({np.complex(1,2),np.complex(3,4)},'complex64')
+local real,imag=np.real(z),z.imag
+assert(real.dtype=='float32' and imag.strides[1]==8)
+assert(np.shares_memory(real,z) and not np.shares_memory(real,imag))
+np.copyto(real,7,'unsafe');np.copyto(imag,-3,'unsafe')
+assert(z:tolist()[2].real==7 and z:tolist()[2].imag==-3)
+local a=np.array({1,2,3})
+assert(rawequal(a,a.real) and a.imag:tolist()[1]==0)
+assert(not pcall(function()np.copyto(a.imag,9,'unsafe')end))
+z=nil;collectgarbage('collect');assert(imag:tolist()[1]==-3)
+print('components111 public example passed: real/imag views, identity and lifetime')

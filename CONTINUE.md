@@ -1,3 +1,27 @@
+# Current checkpoint — components0.111 release preparation
+
+Active /mnt/datos/luaray/.dev/components111 VERSION0.111.0-dev.3300cases/
+273192exact checks,33Lua/native C passed. Full147/147 fixtures passed.
+Inventory338/675,336missing,1N/A,allpartial. Public example passed. ASan29units(28C+1Cpp),15native59Lua passed. Component fixture/inventory
+regenerated exactly. TEST_RESULTS records actual results. Next: tools/release.py clean extraction/fullsuite/14examples,
+manifest/gzip/SHA; commitFFmain/tag/publicassets/Downloads/exactCI.
+
+New ln_components/lua_components modules expose real/imag root functions and
+ndarray properties. Complex views share storage with the parent; real/imag
+components have disjoint bytes but may overlap address bounds. Noncomplex real
+returns identical userdata, imag zeros independent/read-only. Direct .real/.imag
+property assignment remains unsupported, use returned view writes. Allpartial.
+
+Latest public0.110 bbfeb23adb3cfe9b8b3191e569a05fe0df211c0d SHA
+949e24d3edd22cdfa145607986b25ca1e4d42f07434d2d4ece5eeba6a80c11bf,
+800files/799manifest,146fixtures/13examples,27-unit ASan14native57Lua.
+Exact CI42552739782 SUCCESS; public asset digest/Downloads verified.
+Latest telemetry99% weeklyused/1%remaining at02:50UTC. Earlier50%stop revoked.
+User wants continuation until complete or actual usage exhaustion. No subagents.
+Goal luanimath unfinished/suspended for LuaRay. Next: iscomplex/isreal predicates,
+real_if_close, clip/round, dtype views; maintain EN/ES docs and exact tests.
+Earlier checkpoints below are historical.
+
 # Current checkpoint — layout0.110 final validation
 
 Active /mnt/datos/luaray/.dev/layout110 VERSION0.110.0-dev. Directed25,134cases /

@@ -1,3 +1,15 @@
+## 0.111 — NumPy2.5.3 component views and identity
+
+Five source/test hashes in NUMPY_2_5_3_COMPONENTS111_FILE_HASHES.sha256 pin
+multiarray/getset.c real/imag/_get_part, DType slots, _type_check_impl.py and
+reference tests. Independently compiled native and Lua modules implement
+interleaved complex component views, native real dtype/offsets, identity for
+noncomplex real inputs and independent read-only imaginary zeros. Buffer owners
+survive original userdata collection; flags are recomputed for component dtype.
+Full147-fixture regression and3300 new original reference cases passed. Direct
+property replacement setters and complete scalar/subclass/device protocols are
+explicitly partial. Existing NumPy BSD attribution and no-Python runtime remain.
+
 ## 0.110 — NumPy2.5.3 layout, shared views and copy modes
 
 Eight source/test hashes are pinned in NUMPY_2_5_3_LAYOUT110_FILE_HASHES.sha256.

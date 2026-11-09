@@ -13,4 +13,8 @@ int ln_lua_eye(lua_State *L);
 int ln_lua_identity(lua_State *L);
 int ln_lua_diag_indices(lua_State *L);
 int ln_lua_diag_indices_from(lua_State *L);
+int ln_lua_tril_indices(lua_State *L);
+int ln_lua_triu_indices(lua_State *L);
+int ln_lua_tril_indices_from(lua_State *L);
+int ln_lua_triu_indices_from(lua_State *L);
 #endif

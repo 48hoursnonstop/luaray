@@ -12,6 +12,13 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.123.0-dev
+
+Added `tril_indices`, `triu_indices` and both `_from` helpers with one-based,
+independent contiguous coordinate vectors, rectangular matrices, empty-selection
+layouts and pinned extreme-offset behavior. Extended executable EN/ES triangular
+guides with real advanced reads and writes.
+
 ## 0.122.0-dev
 
 Added `diag_indices` and `diag_indices_from` with shared one-based coordinate

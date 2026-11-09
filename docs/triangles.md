@@ -69,6 +69,42 @@ transposed, broadcast and Fortran layouts are accepted. Selection uses NumPy-sty
 KEEPORDER iteration, so a batch result can have a layout other than ordinary
 C order. Shape and element values follow the same masking rule for each matrix.
 
+## Select or modify triangular elements
+
+The index helpers return a Lua sequence containing a row vector and a column
+vector. Their coordinates start at **one**. Unlike the diagonal helpers, the two
+vectors have separate, contiguous storage and can be modified independently.
+
+| Function | Defaults and input |
+| --- | --- |
+| `lr.tril_indices(n, k, m)` | Lower triangle; `k=0`, `m=n`. |
+| `lr.triu_indices(n, k, m)` | Upper triangle; `k=0`, `m=n`. |
+| `lr.tril_indices(n, {k=..., m=...})` | Options form; also accepted by `triu_indices`. |
+| `lr.tril_indices_from(a, k)` | Uses the two dimensions of an actual ndarray. |
+| `lr.triu_indices_from(a, {k=...})` | Options form; also accepted by the lower helper. |
+
+The positional index signature is **`n, k, m`**, whereas `tri` uses `n, m, k`.
+The `_from` helpers accept rectangular matrices but reject raw Lua tables and
+arrays whose rank is not two. Input dtype, values and physical layout do not
+change the coordinates. Rows are in increasing order, and columns increase
+within each row.
+
+```lua
+local matrix = lr.arange(12):reshape({3, 4})
+local indices = lr.triu_indices_from(matrix, 1)
+local selected = matrix:get(table.unpack(indices))
+assert(selected.size == 6 and selected[1] == 1 and selected[6] == 11)
+matrix:set(-1, table.unpack(indices))
+assert(matrix:get(1, 2) == -1 and matrix:get(3, 4) == -1)
+assert(matrix:get(3, 1) == 8)
+```
+
+Advanced reads produce independent arrays; assignment writes into the original,
+including writable transposed and reversed views. Negative dimensions or an
+excluded triangle produce empty vectors. Empty vectors have zero stride, matching
+the reference's Boolean-indexing allocation. Extreme offsets use the same pinned
+range-construction rules as the matrix helpers.
+
 ## Compatibility
 
 Available since **0.119.0-dev**. Exact NumPy 2.5.3 references cover values, dtypes,
@@ -80,3 +116,6 @@ The native implementation uses defined unsigned arithmetic for that wrapping.
 Unknown options and extra arguments raise Lua errors. Object/structured dtypes,
 foreign array protocols and complete Python warning/exception fidelity remain
 unsupported. All functions remain [partially compatible](api_inventory.md).
+
+Index helpers are available since **0.123.0-dev**, with exact coordinate, storage,
+advanced read/write and backing-state comparisons against NumPy 2.5.3.

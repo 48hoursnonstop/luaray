@@ -1,11 +1,11 @@
 {
-  "version": "0.122.0-dev",
+  "version": "0.123.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "diagonal_indices_and_scalar_strings": 1766
+    "triangular_indices": 9908
   },
-  "new_lua_regression_checks": 74,
+  "new_lua_regression_checks": 50,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -13,21 +13,23 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.diag_indices": "implemented_partial",
-    "numpy.diag_indices_from": "implemented_partial"
+    "numpy.tril_indices": "implemented_partial",
+    "numpy.triu_indices": "implemented_partial",
+    "numpy.tril_indices_from": "implemented_partial",
+    "numpy.triu_indices_from": "implemented_partial"
   },
   "evidence": [
     "tests/native/test_matrix_core.c",
     "tests/lua/matrix_regression.lua",
     "tests/lua/trace_regression.lua",
     "compatibility/numpy-source.sha256",
-    "tests/lua/diag_indices_regression.lua",
-    "docs/diag_indices.md"
+    "tests/lua/triangular_indices_regression.lua",
+    "docs/triangles.md"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 366,
-    "missing_bindings": 308,
+    "available_callables": 370,
+    "missing_bindings": 304,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -88,10 +90,11 @@
     "Meshgrid copy=false preserves source writable/readonly broadcasting and may share inputs or other cells; incompatible input flattening can still copy; inferred reshape preserves empty/singleton strides",
     "Root diagonal uses the first two axes by default; linalg.diagonal uses the last two; extracted views are read-only",
     "Diagonal extraction uses the native C int offset range; construction uses checked native-size dimensions; foreign index objects and complete Python signature/dispatch fidelity are not implemented",
-    "Diagonal index helpers return a Lua sequence of shared one-based index vectors; diag_indices_from requires an actual ndarray with equal-sized axes. Python index/tuple/subclass protocols are not reproduced."
+    "Diagonal index helpers return a Lua sequence of shared one-based index vectors; diag_indices_from requires an actual ndarray with equal-sized axes. Python index/tuple/subclass protocols are not reproduced.",
+    "Triangular index helpers return two independent contiguous one-based index vectors; _from requires a two-dimensional ndarray and accepts rectangular matrices. Strict Lua integer and Lua sequence conventions replace Python protocols."
   ],
   "sanitizers": {
-    "version": "0.122.0-dev",
+    "version": "0.123.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_matrix",
@@ -107,8 +110,8 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.122.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.123.0-dev-sanitizers.log"
   },
   "new_check_semantics": "Exact tested values, dtype, shape, strides, identity, sharing and backing states; full host scalar precision and Python type/dispatch fidelity are not claimed",
-  "new_reference_checks": 81899
+  "new_reference_checks": 487084
 }

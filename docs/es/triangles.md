@@ -69,6 +69,42 @@ Se admiten vistas invertidas, transpuestas, broadcast y Fortran. La selección
 usa iteración KEEPORDER al estilo NumPy: el resultado puede tener una disposición
 distinta del orden C ordinario. Cada matriz conserva la misma regla triangular.
 
+## Selecciona o modifica elementos triangulares
+
+Los helpers de índices devuelven una secuencia Lua con un vector de filas y otro
+de columnas. Sus coordenadas empiezan en **uno**. Los dos vectores tienen memoria
+contigua e independiente; modificar uno no cambia el otro.
+
+| Función | Valores predeterminados y entrada |
+| --- | --- |
+| `lr.tril_indices(n, k, m)` | Triángulo inferior; `k=0`, `m=n`. |
+| `lr.triu_indices(n, k, m)` | Triángulo superior; `k=0`, `m=n`. |
+| `lr.tril_indices(n, {k=..., m=...})` | Forma con opciones; también válida para `triu_indices`. |
+| `lr.tril_indices_from(a, k)` | Usa las dos dimensiones de un ndarray real. |
+| `lr.triu_indices_from(a, {k=...})` | Forma con opciones; también válida para el helper inferior. |
+
+El orden posicional de índices es **`n, k, m`**; `tri` usa `n, m, k`.
+Los helpers `_from` admiten matrices rectangulares y rechazan tablas Lua y arrays
+cuyo rango no sea dos. El dtype, los valores y la disposición física de la entrada
+no cambian las coordenadas. Las filas están ordenadas y las columnas aumentan
+dentro de cada fila.
+
+```lua
+local matrix = lr.arange(12):reshape({3, 4})
+local indices = lr.triu_indices_from(matrix, 1)
+local selected = matrix:get(table.unpack(indices))
+assert(selected.size == 6 and selected[1] == 1 and selected[6] == 11)
+matrix:set(-1, table.unpack(indices))
+assert(matrix:get(1, 2) == -1 and matrix:get(3, 4) == -1)
+assert(matrix:get(3, 1) == 8)
+```
+
+Las lecturas avanzadas crean arrays independientes; la asignación modifica el
+original, incluidas vistas transpuestas e invertidas escribibles. Las dimensiones
+negativas o un triángulo excluido producen vectores vacíos. Su stride es cero,
+como en la asignación por indexación booleana de referencia. Los offsets extremos
+siguen las mismas reglas de construcción de secuencias que las matrices triangulares.
+
 ## Compatibilidad
 
 Disponible desde **0.119.0-dev**. Las referencias exactas NumPy 2.5.3 cubren valores,
@@ -80,3 +116,7 @@ cerca del límite entero. El código nativo usa aritmética unsigned definida pa
 Las opciones desconocidas y argumentos adicionales producen errores Lua. Objetos,
 estructuras, protocolos externos y fidelidad completa de advertencias/excepciones
 Python siguen pendientes. Las funciones conservan [compatibilidad parcial](api_inventory.md).
+
+Los helpers de índices están disponibles desde **0.123.0-dev**, con comparaciones
+exactas de coordenadas, memoria, lecturas/escrituras avanzadas y estado del original
+frente a NumPy 2.5.3.

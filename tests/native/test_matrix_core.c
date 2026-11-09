@@ -67,5 +67,15 @@ int main(void)
     assert(((int64_t*)indices->data)[0]==1&&((int64_t*)indices->data)[2]==3);ln_array_free(indices);
     indices=ln_matrix_diag_indices(-3,&err);assert(indices&&ln_array_size(indices)==0);ln_array_free(indices);
     assert(ln_matrix_diag_indices(INTPTR_MAX,&err)==NULL);
+    ln_array *coordinates[2];assert(ln_matrix_trilu_indices(2,3,1,1,coordinates,&err)==0);
+    assert(coordinates[0]->dimensions[0]==3&&coordinates[0]->strides[0]==sizeof(ln_intp));
+    assert(coordinates[0]->owner!=coordinates[1]->owner);
+    assert(((ln_intp*)coordinates[0]->data)[2]==2&&((ln_intp*)coordinates[1]->data)[2]==3);
+    ln_array_free(coordinates[0]);ln_array_free(coordinates[1]);
+    assert(ln_matrix_trilu_indices(2,0,INTPTR_MIN,1,coordinates,&err)==0);
+    assert(coordinates[0]->strides[0]==0&&ln_array_size(coordinates[0])==0);
+    ln_array_free(coordinates[0]);ln_array_free(coordinates[1]);
+    assert(ln_matrix_trilu_indices(2,1,INTPTR_MIN,1,coordinates,&err)<0);
+    assert(ln_matrix_trilu_indices(2,2,0,0,NULL,&err)<0);
     puts("matrix native: diagonal layout, shared lifetime, readonly, construction, overflow and staged trace passed");
 }

@@ -37,14 +37,14 @@ Los generadores recientes usan NumPy 2.5.3; los anteriores conservan su atribuci
 NumPy 2.3.5.
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 366 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 370 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.122.0-dev** aprobó **55 suites nativas**, **92 suites Lua**, siete ejemplos
-y 56 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.123.0-dev** aprobó **55 suites nativas**, **93 suites Lua**, siete ejemplos
+y 58 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -60,6 +60,8 @@ Identidad/eye aprobó **13,335 casos / 261,220 comprobaciones exactas**, incluid
 orden C/F, dtypes, offsets, ejes vacíos y requisitos de unidades temporales.
 
 Los índices diagonales y las conversiones de escalares a strings aprobaron **1,766 casos / 81,899 comprobaciones exactas**, incluidas coordenadas en base uno, identidad de vectores repetidos, escrituras avanzadas reales y formato de asignaciones y constructores.
+
+Los helpers de índices triangulares aprobaron **9,908 casos / 487,084 comprobaciones exactas**, incluidos vectores contiguos independientes, dimensiones rectangulares/vacías, offsets extremos y lecturas/escrituras sobre vistas.
 
 La auditoría dirigida ASan/UBSan instrumentó `ln_matrix`, `ln_linalg`, `lua_matrix`
 y `lua_module`, además de la prueba nativa de matrices y el runner Lua. Aprobaron

@@ -13,4 +13,7 @@ ln_array *ln_matrix_trilu(const ln_array *a,ln_intp k,int upper,ln_error *err);
 ln_array *ln_matrix_vander(const ln_array *x,ln_intp columns,int increasing,ln_error *err);
 ln_array *ln_matrix_eye(ln_intp rows,ln_intp columns,ln_intp k,const ln_dtype *dtype,int fortran,ln_error *err);
 ln_array *ln_matrix_diag_indices(ln_intp n,ln_error *err);
+/* Outputs are separate contiguous one-based index vectors owned by the caller. */
+int ln_matrix_trilu_indices(ln_intp rows,ln_intp columns,ln_intp k,int upper,
+                           ln_array **outputs,ln_error *err);
 #endif

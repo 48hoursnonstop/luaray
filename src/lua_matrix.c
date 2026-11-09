@@ -239,3 +239,36 @@ int ln_lua_diag_indices_from(lua_State *L)
     for(int d=1;d<a->nd;++d)if(a->dimensions[d]!=a->dimensions[0])return luaL_error(L,"all array dimensions must have equal length");
     return diagonal_indices(L,a->dimensions[0],a->nd);
 }
+
+static int triangular_indices(lua_State *L,int upper,int from)
+{
+    int top=lua_gettop(L);lua_Integer rows,columns,k=0;
+    if(top<1||top>(from?2:3))return luaL_error(L,"invalid triangular-index argument count");
+    if(from){
+        ln_array *a=ln_lua_test_array(L,1);
+        if(!a||a->nd!=2)return luaL_error(L,"triangular indices require a two-dimensional ndarray");
+        rows=a->dimensions[0];columns=a->dimensions[1];
+    }else{rows=integer(L,1);columns=rows;}
+    if(lua_type(L,2)==LUA_TTABLE){
+        if(top!=2)return luaL_error(L,"index options cannot be combined with positional options");
+        lua_pushnil(L);
+        while(lua_next(L,2)){
+            size_t length=0;const char *key=lua_type(L,-2)==LUA_TSTRING?lua_tolstring(L,-2,&length):NULL;
+            if(!key||length!=1||(*key!='k'&&(from||*key!='m')))return luaL_error(L,"unknown triangular-index option");
+            lua_pop(L,1);
+        }
+        k=field(L,2,"k",0);if(!from)columns=field(L,2,"m",rows);
+    }else{
+        if(top>=2&&lua_type(L,2)!=LUA_TNIL)k=integer(L,2);
+        if(!from&&top>=3&&lua_type(L,3)!=LUA_TNIL)columns=integer(L,3);
+    }
+    ln_error err={0};ln_array *coordinates[2];
+    if(ln_matrix_trilu_indices((ln_intp)rows,(ln_intp)columns,(ln_intp)k,upper,coordinates,&err)<0)return ln_lua_fail(L,&err);
+    lua_createtable(L,2,0);
+    for(int d=0;d<2;++d){ln_lua_push_array(L,coordinates[d]);lua_seti(L,-2,d+1);}
+    return 1;
+}
+int ln_lua_tril_indices(lua_State *L){return triangular_indices(L,0,0);}
+int ln_lua_triu_indices(lua_State *L){return triangular_indices(L,1,0);}
+int ln_lua_tril_indices_from(lua_State *L){return triangular_indices(L,0,1);}
+int ln_lua_triu_indices_from(lua_State *L){return triangular_indices(L,1,1);}

@@ -272,3 +272,34 @@ ln_array *ln_matrix_diag_indices(ln_intp n,ln_error *err)
     for(ln_intp i=0;i<count;++i)((ln_intp *)indices->data)[i]=i+1;
     return indices;
 }
+
+/* NumPy uses boolean indexing of two broadcast coordinate grids, producing
+ * independent contiguous vectors rather than nonzero's interleaved views. */
+int ln_matrix_trilu_indices(ln_intp rows,ln_intp columns,ln_intp k,int upper,
+                           ln_array **outputs,ln_error *err)
+{
+    if(!outputs){failure(err,"triangular indices require output slots");return -1;}
+    outputs[0]=outputs[1]=NULL;
+    ln_array *mask=triangle_mask(rows,columns,k,upper,err);if(!mask)return -1;
+    ln_intp total=ln_array_size(mask),count=0;
+    for(ln_intp i=0;i<total;++i)count+=upper?!mask->data[i]:!!mask->data[i];
+    const ln_dtype *dtype=ln_dtype_by_name(sizeof(ln_intp)==8?"int64":"int32");
+    for(int axis=0;axis<2;++axis){
+        outputs[axis]=ln_array_new(1,&count,dtype,0,0,err);
+        if(outputs[axis]&&count==0)outputs[axis]->strides[0]=0;
+        if(!outputs[axis]){
+            ln_array_free(outputs[0]);outputs[0]=NULL;ln_array_free(mask);return -1;
+        }
+    }
+    ln_intp selected=0;
+    for(ln_intp row=0;row<mask->dimensions[0];++row)
+        for(ln_intp column=0;column<mask->dimensions[1];++column){
+            int included=mask->data[row*mask->dimensions[1]+column]!=0;
+            if(upper)included=!included;
+            if(included){
+                ((ln_intp*)outputs[0]->data)[selected]=row+1;
+                ((ln_intp*)outputs[1]->data)[selected++]=column+1;
+            }
+        }
+    ln_array_free(mask);return 0;
+}

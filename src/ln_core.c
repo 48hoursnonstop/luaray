@@ -1012,6 +1012,11 @@ int ln_array_pack_number(ln_array *a,const ln_intp *indices0,double v,int64_t vi
     const ln_dtype *d=a->descr;
     if(d->type_num==LN_BOOL || d->kind=='f' || d->kind=='c' || d->kind=='M' || d->kind=='m'){
         if ((d->kind=='M'||d->kind=='m') && !is_integer) { seterr(err,"datetime/timedelta numeric construction requires an integer count"); return -1; }
+        /* Scalar setitem requires a specified datetime unit; numeric array
+         * casts preserve raw ticks even with a generic destination descriptor. */
+        if(d->type_num==LN_DATETIME&&ln_datetime_metadata(d)->base==LN_FR_GENERIC) {
+            seterr(err,"Cannot create a NumPy datetime other than NaT with generic units");return -1;
+        }
         write_number(p,d,v,vi,is_integer); return 0;
     }
     if(is_integer){

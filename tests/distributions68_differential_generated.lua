@@ -1,6 +1,6 @@
 -- Deterministic NumPy 2.3.5 oracle for Generator.multinomial; test-only Python
 local np=require("luaray_core")
-assert(np._version=="0.106.0-dev")
+assert(np._version=="0.107.0-dev")
 local checks=0
 local function eq(a,b) assert(a==b,("comparison %d: %s ~= %s"):format(checks,tostring(a),tostring(b))); checks=checks+1 end
 do local r=np.random.default_rng(0); local v=r:multinomial(0,np.array({1.0},"float64"),nil)

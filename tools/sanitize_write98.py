@@ -23,6 +23,7 @@ parser.add_argument('--condition103',action='store_true',help='instrument nonzer
 parser.add_argument('--select104',action='store_true',help='instrument selection, generic iterator and temporal promotion')
 parser.add_argument('--fft105',action='store_true',help='instrument FFT helpers, shifts and C++ PocketFFT integration')
 parser.add_argument('--sampling106',action='store_true',help='instrument sampling, Dragon4 and shared ufunc/complex conversion changes')
+parser.add_argument('--creation107',action='store_true',help='instrument conversion/creation bindings and scalar temporal packing')
 options=parser.parse_args()
 
 def run(args,**kwargs):
@@ -42,6 +43,9 @@ if options.condition103:changed.append('ln_condition')
 if options.select104:changed+=['ln_select','ln_nditer_multi','ln_datetime']
 if options.fft105:changed+=['ln_fft_helpers','ln_roll']
 if options.sampling106:changed+=['ln_sampling','ln_creation','ln_float_format','ln_ufunc','ln_ufunc_loops']
+if options.creation107:
+    changed+=['ln_core','lua_creation']
+    if not options.sampling106:changed.append('ln_creation')
 for name in changed:
     run(cc+flags+(['-fwrapv'] if name=='ln_ufunc_loops' else [])+['-c',f'src/{name}.c','-o',BUILD/f'{name}.o'])
 if options.fft105:
@@ -60,9 +64,14 @@ if options.condition103:core_objects.append(BUILD/'ln_condition.o')
 if options.select104:core_objects+=[BUILD/'ln_select.o',BUILD/'ln_nditer_multi.o',BUILD/'ln_datetime.o']
 if options.fft105:core_objects+=[BUILD/'ln_fft_helpers.o',BUILD/'ln_roll.o',BUILD/'ln_fft.o']
 if options.sampling106:core_objects+=[BUILD/(n+'.o') for n in ['ln_sampling','ln_creation','ln_float_format','ln_ufunc','ln_ufunc_loops']]
+if options.creation107:
+    core_objects.append(BUILD/'ln_core.o')
+    if not options.sampling106:core_objects.append(BUILD/'ln_creation.o')
+bindings=[BUILD/'lua_module.o']
+if (ROOT/'src/lua_creation.c').exists():bindings.append((BUILD if options.creation107 else ROOT/'build')/'lua_creation.o')
 link=['-fsanitize=address,undefined']
 native_libs=['-lm']+libs('cblas',['-lblas'])+libs('lapack',['-llapack'])
-run(cxx+link+['-shared']+core_objects+[BUILD/'lua_module.o']+
+run(cxx+link+['-shared']+core_objects+bindings+
     libs('lua5.4',['-llua5.4'])+native_libs+['-o',BUILD/'luaray_core.so'])
 run(cc+flags+['-c','tests/test_write98_core.c','-o',BUILD/'test_write98.o'])
 run(cxx+link+[BUILD/'test_write98.o']+core_objects+native_libs+['-o',BUILD/'test_write98'])
@@ -102,6 +111,10 @@ if options.sampling106:
         run(cc+flags+['-c',f'tests/test_{name}_core.c','-o',BUILD/f'test_{name}.o'])
         run(cxx+link+[BUILD/f'test_{name}.o']+core_objects+native_libs+['-o',BUILD/f'test_{name}'])
         run([BUILD/f'test_{name}'],env=env)
+if options.creation107:
+    run(cc+flags+['-c','tests/test_creation107_core.c','-o',BUILD/'test_creation107.o'])
+    run(cxx+link+[BUILD/'test_creation107.o']+core_objects+native_libs+['-o',BUILD/'test_creation107'])
+    run([BUILD/'test_creation107'],env=env)
 asan=subprocess.check_output(cc+['-print-file-name=libasan.so'],text=True).strip()
 env['LD_PRELOAD']=asan;env['LUA_CPATH']=str(BUILD/'?.so')+';;'
 tests=['write98_regression','put98_differential_generated','place98_differential_generated',
@@ -116,6 +129,7 @@ if options.condition103:tests+=['condition103_regression','nonzero103_differenti
 if options.select104:tests+=['select104_regression','where104_differential_generated','select104_differential_generated']
 if options.fft105:tests+=['fft105_regression','fft_frequency105_differential_generated','fft_shift105_differential_generated','fft_hermitian105_differential_generated']
 if options.sampling106:tests+=['sampling106_regression','linspace106_differential_generated','logspace106_differential_generated','geomspace106_differential_generated']
+if options.creation107:tests+=['creation107_stack','string_cast_differential_generated','creation107_regression','conversion107_differential_generated','copy107_differential_generated','like107_differential_generated','dense_creation107_differential_generated']
 for test in tests:
     run(['lua5.4',f'tests/{test}.lua'],env=env)
 print('PASS: changed '+', '.join(changed)+' instrumented; other dependencies uninstrumented; leak detection disabled')

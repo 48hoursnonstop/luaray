@@ -1,15 +1,15 @@
 {
-  "version": "0.106.0-dev",
+  "version": "0.107.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "linspace": 2478,
-    "logspace": 1542,
-    "geomspace": 1392,
-    "native_float_string_states": 70828
+    "conversion": 4726,
+    "copy": 740,
+    "like_constructors": 5624,
+    "dense_constructors": 1461
   },
-  "new_numeric_checks": 950969,
-  "new_lua_regression_checks": 154,
+  "new_numeric_checks": 1041748,
+  "new_lua_regression_checks": 164,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -17,25 +17,38 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.linspace": "implemented_partial",
-    "numpy.logspace": "implemented_partial",
-    "numpy.geomspace": "implemented_partial"
+    "numpy.array": "implemented_partial",
+    "numpy.asarray": "implemented_partial",
+    "numpy.asanyarray": "implemented_partial",
+    "numpy.ascontiguousarray": "implemented_partial",
+    "numpy.asfortranarray": "implemented_partial",
+    "numpy.asarray_chkfinite": "implemented_partial",
+    "numpy.copy": "implemented_partial",
+    "numpy.empty_like": "implemented_partial",
+    "numpy.zeros_like": "implemented_partial",
+    "numpy.ones_like": "implemented_partial",
+    "numpy.full_like": "implemented_partial",
+    "numpy.full": "implemented_partial",
+    "numpy.empty": "implemented_partial",
+    "numpy.zeros": "implemented_partial",
+    "numpy.ones": "implemented_partial",
+    "numpy.ndarray.copy": "implemented_partial"
   },
   "evidence": [
-    "tests/linspace106_differential_generated.lua",
-    "tests/logspace106_differential_generated.lua",
-    "tests/geomspace106_differential_generated.lua",
-    "tests/format106_reference.h",
-    "tests/test_format106_core.c",
-    "tests/test_sampling106_core.c",
-    "tests/sampling106_regression.lua",
+    "tests/conversion107_differential_generated.lua",
+    "tests/copy107_differential_generated.lua",
+    "tests/like107_differential_generated.lua",
+    "tests/dense_creation107_differential_generated.lua",
+    "tests/creation107_regression.lua",
+    "tests/creation107_stack.lua",
+    "tests/test_creation107_core.c",
     "compatibility/api_inventory.json",
     "tools/inventory_api.py"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 306,
-    "missing_bindings": 368,
+    "available_callables": 318,
+    "missing_bindings": 356,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -51,7 +64,11 @@
     "Sampling uses Lua options tables; full NumPy positional/device/array-valued count/warning APIs remain incomplete",
     "Linspace reference values are exact; power/log tolerances follow computation precision before final casts (half2e-3, float32/complex64 3e-6, wider2e-12 absolute+relative); integer/bool/string values remain exact",
     "Shared FMA path and raw-bit extended formatting were executed on Linux x86; other ABI branches, every hardware rounding/unsafe cast and full SIMD dispatch remain uncertified",
-    "NumPy float128 uses the existing LuaRay longdouble spelling on the tested x86 ABI; original width/strides are checked"
+    "NumPy float128 uses the existing LuaRay longdouble spelling on the tested x86 ABI; original width/strides are checked",
+    "Creation uses Lua options and copy=if_needed to express copy=None; foreign array protocols, device/like dispatch, general subclasses, ndarray-valued shapes and full positional signatures are unsupported",
+    "Nested Lua sequences containing ndarrays or temporal scalar userdata are not fully implemented; subok is validated but only the native array class exists",
+    "Historical LuaRay np.astype/ndarray:astype numeric-to-generic-datetime rejection remains as an explicit partial compatibility contract; creation uses a separate source-derived raw-array cast path",
+    "Empty constructor values are uninitialized; tests compare metadata then perform actual writes before inspecting values"
   ],
-  "sanitizers": "Directed audit: twenty C units (ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string, ln_along, ln_mapping, ln_choose, ln_condition, ln_select, ln_nditer_multi, ln_datetime, ln_fft_helpers, ln_roll, ln_sampling, ln_creation, ln_float_format, ln_ufunc, ln_ufunc_loops) plus C++ ln_fft; ten native and thirty-seven Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops compiled with -fwrapv"
+  "sanitizers": "Directed audit: twenty-two C units (ln_write, ln_dtype_transfer, lua_module, ln_random, ln_take, ln_string, ln_along, ln_mapping, ln_choose, ln_condition, ln_select, ln_nditer_multi, ln_datetime, ln_fft_helpers, ln_roll, ln_sampling, ln_creation, ln_float_format, ln_ufunc, ln_ufunc_loops, ln_core, lua_creation) plus C++ ln_fft; eleven native and forty-four Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops compiled with -fwrapv"
 }

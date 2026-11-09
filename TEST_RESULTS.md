@@ -1,3 +1,29 @@
+## 0.107.0-dev verification (executed)
+
+- Full native/Lua regression passed **136/136 frozen fixture files**. Final
+  binary-NUL validation additions also passed the directed creation suite.
+- Original NumPy2.5.3 conversion: **4,726 cases /454,982 checks**; copy:
+  **740 /77,978**; like: **5,624 /485,242**; dense: **1,461 /23,546**.
+  Total **12,551 /1,041,748**, comparing values, errors, metadata, identity,
+  sharing and actual writes exactly. Source input/backing states are retained.
+- New native C suite and **164 direct Lua checks** passed. Fresh-process rank64
+  construction/tolist passed; the C boundary explicitly reserves Lua stack.
+  Empty output contents are compared only after actual writes.
+- Final directed ASan/UBSan passed **22 C +1 C++ units**, **11 native /44 Lua
+  suites**, including the retained old string-cast contract and rank64 process.
+  Other dependencies uninstrumented, leaks off; integer ufunc loops use -fwrapv.
+- Four new frozen files and actual runtime inventory reproduced exactly.
+  Public native module example passed. Inventory observed **318/675** names,
+  356 missing direct bindings and one Lua adaptation; zero complete APIs declared.
+- Generic datetime scalar integer packing remains distinct from raw numeric
+  array conversion. Native temporal scalars retain units and source string-width
+  conventions. The historical LuaRay astype generic-datetime rejection is kept
+  at its adapter boundary, documented as partial compatibility. No old assertion
+  was weakened or removed to make the new creation tests pass.
+- Final source extraction/manifest/build/full regression/ten public examples and
+  archive integrity are recorded independently in the versioned release JSON/log.
+  Remote CI is separate. Earlier blocked states and explicit differences remain.
+
 ## 0.106.0-dev verification (executed)
 
 - Full native/Lua regression passed **132/132 frozen fixture files**.

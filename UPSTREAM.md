@@ -1,3 +1,29 @@
+## 0.107 — NumPy2.5.3 creation and explicit Lua ownership
+
+Creation/conversion follows multiarraymodule.c array/asarray/contiguity entry
+points and _prepend_ones, ctors.c NewLikeArrayWithShape, and numeric.py's full/
+zeros_like/ones_like/full_like compositions. _function_base_impl.py supplies
+asarray_chkfinite's inexact-only check. C/F/A/K allocation, conditional copying,
+identity, read-only propagation and rank-changing K fallback are executed through
+the actual native Lua API. The new independently compiled lua_creation.c uses
+lua_array_api.h's explicit borrowed/rooted/owned boundary with the metatable module.
+
+arraytypes.c scalar setitem and datetime.c object conversion distinguish scalar
+integer construction from raw numeric array casting into generic datetime.
+The misplaced transfer-layer rejection moved to scalar packing; known temporal
+userdata uses its typed raw setter. Generic temporal descriptors inherit source
+units during conversion. Date scalar unsized strings use actual ISO width;
+timedelta scalar discovery retains legacy width21. Fixed-string empty descriptors
+finalize at the constructor minimum1. Fourteen source/test hashes are pinned in
+NUMPY_2_5_3_CREATION107_FILE_HASHES.sha256. NumPy BSD attribution is retained.
+
+The pre-existing LuaRay astype numeric-to-generic-datetime restriction remains
+at its own adapter boundary, preserving the old string-cast regression contract.
+It is explicitly a partial compatibility difference, not a claim about NumPy2.5.3
+root Array API astype parity. Old assertions were retained. New creation functions
+use source-derived raw-array casts. New original oracle/source are2.5.3; older
+frozen fixtures retain their recorded provenance. No Python runtime is introduced.
+
 ## 0.106 — NumPy2.5.3 sequence sampling and native Dragon4
 
 ln_sampling follows _core/function_base.py linear/log/geometric composition,

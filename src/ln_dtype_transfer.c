@@ -986,9 +986,6 @@ ln_cast_strided_numeric(const char *src, ln_intp src_stride,
         if(!dm){set_transfer_error(err,"invalid datetime metadata");return -1;}
         for(ln_intp i=0;i<count;++i,src+=src_stride,dst+=dst_stride){
             int64_t v; if(load_numeric_as_int64_time(src,src_dtype,&v,err)<0)return -1;
-            if(dst_dtype->type_num==LN_DATETIME && dm->base==LN_FR_GENERIC && v!=LN_DATETIME_NAT){
-                set_transfer_error(err,"Cannot convert a NumPy datetime value other than NaT with generic units");return -1;
-            }
             memcpy(dst,&v,8);
         }
         return 0;

@@ -1,3 +1,84 @@
+# Current checkpoint — creation0.107 final clean package gate
+
+Active /mnt/datos/luaray/.dev/creation107 VERSION0.107.0-dev. All136frozen fixtures
+passed, finaldirected12551cases/1041748checks and164Lua passed. FinalASan23units
+(22C+1Cpp)11native44Lua passed, includesfresh64rank/oldstring_cast andNULvalidation.
+NativeCtestpasses. Public.so rebuiltcurrentbinding andexamplepasses; inventory
+318/675 observed,356missing,N/A1(allpartial),actualprobe reproducible. All4new
+fixtures reproduceexactly. DocsEN/EScreation+README/UPSTREAM/TEST_RESULTS/currentjson
+and14sourcepins ready. Releasegate configured136fixtures10publicexamples.
+
+Next: tools/release.py cleanextract/build/fullsuite/10examples +manifest/gzipSHA;
+commit,FFmain,tagv0.107/publicassets/Downloads copy/exactUbuntuCI;continueafterrelease.
+Do noteditcoveredsourceafterpackagingwithoutretakinggate. Everyarchiveimmutable.
+NewbindingCfile separatedusinginternalAPIownershipbridge; normalandsanitized
+linkingupdated. SourceordinaryintegerDateGenericpackingrejects evenINT64MIN,
+rawnumericarraycastsallowticks, typedNaTvalid. DateBoxUwidthactualISO,TimeBoxU21.
+OldLuaastypegenericdatetimelegacyrestriction preservedadapter-side becauseold
+77casestringfixtureassertsit; explicitpartialdifference, notNumPyrootastypeparity.
+Constructor/tolistLuastackreservationaddedfor64depth; freshprobepassed,no newcrash.
+Nestedndarraycoercion/foreignprotocols/subclasses/shape-as-ndarray/device remain
+incomplete. Machineavailabilitynotoverallcompletion. Allold40endianblockedstates
+andtake/choose differences retained. Nextcoherentstepmissingmathufuncs/scalar
+calls orarraycoercion/views. Userrequestscontinuedworkuntilcomplete/usageout;
+noagentsauthorized. luanimathgoal unfinished. Old checkpoints historical below.
+
+# Current checkpoint — creation0.107 final metadata/gates pending
+
+Active /mnt/datos/luaray/.dev/creation107 branchcreation107; runtime still0.106.
+New ln_creation.h/kernel extendsexisting ln_creation.c for copy/no-copy/like shape,
+C/F/A/K, minrank, finitecheck; separate lua_creation.c bindings with explicit
+internal lua_array_api.h ownership bridge inlua_module.c. Eleven new rootnames:
+asarray/asanyarray/ascontiguousarray/asfortranarray/asarray_chkfinite/copy/
+empty_like/zeros_like/ones_like/full_like/full, plusndarray:copy; existingarray/
+empty/zeros/ones improved. NewAPIcopy='if_needed' encodesNone sinceLua nil means
+absent/default; ndarraycopydefaultC vsrootcopyK. Shapeint nowallowed, negative
+ndminignoredlikeactualNumPy. Stringsminimum1char. NumPyBoxdates materializeoriginal
+strongdtype, thenconvert; genericM/m adaptunitsfromtemporalinput; DateBox unsized
+stringssizeactualISOtext, TimedeltaBox retainslegacywidth21. CoreNumericScalar
+packing requiresdateunit evenINT64MIN; typedDateBox usesrawknown-typedsetter.
+Numericarray->genericDate casts retainrawticks (removedmisplacedtransferguard).
+
+Executed originals NumPy2.5.3:conversion4726/454982,copy740/77978,like5624/485242,
+dense1461/23546 =12551/1041748. NativeCunit+162Lua checks passed. Publicexample
+passed. DirectedASan23units(22C+1Cpp)11native42Lua passed beforelatestlegacyguard/
+explicitstackreservationchanges. Fresh rank64 process ASanprobepassed; promote
+nowtests/creation107_stack.lua. Sanitizers nowinclude this +oldstring_cast =>44Lua.
+
+Fullregression initiallyfailed oldstring_cast fixture's hardcoded genericDate
+numeric rejection inLuaRay np.astype. Preserve existing legacy API contract in
+array_cast_new whilecreation usesitsseparate rawcastpath. This is a retained
+partialcompatibilitydifference, NOTNumPy2.5.3 rootArrayAPIastypeparity; documentit.
+Oldtestsnotweakened. GuardNumericNaTacceptedoldastype, scalarpackINTMINDateGen
+rejects asactualNumPyintegerconstructiondoes; typedDateNaTaccepted. Justexecuted
+oldstring_cast/direct162Lua/freshrank64 onbuild10; inspectlogs andsession19451
+completion. Onlytrailingwhitespacecleanupaftercompile, nofunctionalchange.
+SourceexplicitlyreservesLuastack forlegacy64deepconstructor/tolist. Noobserved
+newcrash, freshprobehadalready passed; thisfixesdocumentedCAPIstackreservation.
+
+Next: confirm targetedgate; reproducible4fixtures; bumpVERSION/module/155test
+version-onlyasserts0.107; finalfull-test136fixtures andASan23units11native44Lua.
+Newbind objectlua_creation mustlinknormal .so+lua_runner, andsanitizedsharedmodule
+(thetoolhandlesmixednormal/sanitizedbindings). ln_core isnowinstrumentedunder
+--creation107, no-fwrapv core currently; ufuncloops retain-fwrapv, firstauditpassed.
+Checkfreshstackfile withpublicLua loader +LD_PRELOAD sanitizer beforeclaim. Add
+creation107 publicexampletorelease+CI (tenth), bilingualdocs/sourcepins/currentJSON/
+inventory actualprobe expected318/675availability(allpartial),356missing,N/A1.
+Newbindingsavailability includes12names,rootnumpy193 andndarray32. Rootnp.array
+nestedsequencescontainingndarrays andtemporalboxeswithoutdtype remainincomplete;
+foreign__array__/subclass/device/shape-ndarray args unsupported. Dtype/numericendian
+blocked40andearliertake/choose differences remain. Cleanarchivegate,commit,FFmain,
+tag/publicrelease/Downloads copy/exactUbuntuCI thencontinue (doNOTstoprelease).
+Nextcoherentwork: nestedarraycoercion/views ormissingmathematicalufuncs forManim.
+
+0.106published atb3e003e7ba40261e642ccf9d85367501a1a5d777; exactUbuntuCI42542307712
+SUCCESS; publicassetSHA b981d9b586d65970b70b39f96dde20b25f9ae1df33c76080e51495874bb13163.
+741files740manifest132fixtures9examples21unitASan10native37Lua+final154direct
+checks passed; Downloads/home/yhwh/Downloads/LuaRay-0.106.0-dev-source-20261108.tar.gz
+verified. Archivesimmutable. Userprevious50%quotastop revoked; latestweekly83used/
+17remaining (2026-11-09T01:23:36Z), continueuntilfinished/usageout. Noagentsauthorized.
+Unfinishedluanimathgoal persists; dependencyworkfirst. Oldercheckpoints historical.
+
 # Current checkpoint — sampling0.106 clean release gate
 
 Active sampling106 /mnt/datos/luaray/.dev/sampling106, VERSION0.106. All132frozen

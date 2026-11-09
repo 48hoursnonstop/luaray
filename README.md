@@ -1,3 +1,19 @@
+## LuaRay 0.107.0-dev — creation, conversion and copying
+
+Native `asarray`, `asanyarray`, C/F conversions, finite checks, copy, `*_like`
+and full now preserve actual dtype, layout, identity, sharing and writes.
+Array/empty/zeros/ones also support the new creation options; ndarray has a copy
+method. Creation bindings compile separately through an explicit ownership bridge.
+Scalar packing and array casts retain their distinct temporal behavior.
+
+Read the [English creation reference](docs/en/creation.md) or
+[referencia de creación en español](docs/es/creation.md). **12,551 original
+NumPy2.5.3 cases /1,041,748 checks**,164 direct Lua checks, native boundary tests
+and fresh-process rank64 conversion passed. Full regression has **136 frozen
+fixture files**. [Inventory](docs/en/api_inventory.md):318/675 callable names
+observed; every API remains partial, including the documented legacy astype
+contract. Runtime remains Lua/native C/C++ without Python.
+
 ## LuaRay 0.106.0-dev — native sampling and shortest float strings
 
 Native `np.linspace`, `logspace` and `geomspace` now preserve endpoint broadcasting,

@@ -53,3 +53,4 @@ jobs:
           lua5.4 examples/binary109.lua
           lua5.4 examples/layout110.lua
           lua5.4 examples/components111.lua
+          lua5.4 examples/predicates112.lua

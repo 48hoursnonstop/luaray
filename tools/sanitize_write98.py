@@ -28,6 +28,7 @@ parser.add_argument('--unary108',action='store_true',help='instrument native num
 parser.add_argument('--binary109',action='store_true',help='instrument binary math, string concatenation and logical promotion')
 parser.add_argument('--layout110',action='store_true',help='instrument reshape, ravel, flatten and independent Lua bindings')
 parser.add_argument('--components111',action='store_true',help='instrument native component views and their bindings')
+parser.add_argument('--predicates112',action='store_true',help='execute source-derived reality and complex parsing suites')
 options=parser.parse_args()
 
 def run(args,**kwargs):
@@ -145,6 +146,10 @@ if options.components111:
     run(cc+flags+['-c','tests/test_components111_core.c','-o',BUILD/'test_components111.o'])
     run(cxx+link+[BUILD/'test_components111.o']+core_objects+native_libs+['-o',BUILD/'test_components111'])
     run([BUILD/'test_components111'],env=env)
+if options.predicates112:
+    run(cc+flags+['-c','tests/test_predicates112_core.c','-o',BUILD/'test_predicates112.o'])
+    run(cxx+link+[BUILD/'test_predicates112.o']+core_objects+native_libs+['-o',BUILD/'test_predicates112'])
+    run([BUILD/'test_predicates112'],env=env)
 asan=subprocess.check_output(cc+['-print-file-name=libasan.so'],text=True).strip()
 env['LD_PRELOAD']=asan;env['LUA_CPATH']=str(BUILD/'?.so')+';;'
 tests=['write98_regression','put98_differential_generated','place98_differential_generated',
@@ -164,6 +169,7 @@ if options.unary108:tests+=['unary108_regression','rounding108_differential_gene
 if options.binary109:tests+=['binary109_regression','fmod109_differential_generated','float_power109_differential_generated','binary_coercion109_differential_generated','string_add109_differential_generated']
 if options.layout110:tests+=['layout110_regression','ravel110_differential_generated','flatten110_differential_generated','reshape110_differential_generated']
 if options.components111:tests+=['components111_regression','components111_differential_generated']
+if options.predicates112:tests+=['predicates112_regression','predicates112_differential_generated','close112_differential_generated','complex_text112_differential_generated']
 for test in tests:
     run(['lua5.4',f'tests/{test}.lua'],env=env)
 print('PASS: changed '+', '.join(changed)+' instrumented; other dependencies uninstrumented; leak detection disabled')

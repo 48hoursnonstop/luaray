@@ -1,3 +1,17 @@
+## LuaRay 0.112.0-dev — reality predicates and strict closeness
+
+Native isreal/iscomplex distinguish component values; isrealobj/iscomplexobj
+inspect dtype. Real_if_close preserves source identity or returns the shared
+real view using component-precision strict tolerance rules. Complex text casts
+now follow NumPy's two-double conversion, including valid overflow/underflow.
+
+Read the [English reality reference](docs/en/reality.md) or
+[referencia en español](docs/es/reality.md). **7,434 NumPy2.5.3 cases /478,716
+exact checks**,53 Lua checks and native tests passed. Full regression150 fixture
+files. [Inventory](docs/en/api_inventory.md):343/675 scoped names available, all
+partial. Final sanitizer and clean archive evidence is recorded independently.
+No Python runtime is introduced.
+
 ## LuaRay 0.111.0-dev — real and imaginary views
 
 Native real/imag calls and array properties preserve component offsets, dtype,

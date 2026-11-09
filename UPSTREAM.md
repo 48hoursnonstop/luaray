@@ -1,3 +1,28 @@
+## 0.112 — NumPy2.5.3 reality, strict tolerance and complex text
+
+Six source/test hashes in NUMPY_2_5_3_PREDICATES112_FILE_HASHES.sha256 pin
+_type_check_impl.py value/type predicates and real_if_close, component getsets,
+arraytypes.c.src complex construction, UF resolution and source tests.
+Existing native component modules implement the five new root functions.
+Complex predicates reuse typed imaginary views and comparison ArrayMethods;
+noncomplex branches preserve the actual bool allocation and dtype semantics.
+Closeness casts tolerance before epsilon multiplication, compares strictly and
+preserves identity when conversion does not occur. Empty arrays and NaN/Inf
+are source-tested, including nextafter boundaries in all complex precisions.
+
+Boundary initialization exposed an older complex text parser difference.
+arraytypes.c.src constructs PyComplex_Type then obtains two doubles even for
+clongdouble. Native parsing now uses double precision, allows valid ERANGE
+numeric results, validates underscores, accepts signed unit imaginary terms and
+parenthesis whitespace, and rejects C-only hex/nan-payload syntax. Nonboolean
+numeric text rejects embedded NUL; boolean text remains content-based. Exact x87
+references use native ldexp/stack and component writes instead of decimal
+complex strings, since upstream itself rounds such strings through complex128.
+No tests were weakened; full150-fixture regression passed after the shared fix.
+Full Unicode grammar and independent locale parsing remain explicit limits.
+The legacy Lua root astype extension is not claimed as NumPy's root numeric-only
+Array API signature. NumPy BSD attribution and no-Python runtime are retained.
+
 ## 0.111 — NumPy2.5.3 component views and identity
 
 Five source/test hashes in NUMPY_2_5_3_COMPONENTS111_FILE_HASHES.sha256 pin

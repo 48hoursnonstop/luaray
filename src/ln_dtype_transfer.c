@@ -378,6 +378,19 @@ trim_ascii_space_inplace(char *s)
     return s;
 }
 
+/* NumPy arraytypes.c.src obtains a Python complex (two doubles), even for
+ * clongdouble destinations. Valid underflow/overflow is a numeric result,
+ * not malformed text. Reject C-only hexadecimal/nan-payload syntax. */
+static int parse_complex_double(const char *text,long double *out)
+{
+    const char *token=text;
+    if(*token=='+'||*token=='-')++token;
+    if((token[0]=='0'&&(token[1]=='x'||token[1]=='X'))||strchr(token,'(')||strchr(token,')'))return -1;
+    char *end=NULL;errno=0;double value=strtod(text,&end);
+    if(!end||end==text||*end||(errno&&errno!=ERANGE))return -1;
+    *out=(long double)value;return 0;
+}
+
 static int
 parse_string_complex(const char *src, long double *out_r, long double *out_i,
                      ln_error *err)
@@ -390,6 +403,13 @@ parse_string_complex(const char *src, long double *out_r, long double *out_i,
     memcpy(tmp, src, n); tmp[n] = '\0';
     if (n >= 2 && tmp[0] == '(' && tmp[n - 1] == ')') {
         memmove(tmp, tmp + 1, n - 2); n -= 2; tmp[n] = '\0';
+    }
+    while(n&&isspace((unsigned char)tmp[n-1]))tmp[--n]='\0';
+    size_t leading=0;while(leading<n&&isspace((unsigned char)tmp[leading]))++leading;
+    if(leading){memmove(tmp,tmp+leading,n-leading+1);n-=leading;}
+    for(size_t i=0;i<n;++i)if(tmp[i]=='_'&&
+        (i==0||i+1==n||!isdigit((unsigned char)tmp[i-1])||!isdigit((unsigned char)tmp[i+1]))){
+        free(tmp);set_transfer_error(err,"invalid complex string");return -1;
     }
     char *cleaned = NULL;
     if (strip_numeric_underscores(tmp, &cleaned, err) < 0) { free(tmp); return -1; }
@@ -412,20 +432,19 @@ parse_string_complex(const char *src, long double *out_r, long double *out_i,
             errno = 0;
             if (split) {
                 char sign = *split; *split = '\0';
-                char *end = NULL; r = strtold(tmp, &end);
-                if (errno || !end || *end) { free(tmp); set_transfer_error(err, "invalid complex string"); return -1; }
-                *split = sign; errno = 0; end = NULL; im = strtold(split, &end);
-                if (errno || !end || *end) { free(tmp); set_transfer_error(err, "invalid complex string"); return -1; }
+                if(parse_complex_double(tmp,&r)<0){free(tmp);set_transfer_error(err,"invalid complex string");return -1;}
+                *split=sign;
+                if(strcmp(split,"+")==0)im=1;
+                else if(strcmp(split,"-")==0)im=-1;
+                else if(parse_complex_double(split,&im)<0){free(tmp);set_transfer_error(err,"invalid complex string");return -1;}
             }
             else {
-                char *end = NULL; errno = 0; im = strtold(tmp, &end);
-                if (errno || !end || *end) { free(tmp); set_transfer_error(err, "invalid complex string"); return -1; }
+                if(parse_complex_double(tmp,&im)<0){free(tmp);set_transfer_error(err,"invalid complex string");return -1;}
             }
         }
     }
     else {
-        char *end = NULL; errno = 0; r = strtold(tmp, &end);
-        if (errno || !end || *end) { free(tmp); set_transfer_error(err, "invalid complex string"); return -1; }
+        if(parse_complex_double(tmp,&r)<0){free(tmp);set_transfer_error(err,"invalid complex string");return -1;}
     }
     free(tmp); *out_r = r; *out_i = im; return 0;
 }
@@ -439,6 +458,7 @@ parse_string_to_numeric(const char *src, const ln_dtype *src_dtype,
     if (dst_dtype->type_num == LN_BOOL) {
         uint8_t v = (uint8_t)(n != 0); memcpy(dst, &v, 1); free(s); return 0;
     }
+    if(memchr(s,'\0',n)!=NULL){free(s);set_transfer_error(err,"embedded NUL in numeric string");return -1;}
     char *clean = NULL;
     if (strip_numeric_underscores(s, &clean, err) < 0) { free(s); return -1; }
     free(s); s = clean;

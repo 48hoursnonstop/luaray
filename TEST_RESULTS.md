@@ -1,3 +1,26 @@
+## 0.112.0-dev verification (executed)
+
+- Full native/Lua regression passed **150/150 frozen fixture files**.
+- Original NumPy2.5.3 predicates: **2,652 cases /158,028 checks**; closeness:
+  **4,170 /313,989**; complex text: **612 /6,699**. Combined
+  **7,434 /478,716 exact checks**. Native C tests and **53 Lua checks** passed.
+- Exact strict boundaries use native binary x87 construction rather than lossy
+  complex string casts. Nextafter, NaN/Inf, empty reductions, dtype, layout,
+  identity, ownership and actual writes are checked without numeric tolerance.
+- Shared complex text parsing now follows the source two-double conversion,
+  valid ERANGE results, unit imaginary terms and parenthesis whitespace;
+  invalid underscores, C-only forms and nonboolean embedded NUL are rejected.
+  Existing numerical assertions were preserved; no test was weakened.
+- ASan/UBSan passed **28C+1Cpp units,16 native /63 Lua suites**; other linked
+  dependencies uninstrumented, leaks disabled. Includes the shared parser changes.
+- Three fixtures and runtime inventory regenerated exactly. Inventory observed
+  **343/675** names,331 missing,1N/A,allpartial,0complete.
+- Public example passed. Final source extraction/build/manifest/full regression/
+  fifteen examples and archive integrity are independently recorded in the
+  versioned release JSON/log. Remote CI is verified separately.
+- Full Unicode/locale text grammar, array-valued tolerance, full argument and
+  foreign/subclass/device protocols remain incomplete. Earlier limits remain.
+
 ## 0.111.0-dev verification (executed)
 
 - Full native/Lua regression passed **147/147 frozen fixtures**.

@@ -1134,7 +1134,7 @@ sanitize-layout110: $(BUILD)/lua_runner $(BUILD)/luaray_core.so
 
 .PHONY: sanitize-layout110
 
-$(BUILD)/ln_components.o: src/ln_components.c src/ln_components.h src/ln_core.h | $(BUILD)
+$(BUILD)/ln_components.o: src/ln_components.c src/ln_components.h src/ln_core.h src/ln_ufunc.h | $(BUILD)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -fPIC -c $< -o $@
 
 $(BUILD)/lua_components.o: src/lua_components.c src/lua_components.h src/lua_array_api.h src/ln_components.h src/lua_compat.h | $(BUILD)
@@ -1158,3 +1158,24 @@ sanitize-components111: $(BUILD)/lua_runner $(BUILD)/luaray_core.so
 	python3 tools/sanitize_write98.py --memory99 --libm-fix --take100 --along101 --choose102 --condition103 --select104 --fft105 --sampling106 --creation107 --unary108 --binary109 --layout110 --components111
 
 .PHONY: sanitize-components111
+
+$(BUILD)/test_predicates112_main.o: tests/test_predicates112_core.c src/ln_components.h | $(BUILD)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/test_predicates112_core: $(BUILD)/test_predicates112_main.o $(BUILD)/ln_components.o $(BUILD)/test_core
+	$(CXX) $(LDFLAGS) $(BUILD)/test_predicates112_main.o $(filter-out %_san.o,$(wildcard $(BUILD)/ln_*.o)) -lm $(BLAS_LIBS) $(LAPACK_LIBS) -o $@
+
+predicates112-test: $(BUILD)/test_predicates112_core $(BUILD)/lua_runner
+	./$(BUILD)/test_predicates112_core
+	./$(BUILD)/lua_runner tests/predicates112_regression.lua
+	./$(BUILD)/lua_runner tests/predicates112_differential_generated.lua
+	./$(BUILD)/lua_runner tests/close112_differential_generated.lua
+	./$(BUILD)/lua_runner tests/complex_text112_differential_generated.lua
+
+full-test: predicates112-test
+.PHONY: predicates112-test
+
+sanitize-predicates112: $(BUILD)/lua_runner $(BUILD)/luaray_core.so
+	python3 tools/sanitize_write98.py --memory99 --libm-fix --take100 --along101 --choose102 --condition103 --select104 --fft105 --sampling106 --creation107 --unary108 --binary109 --layout110 --components111 --predicates112
+
+.PHONY: sanitize-predicates112

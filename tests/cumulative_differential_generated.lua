@@ -1,6 +1,6 @@
 -- Generated independently with NumPy 2.3.5; reference is not required at runtime.
 local n=require('luaray_core')
-assert(n._version=='0.111.0-dev')
+assert(n._version=='0.112.0-dev')
 local passed=0
 local function close(x,y,tol)
  if type(x)=='table' then

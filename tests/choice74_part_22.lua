@@ -1,6 +1,6 @@
 -- Oracle NumPy 2.3.5 / upstream code reference NumPy 2.5.3
 local np=require('luaray_core')
-assert(np._version=='0.111.0-dev')
+assert(np._version=='0.112.0-dev')
 local n=0
 local function eq(a,b,id)
  assert(type(a)==type(b),id..': type '..type(a)..' vs '..type(b))

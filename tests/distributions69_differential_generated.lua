@@ -1,6 +1,6 @@
 -- Independent NumPy 2.3.5 oracle for Generator.dirichlet
 local np=require("luaray_core")
-assert(np._version=="0.111.0-dev")
+assert(np._version=="0.112.0-dev")
 local checks=0
 local function eq(a,b) assert(a==b,("comparison %d: %s ~= %s"):format(checks,tostring(a),tostring(b))); checks=checks+1 end
 local function eqnan(a) assert(a~=a, "expected NaN at "..checks); checks=checks+1 end

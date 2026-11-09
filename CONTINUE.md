@@ -1,3 +1,30 @@
+# Current checkpoint — predicates0.112 release preparation
+
+Active /mnt/datos/luaray/.dev/predicates112 VERSION0.112.0-dev.7,434cases /
+478,716exactchecks;53Lua/native C passed. Full150/150 fixtures passed.
+Inventory343/675,331missing,1N/A,allpartial. Public example passed. ASan29units(28C+1Cpp),16native63Lua passed; three fixtures/inventory reproduce
+exactly. TEST_RESULTS updated. Next: tools/release.py clean extraction/fullsuite/15examples,
+manifest/gzip/SHA; commitFFmain/tag/publicassets/Downloads/exactCI.
+
+Native ln_components/lua_components add isreal/iscomplex/isrealobj/iscomplexobj/
+real_if_close. Numeric weak tol cast at component precision; eps scale if>1,
+strict comparison, emptyall true, original identity on no conversion. Complex
+strings now correctly pass through two doubles (even CLD), allow valid ERANGE,
+accept signed-unit j and parenthesis whitespace, reject C hex/nan-payload,
+malformed underscores and nonboolean embedded NUL. Full Unicode/locale remains
+partial. Exact x87 fixture construction uses real ldexp/stack/component writes;
+string casts necessarily round through complex128 in upstream itself.
+
+Latest public0.111 commit7446958b4b43bdfa71f7ef85c53a33d3f884ba02 SHA
+2ae15054ef8ff3017542955cef7710f1bea69abb4bd94f2531f2654ee3c02081,
+813files/812manifest,147fixtures/14examples,29-unit ASan15native59Lua.
+Exact CI42553634706 SUCCESS; public asset digest and Downloads verified.
+Quota telemetry changed window after99%used: latest5%used95%remaining03:15UTC.
+Do not apply revoked50%stop. User wants continued work until complete/usageout.
+No subagents authorized. luanimath goal unfinished/suspended for LuaRay.
+Next coherent work: clip, round, dtype views and multidimensional indices.
+Older checkpoints below are historical.
+
 # Current checkpoint — components0.111 release preparation
 
 Active /mnt/datos/luaray/.dev/components111 VERSION0.111.0-dev.3300cases/

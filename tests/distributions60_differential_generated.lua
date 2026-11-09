@@ -1,6 +1,6 @@
 -- NumPy 2.3.5 independent oracle; exact value and PCG64 state checks
 local np=require('luaray_core')
-assert(np._version=='0.111.0-dev')
+assert(np._version=='0.112.0-dev')
 local n=0
 local function eq(x,y) assert(x==y or (x~=x and y~=y), tostring(n)..' '..tostring(x)..' != '..tostring(y));n=n+1 end
 do local r=np.random.default_rng(0);local v=r:noncentral_chisquare(0.01,0.0,nil)

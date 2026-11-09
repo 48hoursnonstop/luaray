@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.111.0-dev')
+assert(np._version=='0.112.0-dev')
 local function eq(a,b)
  if type(a)~=type(b) then return false end
  if type(a)~='table' then return a==b end

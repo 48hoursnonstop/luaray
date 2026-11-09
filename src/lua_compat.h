@@ -20,6 +20,7 @@ extern void lua_settop(lua_State *L, int idx);
 extern int lua_absindex(lua_State *L, int idx);
 extern void lua_pushvalue(lua_State *L, int idx);
 extern void lua_rotate(lua_State *L, int idx, int n);
+extern void lua_copy(lua_State *L, int fromidx, int toidx);
 extern int lua_type(lua_State *L, int idx);
 extern int lua_toboolean(lua_State *L, int idx);
 extern lua_Integer lua_tointegerx(lua_State *L, int idx, int *isnum);

@@ -205,3 +205,37 @@ static int eye(lua_State *L,int identity)
 }
 int ln_lua_eye(lua_State *L){return eye(L,0);}
 int ln_lua_identity(lua_State *L){return eye(L,1);}
+
+static int diagonal_indices(lua_State *L,ln_intp n,lua_Integer dimensions)
+{
+    if(dimensions>INT_MAX)return luaL_error(L,"diagonal index sequence exceeds Lua table capacity");
+    ln_error err={0};ln_array *vector=ln_matrix_diag_indices(n,&err);
+    if(!vector)return ln_lua_fail(L,&err);
+    ln_lua_push_array(L,vector);int index=lua_gettop(L);
+    lua_createtable(L,dimensions>0?(int)dimensions:0,0);int result=lua_gettop(L);
+    for(lua_Integer i=0;i<dimensions;++i){lua_pushvalue(L,index);lua_seti(L,result,i+1);}
+    return 1;
+}
+int ln_lua_diag_indices(lua_State *L)
+{
+    int top=lua_gettop(L);if(top<1||top>2)return luaL_error(L,"diag_indices accepts size and optional dimension count");
+    lua_Integer n=integer(L,1),dimensions=2;
+    if(lua_type(L,2)==LUA_TTABLE){
+        lua_pushnil(L);
+        while(lua_next(L,2)){
+            size_t length=0;const char *key=lua_type(L,-2)==LUA_TSTRING?lua_tolstring(L,-2,&length):NULL;
+            if(!key||length!=4||memcmp(key,"ndim",4))return luaL_error(L,"unknown diag_indices option");
+            lua_pop(L,1);
+        }
+        dimensions=field(L,2,"ndim",2);
+    }else if(top==2&&lua_type(L,2)!=LUA_TNIL)dimensions=integer(L,2);
+    return diagonal_indices(L,(ln_intp)n,dimensions);
+}
+int ln_lua_diag_indices_from(lua_State *L)
+{
+    if(lua_gettop(L)!=1)return luaL_error(L,"diag_indices_from accepts exactly one ndarray");
+    ln_array *a=ln_lua_test_array(L,1);
+    if(!a||a->nd<2)return luaL_error(L,"diag_indices_from requires an ndarray with at least two dimensions");
+    for(int d=1;d<a->nd;++d)if(a->dimensions[d]!=a->dimensions[0])return luaL_error(L,"all array dimensions must have equal length");
+    return diagonal_indices(L,a->dimensions[0],a->nd);
+}

@@ -1,11 +1,11 @@
 {
-  "version": "0.121.0-dev",
+  "version": "0.122.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "identity_family": 13335
+    "diagonal_indices_and_scalar_strings": 1766
   },
-  "new_lua_regression_checks": 30,
+  "new_lua_regression_checks": 74,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -13,21 +13,21 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.eye": "implemented_partial",
-    "numpy.identity": "implemented_partial"
+    "numpy.diag_indices": "implemented_partial",
+    "numpy.diag_indices_from": "implemented_partial"
   },
   "evidence": [
     "tests/native/test_matrix_core.c",
     "tests/lua/matrix_regression.lua",
     "tests/lua/trace_regression.lua",
     "compatibility/numpy-source.sha256",
-    "tests/lua/eye_regression.lua",
-    "docs/eye.md"
+    "tests/lua/diag_indices_regression.lua",
+    "docs/diag_indices.md"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 364,
-    "missing_bindings": 310,
+    "available_callables": 366,
+    "missing_bindings": 308,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -87,10 +87,11 @@
     "Meshgrid uses an explicit Lua input sequence table and returns a sequence table; copy/sparse require Lua booleans; indexing is xy/ij; Python variadic/custom protocols and warning objects are not reproduced",
     "Meshgrid copy=false preserves source writable/readonly broadcasting and may share inputs or other cells; incompatible input flattening can still copy; inferred reshape preserves empty/singleton strides",
     "Root diagonal uses the first two axes by default; linalg.diagonal uses the last two; extracted views are read-only",
-    "Diagonal extraction uses the native C int offset range; construction uses checked native-size dimensions; foreign index objects and complete Python signature/dispatch fidelity are not implemented"
+    "Diagonal extraction uses the native C int offset range; construction uses checked native-size dimensions; foreign index objects and complete Python signature/dispatch fidelity are not implemented",
+    "Diagonal index helpers return a Lua sequence of shared one-based index vectors; diag_indices_from requires an actual ndarray with equal-sized axes. Python index/tuple/subclass protocols are not reproduced."
   ],
   "sanitizers": {
-    "version": "0.121.0-dev",
+    "version": "0.122.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_matrix",
@@ -106,8 +107,8 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.121.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.122.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact values, dtype, shape, strides, writeability and error acceptance for identity/eye; float-to-index and foreign protocols are not reproduced",
-  "new_reference_checks": 261220
+  "new_check_semantics": "Exact tested values, dtype, shape, strides, identity, sharing and backing states; full host scalar precision and Python type/dispatch fidelity are not claimed",
+  "new_reference_checks": 81899
 }

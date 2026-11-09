@@ -62,5 +62,10 @@ int main(void)
     ln_intp position[]={1,2};assert(ln_array_get_number(unit,position,&numeric,&iv,&is_integer,&err)==0&&iv==1);
     ln_array_free(unit);assert(ln_matrix_eye(-1,3,0,NULL,0,&err)==NULL);
     unit=ln_matrix_eye(2,3,INTPTR_MIN,NULL,0,&err);assert(unit&&((double*)unit->data)[0]==0);ln_array_free(unit);
+    ln_array *indices=ln_matrix_diag_indices(3,&err);assert(indices);
+    assert(indices->nd==1&&indices->dimensions[0]==3&&indices->descr==ln_dtype_by_name("int64"));
+    assert(((int64_t*)indices->data)[0]==1&&((int64_t*)indices->data)[2]==3);ln_array_free(indices);
+    indices=ln_matrix_diag_indices(-3,&err);assert(indices&&ln_array_size(indices)==0);ln_array_free(indices);
+    assert(ln_matrix_diag_indices(INTPTR_MAX,&err)==NULL);
     puts("matrix native: diagonal layout, shared lifetime, readonly, construction, overflow and staged trace passed");
 }

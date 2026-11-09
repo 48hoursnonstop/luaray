@@ -40,13 +40,13 @@ retain their original NumPy 2.3.5 attribution.
 
 `compatibility/current.json` records the release-specific behavioral evidence.
 `compatibility/api_inventory.json` records runtime availability. The latter
-reports 352 of 675 scoped names as available and classifies all available APIs
+reports 366 of 675 scoped names as available and classifies all available APIs
 as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.121.0-dev** passed **55 native suites**, **91 Lua suites**, seven public
-examples and 50 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
+LuaRay **0.122.0-dev** passed **55 native suites**, **92 Lua suites**, seven public
+examples and 56 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
 passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
 metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
@@ -60,9 +60,11 @@ relative3e-15 budget. Observed absolute and relative numerical errors were zero.
 Identity/eye references passed **13,335 cases / 261,220 exact checks**, including
 C/F order, dtype conversion, offsets, empty axes and temporal unit requirements.
 
+Diagonal-index and scalar-string references passed **1,766 cases / 81,899 exact checks**, including one-based coordinate adaptation, repeated-vector identity, real advanced writes, fixed-width scalar assignment and constructor formatting.
+
 The directed ASan/UBSan run instrumented `ln_matrix`, `ln_linalg`, `lua_matrix`,
 and `lua_module`, plus the native matrix test and Lua runner. All maintained tests
-and the diagonal corpus passed. Other native dependencies were not fully
+and all six cumulative matrix corpora passed. Other native dependencies were not fully
 instrumented; leak detection was disabled. This is a directed audit, not an
 all-dependency memory-safety certification.
 

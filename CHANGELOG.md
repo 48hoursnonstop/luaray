@@ -12,6 +12,14 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.122.0-dev
+
+Added `diag_indices` and `diag_indices_from` with shared one-based coordinate
+vectors and actual advanced read/write integration. Fixed numeric, Boolean and
+complex scalar assignment to fixed-width strings, and reused native formatting
+for constructors to preserve precision, pure-imaginary notation and NaN spelling.
+Added executable English/Spanish guides.
+
 ## 0.121.0-dev
 
 Added native `eye` and `identity` with rectangular shapes, offset diagonals,

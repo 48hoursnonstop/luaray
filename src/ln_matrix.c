@@ -262,3 +262,13 @@ ln_array *ln_matrix_eye(ln_intp rows,ln_intp columns,ln_intp k,const ln_dtype *d
     int status=ln_array_copyto(diagonal,&one,NULL,1,LN_UNSAFE_CASTING,err);
     ln_array_free(diagonal);if(status<0){ln_array_free(out);return NULL;}return out;
 }
+
+/* _index_tricks_impl.py:diag_indices, with Lua coordinate values starting at1. */
+ln_array *ln_matrix_diag_indices(ln_intp n,ln_error *err)
+{
+    ln_intp count=n<0?0:n;
+    const ln_dtype *dtype=ln_dtype_by_name(sizeof(ln_intp)==8?"int64":"int32");
+    ln_array *indices=ln_array_new(1,&count,dtype,0,0,err);if(!indices)return NULL;
+    for(ln_intp i=0;i<count;++i)((ln_intp *)indices->data)[i]=i+1;
+    return indices;
+}

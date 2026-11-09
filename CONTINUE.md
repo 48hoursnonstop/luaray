@@ -1,3 +1,28 @@
+# Current checkpoint — layout0.110 final validation
+
+Active /mnt/datos/luaray/.dev/layout110 VERSION0.110.0-dev. Directed25,134cases /
+1,759,008checks exact;61Lua/native C passed. Full146/146fixture files passed.
+Inventory336/675,338missing,1N/A,allpartial. Public example passed. ASan27units(26C+1Cpp),14native57Lua passed; see
+artifacts/layout110-sanitize.log. TEST_RESULTS records executed results.
+Exact three-fixture/inventory regeneration runs separately; then
+clean tools/release.py extraction/fullsuite/13examples; manifest/gzip/SHA;
+commitFFmain/tag/publicassets/Downloads/exactCI. Continue until complete/usageout.
+
+Native ln_layout replaces old core C reshape implementation with a delegate;
+independent lua_layout uses rooted ownership bridge. Reshape C/F/A with copy
+true/false/if_needed, one negative inferred shape; ravel/flatten C/F/A/K.
+New strided no-copy F grouping, stable physical K axes, raw-negative K view
+rejection and explicit scalar/table coercion. Empty flatten allocation stride0
+versus empty reshape view canonical stride is intentional and source-tested.
+
+Latest public0.109 commit65aa72ac6f9194c2af7686b87aa941cda6feea50 SHA
+30cf13ae78503400da665a2b74b785cb516704cd34d461c6530b78d1ed0c01a6.
+Exact CI42551053140 SUCCESS; public assets and Downloads SHA verified.
+Final telemetry97%used/3%remaining at02:37UTC. Earlier50%stop was revoked.
+No subagents authorized. luanimath goal is unfinished and suspended for LuaRay.
+Next coherent work after0.110: real/imag views, clip/round and dtype views.
+Older checkpoints below are historical.
+
 # Current checkpoint — binary 0.109 release gate preparation
 
 Active worktree: /mnt/datos/luaray/.dev/binary109, VERSION0.109.0-dev.

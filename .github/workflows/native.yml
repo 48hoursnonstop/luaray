@@ -51,3 +51,4 @@ jobs:
           lua5.4 examples/creation107.lua
           lua5.4 examples/unary108.lua
           lua5.4 examples/binary109.lua
+          lua5.4 examples/layout110.lua

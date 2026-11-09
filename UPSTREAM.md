@@ -1,3 +1,27 @@
+## 0.110 — NumPy2.5.3 layout, shared views and copy modes
+
+Eight source/test hashes are pinned in NUMPY_2_5_3_LAYOUT110_FILE_HASHES.sha256.
+shape.c supplies _reshape_with_copy_arg, _fix_unknown_dimension, C/F no-copy
+stride grouping, Ravel and Flatten. ctors.c supplies CopyAsFlat with
+DONT_NEGATE_STRIDES; nditer_constr.c supplies stable KEEPORDER ordering with
+ambiguous zero strides. Existing NumPy BSD attribution is retained.
+
+The independent ln_layout subsystem implements these rules. Core C reshape
+now delegates instead of retaining a second partial algorithm. Copying reuses
+the audited creation engine. Independent lua_layout bindings use the explicit
+rooted/owned array bridge, parse options before coercion and validate binary-NUL
+keys. Reshape supports C/F/A and three copy modes; ravel/flatten C/F/A/K.
+Single negative dimensions infer size; checked products reject overflow. Views
+preserve buffer ownership/read-only status and copies regain writeability.
+
+Three original fixtures compare values, exact metadata, sharing and real writes.
+Oracle inputs are explicit ndarrays, including zero rank: NumPy scalar arithmetic
+must not accidentally change a sharing reference's type. expand_dims fixtures
+use expand_dims itself, preserving its canonical singleton stride rather than
+substituting basic-index newaxis's distinct zero stride. Full146-fixture regression
+passed; all existing numerical fixtures are preserved apart from version fields.
+English/Spanish references state actual contracts and remaining protocols.
+
 ## 0.109 — NumPy2.5.3 binary math, strings and logical promotion
 
 Ten hashes in NUMPY_2_5_3_BINARY109_FILE_HASHES.sha256 pin generated signatures,

@@ -1,3 +1,18 @@
+## LuaRay 0.110.0-dev — reshape, ravel and flatten
+
+Native C/F/A reshape supports always/never/if-needed copying and compatible
+negative-stride views. Ravel and flatten implement C/F/A/K traversal with actual
+buffer sharing and independent copies. Lua layout bindings compile separately;
+internal C-order reshape delegates to the same source-derived implementation.
+
+Read the [English layout reference](docs/en/layout.md) or
+[referencia en español](docs/es/layout.md). **25,134 original NumPy2.5.3 cases /
+1,759,008 exact checks**,61 directed Lua checks and native tests passed.
+Full regression: **146 fixture files**. [Inventory](docs/en/api_inventory.md):
+336/675 scoped names observed; all partial. No overall completion percentage or
+Python runtime dependency is implied. Final clean-package and sanitizer results
+are recorded in TEST_RESULTS.md and the versioned verification report.
+
 ## LuaRay 0.109.0-dev — binary math, ordinary Lua inputs and string addition
 
 Native fmod/float_power preserve exact remainder signs and minimum-double power

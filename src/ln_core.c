@@ -1,4 +1,5 @@
 #include "ln_core.h"
+#include "ln_layout.h"
 #include "ln_dtype_transfer.h"
 #include "ln_ufunc_loops.h"
 #include "ln_nditer.h"
@@ -636,120 +637,8 @@ ln_array *ln_array_index_axis0(const ln_array *base, ln_intp lua_index, ln_error
 
 static void advance_index(int nd,const ln_intp*shape,ln_intp*idx);
 
-static int
-attempt_nocopy_reshape_c(const ln_array *base, int newnd, const ln_intp *newdims,
-                         ln_intp *newstrides)
-{
-    /* Direct port of shape.c:_attempt_nocopy_reshape for C-order views. */
-    int oldnd = 0;
-    ln_intp olddims[LN_MAXDIMS];
-    ln_intp oldstrides[LN_MAXDIMS];
-
-    for (int oi = 0; oi < base->nd; ++oi) {
-        if (base->dimensions[oi] != 1) {
-            olddims[oldnd] = base->dimensions[oi];
-            oldstrides[oldnd] = base->strides[oi];
-            oldnd++;
-        }
-    }
-
-    int oi = 0, oj = 1, ni = 0, nj = 1;
-    while (ni < newnd && oi < oldnd) {
-        ln_intp np = newdims[ni];
-        ln_intp op = olddims[oi];
-
-        while (np != op) {
-            if (np < op) {
-                if (nj >= newnd) return 0;
-                np *= newdims[nj++];
-            }
-            else {
-                if (oj >= oldnd) return 0;
-                op *= olddims[oj++];
-            }
-        }
-
-        for (int ok = oi; ok < oj - 1; ++ok) {
-            if (oldstrides[ok] != olddims[ok + 1] * oldstrides[ok + 1]) {
-                return 0;
-            }
-        }
-
-        newstrides[nj - 1] = oldstrides[oj - 1];
-        for (int nk = nj - 1; nk > ni; --nk) {
-            newstrides[nk - 1] = newstrides[nk] * newdims[nk];
-        }
-        ni = nj++;
-        oi = oj++;
-    }
-
-    ln_intp last_stride = ni >= 1 ? newstrides[ni - 1]
-                                    : (ln_intp)base->descr->elsize;
-    for (int nk = ni; nk < newnd; ++nk) {
-        newstrides[nk] = last_stride;
-    }
-    return 1;
-}
-
-static ln_array *
-array_copy_c(const ln_array *base, ln_error *err)
-{
-    ln_array *out = ln_array_new(base->nd, base->dimensions, base->descr, 0, 0, err);
-    if (!out) return NULL;
-    ln_intp total = ln_array_size(base);
-    if (total < 0) {
-        ln_array_free(out);
-        seterr(err, "array is too big");
-        return NULL;
-    }
-    if (total == 0) return out;
-
-    ln_intp idx[LN_MAXDIMS] = {0};
-    size_t itemsize = base->descr->elsize;
-    for (ln_intp n = 0; n < total; ++n) {
-        char *src = base->data;
-        for (int d = 0; d < base->nd; ++d) src += idx[d] * base->strides[d];
-        memcpy(out->data + (size_t)n * itemsize, src, itemsize);
-        advance_index(base->nd, base->dimensions, idx);
-    }
-    return out;
-}
-
-ln_array *ln_array_reshape_c(const ln_array *base, int nd, const ln_intp *dims, ln_error *err) {
-    if(!base){seterr(err,"invalid reshape input");return NULL;}
-    if(nd<0||nd>LN_MAXDIMS){seterr(err,"invalid reshape dimensionality");return NULL;}
-    /* NumPy shape.c:_reshape_with_copy_arg quick path: identical shape is a view. */
-    if(nd==base->nd){
-        int same=1;
-        for(int i=0;i<nd;i++) if(base->dimensions[i]!=dims[i]){same=0;break;}
-        if(same) return ln_array_view(base,base->nd,base->dimensions,base->strides,base->data,err);
-    }
-    ln_intp oldn=ln_array_size(base), newn=1; int unknown=-1;
-    ln_intp tmp[LN_MAXDIMS];
-    for(int i=0;i<nd;i++){tmp[i]=dims[i]; if(tmp[i]==-1){if(unknown!=-1){seterr(err,"can only specify one unknown dimension");return NULL;}unknown=i;continue;} if(tmp[i]<0){seterr(err,"negative dimensions are not allowed");return NULL;} if(tmp[i]==0){newn=0;continue;} if(newn!=0&&ln_mul_sizes_with_overflow(&newn,newn,tmp[i])){seterr(err,"array is too big");return NULL;}}
-    if(unknown>=0){ if(newn==0 || oldn%newn!=0){seterr(err,"cannot reshape array into requested shape");return NULL;} tmp[unknown]=oldn/newn; newn=oldn; }
-    if(oldn!=newn){seterr(err,"cannot reshape array: size mismatch");return NULL;}
-
-    ln_intp strides[LN_MAXDIMS];
-    if(base->flags & LN_ARRAY_C_CONTIGUOUS){
-        int flags=LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS;
-        ln_array_fill_strides(strides,tmp,nd,base->descr->elsize,LN_ARRAY_C_CONTIGUOUS,&flags);
-        return ln_array_view(base,nd,tmp,strides,base->data,err);
-    }
-
-    if(oldn != 0 && attempt_nocopy_reshape_c(base,nd,tmp,strides)){
-        return ln_array_view(base,nd,tmp,strides,base->data,err);
-    }
-
-    /* NumPy's default reshape is copy-if-needed. Recreate PyArray_NewCopy(C). */
-    ln_array *copy=array_copy_c(base,err);
-    if(!copy)return NULL;
-    int flags=LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS;
-    ln_array_fill_strides(strides,tmp,nd,copy->descr->elsize,LN_ARRAY_C_CONTIGUOUS,&flags);
-    ln_array *ret=ln_array_view(copy,nd,tmp,strides,copy->data,err);
-    ln_array_free(copy);
-    return ret;
-}
+ln_array *ln_array_reshape_c(const ln_array *base,int nd,const ln_intp *dims,ln_error *err)
+{return ln_layout_reshape(base,nd,dims,'C',-1,err);}
 
 ln_array *ln_array_transpose(const ln_array *base, ln_error *err) {
     ln_intp dims[LN_MAXDIMS],strides[LN_MAXDIMS];

@@ -1,3 +1,23 @@
+## 0.110.0-dev verification (executed)
+
+- Full native/Lua regression passed **146/146 frozen fixture files**.
+- NumPy2.5.3 ravel: **2,664 cases /185,920 checks**; flatten:
+  **2,640 /185,128**; reshape: **19,830 /1,387,960**. Combined
+  **25,134 /1,759,008**, exact values, metadata, sharing and post-write states.
+- Native C tests and **61 Lua checks** passed, including owner lifetime after
+  collection, reversed/strided no-copy reshapes, C/F/A/K, copy policy, readonly
+  propagation, inferred dimensions, invalid options/NUL, rank and size limits.
+- Directed ASan/UBSan passed **26C+1Cpp units,14 native and57 Lua suites**.
+  Existing dependencies outside that scope were uninstrumented; leaks disabled.
+- Three fixtures and runtime inventory are regenerated exactly as a separate
+  gate. Inventory observed **336/675** names:338 missing,1N/A,0complete.
+- Public native-module example passed. Source extraction/manifest/clean build/
+  full regression/thirteen examples and archive integrity are independently
+  recorded in the versioned release JSON/log. Remote CI is checked separately.
+- All older numerical fixture assertions remain unchanged except version fields.
+  The old core C reshape delegates to the new native subsystem. Full NumPy
+  compatibility, all protocols and all ABI variants are not claimed.
+
 ## 0.109.0-dev verification (executed)
 
 - Full native/Lua regression passed **143/143 frozen fixture files**.

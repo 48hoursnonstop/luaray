@@ -1,13 +1,11 @@
 {
-  "version": "0.116.0-dev",
+  "version": "0.117.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "cross": 6239,
-    "meshgrid": 1902
+    "diagonal_family": 47886
   },
-  "new_numeric_checks": 787265,
-  "new_lua_regression_checks": 27,
+  "new_lua_regression_checks": 62,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -15,21 +13,21 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.cross": "implemented_partial",
-    "numpy.meshgrid": "implemented_partial",
-    "numpy.linalg.cross": "implemented_partial"
+    "numpy.diagonal": "implemented_partial",
+    "numpy.diag": "implemented_partial",
+    "numpy.diagflat": "implemented_partial",
+    "numpy.ndarray.diagonal": "implemented_partial"
   },
   "evidence": [
-    "tests/lua/vector116_regression.lua",
-    "tests/native/test_vector116_core.c",
-    "compatibility/api_inventory.json",
-    "tools/reference-tests.sh",
-    "https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev"
+    "tests/native/test_matrix_core.c",
+    "tests/lua/matrix_regression.lua",
+    "docs/matrices.md",
+    "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 352,
-    "missing_bindings": 322,
+    "available_callables": 356,
+    "missing_bindings": 318,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -87,22 +85,29 @@
     "Cross follows NumPy2.5.3 three-component inputs, common-dtype casts and output-last allocation plus axis view; positive Lua axes are one-based and root ordinary array-like inputs use the existing constructor",
     "General complex cross budgets are fixed at6e-7 for complex64 and2e-15 for wider complex, scaled by max(1,abs(component)); exact state/metadata/zero/nonfinite cases are separate; byte-identical CPU FMA dispatch is not certified",
     "Meshgrid uses an explicit Lua input sequence table and returns a sequence table; copy/sparse require Lua booleans; indexing is xy/ij; Python variadic/custom protocols and warning objects are not reproduced",
-    "Meshgrid copy=false preserves source writable/readonly broadcasting and may share inputs or other cells; incompatible input flattening can still copy; inferred reshape preserves empty/singleton strides"
+    "Meshgrid copy=false preserves source writable/readonly broadcasting and may share inputs or other cells; incompatible input flattening can still copy; inferred reshape preserves empty/singleton strides",
+    "Root diagonal uses the first two axes by default; linalg.diagonal uses the last two; extracted views are read-only",
+    "Diagonal extraction uses the native C int offset range; construction uses checked native-size dimensions; foreign index objects and complete Python signature/dispatch fidelity are not implemented"
   ],
-  "sanitizers": "Directed audit: thirty-eight C units plus C++ ln_fft, including vector/grid kernels and bindings, delegated linalg cross, byte/alignment and shared arithmetic/iterator changes; twenty native and seventy-eight Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops use -fwrapv; unary math uses explicit eligible FMA",
-  "new_check_semantics": "Meshgrid and ordinary cross references are exact; general complex cross uses the documented preselected per-dtype budgets",
-  "cross_observed_errors": {
-    "complex64": {
-      "max_absolute_error": 4.7683715820312e-07,
-      "max_scaled_error": 2.3841857910156e-07
-    },
-    "complex128": {
-      "max_absolute_error": 4.4408920985006e-16,
-      "max_scaled_error": 3.806396165811e-16
-    },
-    "clongdouble": {
-      "max_absolute_error": 0.0,
-      "max_scaled_error": 0.0
-    }
-  }
+  "sanitizers": {
+    "version": "0.117.0-dev",
+    "result": "passed",
+    "instrumented_library_C_units": [
+      "ln_matrix",
+      "ln_linalg",
+      "lua_matrix",
+      "lua_module"
+    ],
+    "instrumented_harnesses": [
+      "tests/runner.c",
+      "tests/native/test_matrix_core.c"
+    ],
+    "all_maintained_tests": "passed",
+    "all_current_matrix_oracles": "passed",
+    "other_native_dependencies": "not fully instrumented",
+    "leak_detection": false,
+    "log": "artifacts/matrix-0.117.0-dev-sanitizers.log"
+  },
+  "new_check_semantics": "Exact values, dtype, shape, strides, sharing, writeability and post-write backing states; the upstream INT_MIN signed-negation path is not executed",
+  "new_reference_checks": 4571474
 }

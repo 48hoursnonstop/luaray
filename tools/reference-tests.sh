@@ -21,6 +21,13 @@ stage=$(mktemp -d "$root/.dev/reference-run.XXXXXX")
 trap 'rm -rf -- "$stage"' EXIT HUP INT TERM
 tar -xzf "$archive" -C "$stage"
 reference="$stage/luaray-$version"
+# Frozen numeric assertions are unchanged; adapt only historical version gates.
+runtime_version=$(cat "$root/VERSION")
+for fixture in "$reference"/tests/*.lua; do
+    if grep -q '0\.116\.0-dev' "$fixture"; then
+        sed -i "s/0\.116\.0-dev/$runtime_version/g" "$fixture"
+    fi
+done
 (
     cd "$reference"
     count=0

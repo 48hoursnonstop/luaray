@@ -45,11 +45,16 @@ as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-The source-tree cleanup passed a clean native build, **54 native suites**,
-**86 Lua suites**, and **seven public examples** on Linux. External reference
-validation passed all **161 differential files**, 23 extended permutation parts,
-the two additional random edge fixtures, and the 70,828-state formatting reference.
-The current kernels were used for these checks; no numerical source was changed.
+LuaRay **0.117.0-dev** passed **55 native suites**, **87 Lua suites**, seven public
+examples and 26 executable documentation blocks. The new diagonal references
+passed **47,886 cases / 4,571,474 exact checks** against NumPy 2.5.3, including
+metadata, shared storage, read-only errors and actual backing states.
+
+The directed ASan/UBSan run instrumented `ln_matrix`, `ln_linalg`, `lua_matrix`,
+and `lua_module`, plus the native matrix test and Lua runner. All maintained tests
+and the diagonal corpus passed. Other native dependencies were not fully
+instrumented; leak detection was disabled. This is a directed audit, not an
+all-dependency memory-safety certification.
 
 ## Release integrity
 

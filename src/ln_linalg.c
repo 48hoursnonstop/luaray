@@ -1,3 +1,4 @@
+#include "ln_matrix.h"
 #include "ln_linalg.h"
 #include "ln_vector.h"
 #include "ln_dtype_transfer.h"
@@ -1929,25 +1930,7 @@ ln_linalg_outer(const ln_array *a, const ln_array *b, ln_error *err)
 ln_array *
 ln_linalg_diagonal(const ln_array *a, ln_intp offset, ln_error *err)
 {
-    if(!a||a->nd<2){seterr(err,"diag requires an array of at least two dimensions");return NULL;}
-    ln_intp m=a->dimensions[a->nd-2],n=a->dimensions[a->nd-1];
-    ln_intp row0=0,col0=0,len=0;
-    if(offset>=0){
-        col0=offset;
-        if(offset<n){ln_intp rem=n-offset;len=m<rem?m:rem;}
-    }else{
-        if(offset==INT64_MIN){row0=m;len=0;}
-        else row0=-offset;
-        if(row0<m){ln_intp rem=m-row0;len=rem<n?rem:n;}
-    }
-    int nd=a->nd-1;ln_intp dims[LN_MAXDIMS],strides[LN_MAXDIMS];
-    for(int d=0;d<a->nd-2;d++){dims[d]=a->dimensions[d];strides[d]=a->strides[d];}
-    dims[nd-1]=len;strides[nd-1]=a->strides[a->nd-2]+a->strides[a->nd-1];
-    char *data=a->data;
-    if(len>0)data+=row0*a->strides[a->nd-2]+col0*a->strides[a->nd-1];
-    ln_array *v=ln_array_view(a,nd,dims,strides,data,err);if(!v)return NULL;
-    v->flags&=~LN_ARRAY_WRITEABLE;
-    return v;
+    return ln_matrix_diagonal(a,offset,a?a->nd-2:0,a?a->nd-1:1,err);
 }
 
 ln_array *

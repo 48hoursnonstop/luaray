@@ -43,11 +43,16 @@ el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-La limpieza del árbol aprobó compilación nativa limpia, **54 suites nativas**,
-**86 suites Lua** y **siete ejemplos públicos** en Linux. Las referencias externas
-aprobaron los **161 archivos**, 23 partes de permutaciones, dos fixtures de casos
-límite aleatorios y la referencia de formato con 70,828 estados. Las comprobaciones
-usaron el motor actual; no cambiaron los kernels numéricos.
+LuaRay **0.117.0-dev** aprobó **55 suites nativas**, **87 suites Lua**, siete ejemplos
+y 26 bloques ejecutables de documentación. Las referencias nuevas de diagonales
+aprobaron **47,886 casos / 4,571,474 comprobaciones exactas** contra NumPy 2.5.3,
+incluidos metadatos, memoria compartida, errores de escritura y estado del original.
+
+La auditoría dirigida ASan/UBSan instrumentó `ln_matrix`, `ln_linalg`, `lua_matrix`
+y `lua_module`, además de la prueba nativa de matrices y el runner Lua. Aprobaron
+las regresiones y el corpus nuevo. Las demás dependencias no estaban completamente
+instrumentadas y la detección de fugas estaba desactivada. El alcance es dirigido;
+no certifica la memoria de todas las dependencias.
 
 ## Integridad de las entregas
 

@@ -62,7 +62,7 @@ native-test: $(NATIVE_TESTS)
 	@set -eu; for test in $(NATIVE_TESTS); do "$$test"; done
 
 lua-test: $(BUILD)/lua_runner
-	@set -eu; for test in $(LUA_TESTS); do ./$(BUILD)/lua_runner "$$test"; done
+	@set -eu; for test in $(LUA_TESTS); do LUA_PATH='./lua/?.lua;;' ./$(BUILD)/lua_runner "$$test"; done
 
 test full-test: native-test lua-test
 

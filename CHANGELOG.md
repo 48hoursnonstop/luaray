@@ -12,6 +12,12 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.117.0-dev
+
+Added `diagonal`, `diag`, `diagflat`, and `ndarray:diagonal`, including general axes,
+read-only shared views, C-order flattening, dtype-preserving matrix construction,
+and overflow checks. Added English/Spanish matrix documentation and numerical references.
+
 ## 0.116.0-dev
 
 Added cross products and coordinate grids, including NumPy differential references,

@@ -1,3 +1,39 @@
+# Current checkpoint — bytes0.115 release preparation
+
+Active /mnt/datos/luaray/.dev/view115 VERSION0.115.0-dev.16,794cases /
+895,109exactchecks,27Lua/native C passed. Full159/159 fixtures passed.
+ASan36units(35C+1Cpp),19native75Lua passed, session63479 complete.
+Inventory350/675,324missing,1N/A,allpartial. Public example passed.
+Exact three-fixture/inventory regeneration passed (session2800).
+Next: tools/release.py clean extraction/fullsuite/18examples,
+manifest/gzip/SHA; commitFFmain/tag/publicassets/Downloads/exactCI.
+Continue autonomously; no subagents authorized, no arbitrary quota stop.
+
+Native ln_bytes/lua_bytes implement typed view, bytes export, itemsize/nbytes.
+Source last-axis rules, owner lifetime, readonly and overflow retained. Unicode
+K export uses ravel(K), ordinary numeric/bytes/time K uses C, per actual source.
+Recomputed alignment, memcpy scalar access, legacy/generic buffers and core
+reduction/accumulation/reduceat staging support unaligned views. Native scalar
+loop buffers have C11 alignment. Raw goldens are little-endian x86-64 with
+initialized uint8 backing; full foreign ABI/downstream safety remains partial.
+
+Latest public0.114 5a5e07b56999dd183ef0defb38d01ec26e999251 SHA
+f6cf6772d8d9974d9eb0194ef4444bc13dba5ea16d09de37de492b5fbac398f5,
+855files/854manifest,156fixtures/17examples,ASan33units18native71Lua.
+Exact CI42562650531 SUCCESS; public asset digest and Downloads verified.
+Latest observed quota19%used81%remaining04:52UTC in renewed telemetry window;
+historical99% does not imply exhaustion. User requests work until complete/
+usage exhausted; revoked50%stop must not be applied. luanimath unfinished,
+dependencies first. Next root cross and meshgrid are useful numerical gaps.
+Read source: NumPy2.5.3 root cross now requires3 components (2D was removed),
+casts both inputs to common dtype, allocates final vector axis last then returns
+moveaxis view. Existing ln_linalg_cross needs its nonlast output strides fixed
+and source descriptors promoted before products. Meshgrid source reshapes each
+input C-order, optional xy first-two swap, optional broadcast_arrays, copy C;
+copy=false remains writable if original, unlike broadcast_to. Preserve strides
+when ALL sparse shapes already match target; inspect actual broadcast source.
+Older checkpoints below historical.
+
 # Current checkpoint — clip0.114 release preparation
 
 Active /mnt/datos/luaray/.dev/clip114 VERSION0.114.0-dev.6,607cases /

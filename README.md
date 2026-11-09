@@ -1,3 +1,16 @@
+## LuaRay 0.115.0-dev — typed memory views and byte export
+
+Native ndarray `view` shares and reinterprets actual storage; `tobytes`,
+`itemsize` and `nbytes` expose its representation. Shared scalar/iterator/
+reduction handling now stages or safely accesses unaligned numeric storage.
+
+Read the [English byte reference](docs/en/byte_views.md) or
+[referencia en español](docs/es/byte_views.md). **16,794 NumPy2.5.3 cases /
+895,109 exact checks**,27 Lua checks and native tests passed; full159-fixture
+regression passed. Final sanitizer/clean-package gates have separate records in
+TEST_RESULTS.md. [Inventory](docs/en/api_inventory.md):350/675 scoped names,
+all partial. Runtime remains Lua/C/C++, without Python.
+
 ## LuaRay 0.114.0-dev — fused clipping
 
 Native `np.clip` and `a:clip` provide broadcasting, open bounds, typed output,

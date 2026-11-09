@@ -1,14 +1,14 @@
 {
-  "version": "0.114.0-dev",
+  "version": "0.115.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "clip": 4415,
-    "clip_outputs": 2112,
-    "clip_buffering": 80
+    "typed_views": 6480,
+    "byte_exports_and_layouts": 4464,
+    "unaligned_arithmetic": 5850
   },
-  "new_numeric_checks": 4437338,
-  "new_lua_regression_checks": 26,
+  "new_numeric_checks": 895109,
+  "new_lua_regression_checks": 27,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -16,26 +16,22 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.clip": "implemented_partial",
-    "numpy.ndarray.clip": "implemented_partial",
-    "numpy.minimum": "implemented_partial",
-    "numpy.maximum": "implemented_partial",
-    "numpy.fmin": "implemented_partial",
-    "numpy.fmax": "implemented_partial"
+    "numpy.ndarray.view": "implemented_partial",
+    "numpy.ndarray.tobytes": "implemented_partial"
   },
   "evidence": [
-    "tests/clip114_differential_generated.lua",
-    "tests/clip_out114_differential_generated.lua",
-    "tests/clip_buffer114_differential_generated.lua",
-    "tests/clip114_regression.lua",
-    "tests/test_clip114_core.c",
+    "tests/view115_differential_generated.lua",
+    "tests/bytes115_differential_generated.lua",
+    "tests/unaligned115_differential_generated.lua",
+    "tests/bytes115_regression.lua",
+    "tests/test_bytes115_core.c",
     "compatibility/api_inventory.json",
     "tools/inventory_api.py"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 348,
-    "missing_bindings": 326,
+    "available_callables": 350,
+    "missing_bindings": 324,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -84,7 +80,12 @@
     "Round Lua options/typed scalar return adaptation and constructor limits remain; every subclass/device/foreign protocol, FP status/rounding mode and host ABI is not certified",
     "Clip supports positional bounds and out/where options; Python keyword aliases and dtype/casting/order/signature/subok are not accepted",
     "Clip resolves strong descriptor categories before weak value packing, implements integer-bound elision and fused numeric/time loops; complete foreign DType and scalar protocols remain unavailable",
-    "Uniform non-reduction buffer cost planning is currently selected for clip, using the source default8192; Python setbufsize, every possible memory layout, warnings, NaN payloads and host floating environment remain uncertified"
+    "Uniform non-reduction buffer cost planning is currently selected for clip, using the source default8192; Python setbufsize, every possible memory layout, warnings, NaN payloads and host floating environment remain uncertified",
+    "View reinterprets supported descriptor bytes and shares the owner; changing itemsize follows last-axis contiguity/divisibility, with scalar/singleton/empty rules and overflow checks",
+    "Tobytes exports actual bytes including padding; NumPy2.5.3 K uses C order for numeric/bytes/time but KEEPORDER ravel for Unicode; letters case-insensitive, Lua nil/default C",
+    "View accepts dtype strings only; Python subclasses/type arguments, void/subarray/structured/object/variableStringDType and non-native numeric endian remain unsupported",
+    "Alignment flags and scalar loads/stores plus generic/legacy iterators and core reduction/accumulation staging support directed unaligned cases; every downstream algorithm and foreign storage layout is not certified",
+    "Frozen raw-byte oracles use little-endian x86-64; independently constructed longdouble padding and all foreign ABIs are not certified"
   ],
-  "sanitizers": "Directed audit: thirty-two C units plus C++ ln_fft, including fused clip, shared dtype/ufunc/iterator and Lua binding changes; eighteen native and seventy-one Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops use -fwrapv; unary math uses explicit eligible FMA"
+  "sanitizers": "Directed audit: thirty-five C units plus C++ ln_fft, including byte view/export kernels/bindings, core aligned scalar/reduction handling and legacy/generic iterators; nineteen native and seventy-five Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops use -fwrapv; unary math uses explicit eligible FMA"
 }

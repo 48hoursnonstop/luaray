@@ -486,8 +486,8 @@ execute_plan(ln_binary_plan *p,
 
     coalesce_axes(p);
 
-    const int cast_a = a->descr->type_num != input_dtype_a->type_num;
-    const int cast_b = b->descr->type_num != input_dtype_b->type_num;
+    const int cast_a = a->descr->type_num != input_dtype_a->type_num || !(a->flags&LN_ARRAY_ALIGNED);
+    const int cast_b = b->descr->type_num != input_dtype_b->type_num || !(b->flags&LN_ARRAY_ALIGNED);
     const int buffer_out = (work_out->descr->type_num != output_dtype->type_num) || where != NULL;
     size_t input_a_isz = input_dtype_a->elsize;
     size_t input_b_isz = input_dtype_b->elsize;

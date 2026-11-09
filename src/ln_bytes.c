@@ -1,0 +1,86 @@
+#include "ln_bytes.h"
+#include "ln_layout.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+/* NumPy2.5.3 common.c:_check_compatibility_with_new_dtype and
+ * convert.c:PyArray_View/PyArray_ToString. NumPy BSD attribution retained. */
+static int fail(ln_error *err,const char *message,ln_error_kind kind)
+{
+    if(err){snprintf(err->message,sizeof err->message,"%s",message);err->kind=kind;}
+    return -1;
+}
+int ln_bytes_size(const ln_array *a,size_t *size,ln_error *err)
+{
+    if(!a||!a->descr||!size)return fail(err,"invalid byte size query",LN_ERROR_TYPE);
+    ln_intp count=ln_array_size(a);
+    if(count<0||(a->descr->elsize&&(uintmax_t)count>(uintmax_t)INTPTR_MAX/a->descr->elsize))
+        return fail(err,"array byte count exceeds native range",LN_ERROR_OVERFLOW);
+    *size=(size_t)count*a->descr->elsize;return 0;
+}
+ln_array *ln_bytes_view(const ln_array *a,const ln_dtype *dtype,ln_error *err)
+{
+    if(!a||!a->descr){fail(err,"view requires an ndarray",LN_ERROR_TYPE);return NULL;}
+    const ln_dtype *target=dtype?dtype:a->descr;
+    size_t before=a->descr->elsize,after=target->elsize;
+    ln_intp dims[LN_MAXDIMS],strides[LN_MAXDIMS];
+    if(a->nd){memcpy(dims,a->dimensions,(size_t)a->nd*sizeof *dims);memcpy(strides,a->strides,(size_t)a->nd*sizeof *strides);}
+    if(before!=after){
+        if(a->nd==0){fail(err,"changing a 0d dtype requires unchanged itemsize",LN_ERROR_VALUE);return NULL;}
+        int last=a->nd-1;ln_intp count=ln_array_size(a);
+        if(dims[last]!=1&&count!=0&&(before>(size_t)INTPTR_MAX||strides[last]!=(ln_intp)before)){
+            fail(err,"last axis must be contiguous to change itemsize",LN_ERROR_VALUE);return NULL;
+        }
+        if(after<before){
+            if(!after||before%after){fail(err,"smaller dtype size must divide the original itemsize",LN_ERROR_VALUE);return NULL;}
+            size_t factor=before/after;
+            if(factor>(size_t)INTPTR_MAX||ln_mul_sizes_with_overflow(&dims[last],dims[last],(ln_intp)factor)){
+                fail(err,"view last dimension overflows",LN_ERROR_OVERFLOW);return NULL;
+            }
+        }else{
+            ln_intp bytes;
+            if(before>(size_t)INTPTR_MAX||after>(size_t)INTPTR_MAX||
+               ln_mul_sizes_with_overflow(&bytes,dims[last],(ln_intp)before)){
+                fail(err,"view last-axis byte count overflows",LN_ERROR_OVERFLOW);return NULL;
+            }
+            if((size_t)bytes%after){fail(err,"larger dtype size must divide last-axis byte count",LN_ERROR_VALUE);return NULL;}
+            dims[last]=(ln_intp)((size_t)bytes/after);
+        }
+        strides[last]=(ln_intp)after;
+    }
+    ln_array *out=ln_array_view(a,a->nd,dims,strides,a->data,err);
+    if(out){out->descr=target;ln_update_contiguous_flags(out);}
+    return out;
+}
+int ln_bytes_export(const ln_array *a,char order,char **bytes,size_t *length,ln_error *err)
+{
+    if(!a||!a->descr||!bytes||!length)return fail(err,"invalid byte output",LN_ERROR_TYPE);
+    /* Unicode carries NPY_NEEDS_INIT upstream: its fallback calls ravel(K).
+     * Plain numeric/bytes/time use CopyInto to a C-order destination for K. */
+    if(order=='K'&&a->descr->kind=='U'){
+        ln_array *flat=ln_layout_ravel(a,'K',err);if(!flat)return -1;
+        int rc=ln_bytes_export(flat,'C',bytes,length,err);ln_array_free(flat);return rc;
+    }
+    if(order=='K')order='C';
+    if(order=='A')order=(a->flags&LN_ARRAY_F_CONTIGUOUS)&&!(a->flags&LN_ARRAY_C_CONTIGUOUS)?'F':'C';
+    if(order!='C'&&order!='F')return fail(err,"tobytes order must be C, F, A or K",LN_ERROR_VALUE);
+    size_t size;if(ln_bytes_size(a,&size,err)<0)return -1;
+    char *result=malloc(size?size:1);if(!result)return fail(err,"out of memory",LN_ERROR_MEMORY);
+    if(size){
+        if((order=='C'&&(a->flags&LN_ARRAY_C_CONTIGUOUS))||(order=='F'&&(a->flags&LN_ARRAY_F_CONTIGUOUS)))memcpy(result,a->data,size);
+        else{
+            ln_intp coord[LN_MAXDIMS]={0},count=ln_array_size(a);size_t item=a->descr->elsize;
+            for(ln_intp i=0;i<count;++i){
+                const char *source=a->data;
+                for(int d=0;d<a->nd;++d)source+=coord[d]*a->strides[d];
+                memcpy(result+(size_t)i*item,source,item);
+                for(int j=0;j<a->nd;++j){int d=order=='C'?a->nd-1-j:j;
+                    if(++coord[d]<a->dimensions[d])break;
+                    coord[d]=0;
+                }
+            }
+        }
+    }
+    *bytes=result;*length=size;return 0;
+}

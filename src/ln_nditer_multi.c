@@ -167,7 +167,7 @@ static void uniform_buffer_plan(int nin,int nout,const ln_array *const *inputs,
     int cost=1;
     for(int k=0;k<nop;++k){
         single[k]=1;
-        if(k<nin)cast[k]=inputs[k]->descr!=dtypes[k];
+        if(k<nin)cast[k]=inputs[k]->descr!=dtypes[k]||!(inputs[k]->flags&LN_ARRAY_ALIGNED);
         else if(k<nin+nout)cast[k]=outputs[k-nin]->descr!=dtypes[k];
         cost+=cast[k];
     }
@@ -269,7 +269,7 @@ execute(int nin,int nout,
         for(int k=0;k<nop;++k){
             isz[k]=loop_dtypes[k]->elsize;
             int needs;
-            if(k<nin)needs=inputs[k]->descr!=loop_dtypes[k];
+            if(k<nin)needs=inputs[k]->descr!=loop_dtypes[k]||!(inputs[k]->flags&LN_ARRAY_ALIGNED);
             else{int j=k-nin;needs=work[j]->descr!=loop_dtypes[k]||where!=NULL;}
             if(needs||dense[k]){
                 buffers[k]=(char*)malloc((size_t)LN_NDITER_MULTI_BUFSIZE*isz[k]);

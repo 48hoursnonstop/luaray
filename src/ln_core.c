@@ -476,6 +476,18 @@ void ln_array_fill_strides(ln_intp *strides, const ln_intp *dims, int nd,
 
 /* Port of NumPy flagsobject.c:_UpdateContiguousFlags. */
 void ln_update_contiguous_flags(ln_array *a) {
+    /* array_assign.c:raw_array_is_aligned: singleton strides do not count,
+     * and an empty array is aligned regardless of its data offset. */
+    size_t alignment=a->descr->alignment;int aligned=alignment!=0;
+    uintptr_t address=(uintptr_t)a->data;
+    if(alignment>1){
+        for(int d=0;d<a->nd;++d){
+            if(!a->dimensions[d]){address=0;break;}
+            if(a->dimensions[d]>1)address|=(uintptr_t)a->strides[d];
+        }
+        aligned=address%alignment==0;
+    }
+    if(aligned)a->flags|=LN_ARRAY_ALIGNED;else a->flags&=~LN_ARRAY_ALIGNED;
     ln_intp sd = (ln_intp)a->descr->elsize;
     int is_c = 1;
     for (int i = a->nd - 1; i >= 0; --i) {
@@ -766,12 +778,58 @@ static char *ptr_at(const ln_array *a, const ln_intp *idx, ln_error *err){
     char *p=a->data; for(int i=0;i<a->nd;i++){if(idx[i]<0||idx[i]>=a->dimensions[i]){seterr(err,"index out of bounds");return NULL;}p+=idx[i]*a->strides[i];}return p;
 }
 
-static double read_double(const char *p,const ln_dtype *d){
-    switch(d->type_num){case LN_BOOL:return *(const uint8_t*)p!=0;case LN_BYTE:return *(const int8_t*)p;case LN_UBYTE:return *(const uint8_t*)p;case LN_SHORT:return *(const int16_t*)p;case LN_USHORT:return *(const uint16_t*)p;case LN_INT:return *(const int32_t*)p;case LN_UINT:return *(const uint32_t*)p;case LN_LONG:return (double)*(const long*)p;case LN_ULONG:return (double)*(const unsigned long*)p;case LN_LONGLONG:return (double)*(const long long*)p;case LN_ULONGLONG:return (double)*(const unsigned long long*)p;case LN_FLOAT:return *(const float*)p;case LN_DOUBLE:return *(const double*)p;case LN_LONGDOUBLE:return (double)*(const long double*)p;case LN_HALF:{uint16_t h;memcpy(&h,p,2);return ln_half_to_double(h);}default:return NAN;}}
-static int64_t read_i64(const char *p,const ln_dtype *d){
-    switch(d->type_num){case LN_BOOL:return *(const uint8_t*)p!=0;case LN_BYTE:return *(const int8_t*)p;case LN_UBYTE:return *(const uint8_t*)p;case LN_SHORT:return *(const int16_t*)p;case LN_USHORT:return *(const uint16_t*)p;case LN_INT:return *(const int32_t*)p;case LN_UINT:return *(const uint32_t*)p;case LN_LONG:return *(const long*)p;case LN_ULONG:return (int64_t)*(const unsigned long*)p;case LN_LONGLONG:return *(const long long*)p;case LN_ULONGLONG:return (int64_t)*(const unsigned long long*)p;case LN_DATETIME:case LN_TIMEDELTA:return *(const int64_t*)p;default:return (int64_t)read_double(p,d);}}
-static uint64_t read_u64(const char *p,const ln_dtype *d){
-    switch(d->type_num){case LN_BOOL:return *(const uint8_t*)p!=0;case LN_UBYTE:return *(const uint8_t*)p;case LN_USHORT:return *(const uint16_t*)p;case LN_UINT:return *(const uint32_t*)p;case LN_ULONG:return (uint64_t)*(const unsigned long*)p;case LN_ULONGLONG:return (uint64_t)*(const unsigned long long*)p;default:return (uint64_t)read_i64(p,d);}}
+static double read_double(const char *p,const ln_dtype *d)
+{
+    switch(d->type_num){
+        case LN_BOOL:{uint8_t v;memcpy(&v,p,sizeof v);return v!=0;}
+        case LN_BYTE:{int8_t v;memcpy(&v,p,sizeof v);return (double)v;}
+        case LN_UBYTE:{uint8_t v;memcpy(&v,p,sizeof v);return (double)v;}
+        case LN_SHORT:{int16_t v;memcpy(&v,p,sizeof v);return (double)v;}
+        case LN_USHORT:{uint16_t v;memcpy(&v,p,sizeof v);return (double)v;}
+        case LN_INT:{int32_t v;memcpy(&v,p,sizeof v);return (double)v;}
+        case LN_UINT:{uint32_t v;memcpy(&v,p,sizeof v);return (double)v;}
+        case LN_LONG:{long v;memcpy(&v,p,sizeof v);return (double)v;}
+        case LN_ULONG:{unsigned long v;memcpy(&v,p,sizeof v);return (double)v;}
+        case LN_LONGLONG:{long long v;memcpy(&v,p,sizeof v);return (double)v;}
+        case LN_ULONGLONG:{unsigned long long v;memcpy(&v,p,sizeof v);return (double)v;}
+        case LN_FLOAT:{float v;memcpy(&v,p,sizeof v);return (double)v;}
+        case LN_DOUBLE:{double v;memcpy(&v,p,sizeof v);return (double)v;}
+        case LN_LONGDOUBLE:{long double v;memcpy(&v,p,sizeof v);return (double)v;}
+        case LN_HALF:{ln_half h;memcpy(&h,p,sizeof h);return ln_half_to_double(h);}
+        default:return NAN;
+    }
+}
+static int64_t read_i64(const char *p,const ln_dtype *d)
+{
+    switch(d->type_num){
+        case LN_BOOL:{uint8_t v;memcpy(&v,p,sizeof v);return v!=0;}
+        case LN_BYTE:{int8_t v;memcpy(&v,p,sizeof v);return (int64_t)v;}
+        case LN_UBYTE:{uint8_t v;memcpy(&v,p,sizeof v);return (int64_t)v;}
+        case LN_SHORT:{int16_t v;memcpy(&v,p,sizeof v);return (int64_t)v;}
+        case LN_USHORT:{uint16_t v;memcpy(&v,p,sizeof v);return (int64_t)v;}
+        case LN_INT:{int32_t v;memcpy(&v,p,sizeof v);return (int64_t)v;}
+        case LN_UINT:{uint32_t v;memcpy(&v,p,sizeof v);return (int64_t)v;}
+        case LN_LONG:{long v;memcpy(&v,p,sizeof v);return (int64_t)v;}
+        case LN_ULONG:{unsigned long v;memcpy(&v,p,sizeof v);return (int64_t)v;}
+        case LN_LONGLONG:{long long v;memcpy(&v,p,sizeof v);return (int64_t)v;}
+        case LN_ULONGLONG:{unsigned long long v;memcpy(&v,p,sizeof v);return (int64_t)v;}
+        case LN_DATETIME:{int64_t v;memcpy(&v,p,sizeof v);return (int64_t)v;}
+        case LN_TIMEDELTA:{int64_t v;memcpy(&v,p,sizeof v);return (int64_t)v;}
+        default:return (int64_t)read_double(p,d);
+    }
+}
+static uint64_t read_u64(const char *p,const ln_dtype *d)
+{
+    switch(d->type_num){
+        case LN_BOOL:{uint8_t v;memcpy(&v,p,sizeof v);return v!=0;}
+        case LN_UBYTE:{uint8_t v;memcpy(&v,p,sizeof v);return (uint64_t)v;}
+        case LN_USHORT:{uint16_t v;memcpy(&v,p,sizeof v);return (uint64_t)v;}
+        case LN_UINT:{uint32_t v;memcpy(&v,p,sizeof v);return (uint64_t)v;}
+        case LN_ULONG:{unsigned long v;memcpy(&v,p,sizeof v);return (uint64_t)v;}
+        case LN_ULONGLONG:{unsigned long long v;memcpy(&v,p,sizeof v);return (uint64_t)v;}
+        default:return (uint64_t)read_i64(p,d);
+    }
+}
 static int integer_scalar_fits_dtype(int64_t v,const ln_dtype *d){
     switch(d->type_num){
         case LN_BYTE:return v>=INT8_MIN&&v<=INT8_MAX;
@@ -796,25 +854,25 @@ static void write_number(char *p,const ln_dtype *d,double v,int64_t vi,int is_in
      * Lua integers above 2**53.  NumPy's PyArray_Pack integer path keeps the
      * PyLong value exact until the concrete integer setitem cast. */
     switch(d->type_num){
-        case LN_BOOL:      *(uint8_t*)p=(uint8_t)(is_integer ? (vi!=0) : (v!=0)); break;
-        case LN_BYTE:      *(int8_t*)p=is_integer ? (int8_t)vi : (int8_t)v; break;
-        case LN_UBYTE:     *(uint8_t*)p=is_integer ? (uint8_t)vi : (uint8_t)v; break;
-        case LN_SHORT:     *(int16_t*)p=is_integer ? (int16_t)vi : (int16_t)v; break;
-        case LN_USHORT:    *(uint16_t*)p=is_integer ? (uint16_t)vi : (uint16_t)v; break;
-        case LN_INT:       *(int32_t*)p=is_integer ? (int32_t)vi : (int32_t)v; break;
-        case LN_UINT:      *(uint32_t*)p=is_integer ? (uint32_t)vi : (uint32_t)v; break;
-        case LN_LONG:      *(long*)p=is_integer ? (long)vi : (long)v; break;
-        case LN_ULONG:     *(unsigned long*)p=is_integer ? (unsigned long)(uint64_t)vi : (unsigned long)v; break;
-        case LN_LONGLONG:  *(long long*)p=is_integer ? (long long)vi : (long long)v; break;
-        case LN_ULONGLONG: *(unsigned long long*)p=is_integer ? (unsigned long long)(uint64_t)vi : (unsigned long long)v; break;
-        case LN_FLOAT:     *(float*)p=(float)(is_integer?(double)vi:v); break;
-        case LN_DOUBLE:    *(double*)p=(is_integer?(double)vi:v); break;
-        case LN_LONGDOUBLE:*(long double*)p=is_integer?(long double)vi:(long double)v; break;
+        case LN_BOOL:      {uint8_t packed=(uint8_t)(is_integer ? (vi!=0) : (v!=0));memcpy(p,&packed,sizeof packed);} break;
+        case LN_BYTE:      {int8_t packed=is_integer ? (int8_t)vi : (int8_t)v;memcpy(p,&packed,sizeof packed);} break;
+        case LN_UBYTE:     {uint8_t packed=is_integer ? (uint8_t)vi : (uint8_t)v;memcpy(p,&packed,sizeof packed);} break;
+        case LN_SHORT:     {int16_t packed=is_integer ? (int16_t)vi : (int16_t)v;memcpy(p,&packed,sizeof packed);} break;
+        case LN_USHORT:    {uint16_t packed=is_integer ? (uint16_t)vi : (uint16_t)v;memcpy(p,&packed,sizeof packed);} break;
+        case LN_INT:       {int32_t packed=is_integer ? (int32_t)vi : (int32_t)v;memcpy(p,&packed,sizeof packed);} break;
+        case LN_UINT:      {uint32_t packed=is_integer ? (uint32_t)vi : (uint32_t)v;memcpy(p,&packed,sizeof packed);} break;
+        case LN_LONG:      {long packed=is_integer ? (long)vi : (long)v;memcpy(p,&packed,sizeof packed);} break;
+        case LN_ULONG:     {unsigned long packed=is_integer ? (unsigned long)(uint64_t)vi : (unsigned long)v;memcpy(p,&packed,sizeof packed);} break;
+        case LN_LONGLONG:  {long long packed=is_integer ? (long long)vi : (long long)v;memcpy(p,&packed,sizeof packed);} break;
+        case LN_ULONGLONG: {unsigned long long packed=is_integer ? (unsigned long long)(uint64_t)vi : (unsigned long long)v;memcpy(p,&packed,sizeof packed);} break;
+        case LN_FLOAT:     {float packed=(float)(is_integer?(double)vi:v);memcpy(p,&packed,sizeof packed);} break;
+        case LN_DOUBLE:    {double packed=(is_integer?(double)vi:v);memcpy(p,&packed,sizeof packed);} break;
+        case LN_LONGDOUBLE:{long double packed=is_integer?(long double)vi:(long double)v;memcpy(p,&packed,sizeof packed);} break;
         case LN_CFLOAT:{ln_cfloat z={(float)(is_integer?(double)vi:v),0.0f};memcpy(p,&z,sizeof(z));break;}
         case LN_CDOUBLE:{ln_cdouble z={(is_integer?(double)vi:v),0.0};memcpy(p,&z,sizeof(z));break;}
         case LN_CLONGDOUBLE:{ln_clongdouble z={is_integer?(long double)vi:(long double)v,0.0L};memcpy(p,&z,sizeof(z));break;}
         case LN_HALF:{uint16_t h=ln_double_to_half(is_integer?(double)vi:v);memcpy(p,&h,2);break;}
-        case LN_DATETIME: case LN_TIMEDELTA: *(int64_t*)p=is_integer?vi:(int64_t)v; break;
+        case LN_DATETIME: case LN_TIMEDELTA: {int64_t packed=is_integer?vi:(int64_t)v;memcpy(p,&packed,sizeof packed);} break;
         case LN_STRING: case LN_UNICODE: break; /* rejected by public numeric setter */
     }
 }
@@ -862,7 +920,7 @@ int ln_array_pack_complex(ln_array *a,const ln_intp *indices0,long double real,l
 int ln_array_assign_complex(ln_array *dst,long double real,long double imag,ln_error *err){
     if(!dst){seterr(err,"invalid assignment destination");return -1;}
     if(!(dst->flags&LN_ARRAY_WRITEABLE)){seterr(err,"assignment destination is read-only");return -1;}
-    unsigned char scalar[32]={0};
+    _Alignas(ln_clongdouble) unsigned char scalar[32]={0};
     if(dst->descr->elsize>sizeof(scalar)){seterr(err,"complex dtype too large for scalar assignment");return -1;}
     ln_array tmp;memset(&tmp,0,sizeof(tmp));tmp.data=(char*)scalar;tmp.nd=0;tmp.descr=dst->descr;
     tmp.flags=LN_ARRAY_WRITEABLE|LN_ARRAY_ALIGNED|LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS;
@@ -1629,7 +1687,9 @@ reduce_stream_into(char *acc, const char *src, ln_intp src_stride,
         return -1;
     }
 
-    if (src_dtype->type_num == reduce_dtype->type_num) {
+    if (src_dtype->type_num == reduce_dtype->type_num &&
+            (uintptr_t)src%reduce_dtype->alignment==0 &&
+            (count<=1||src_stride%(ln_intp)reduce_dtype->alignment==0)) {
         char *args[3] = {acc, (char *)src, acc};
         ln_intp dimensions[1] = {count};
         ln_intp steps[3] = {0, src_stride, 0};
@@ -1984,7 +2044,7 @@ reduce_general_new(const ln_array *a, const uint8_t *axis_flags,
     ln_intp out_total = ln_array_size(out);
     if (out_total < 0) { seterr(err, "array is too big"); goto fail; }
 
-    unsigned char seed[32];
+    _Alignas(ln_clongdouble) unsigned char seed[32];
     if (rdt->elsize > sizeof(seed)) {
         seterr(err, "reduction dtype too large for scalar seed");
         goto fail;
@@ -2023,7 +2083,7 @@ reduce_general_new(const ln_array *a, const uint8_t *axis_flags,
     if (total < 0) { seterr(err, "array is too big"); goto fail_counts; }
 
     char *cast_buffer = NULL;
-    if (a->descr->type_num != rdt->type_num) {
+    if (a->descr->type_num != rdt->type_num || !(a->flags&LN_ARRAY_ALIGNED)) {
         cast_buffer = (char *)malloc((size_t)LN_UFUNC_BUFSIZE * rdt->elsize);
         if (!cast_buffer) { seterr(err, "out of memory"); goto fail_counts; }
     }
@@ -2067,7 +2127,7 @@ reduce_general_new(const ln_array *a, const uint8_t *axis_flags,
             ? ln_get_multiply_loop(rdt->type_num)
             : ln_get_add_loop(rdt->type_num);
         if (!loop) { seterr(err, "no reduction inner loop for dtype"); goto fail_cast; }
-        unsigned char onebuf[32];
+        _Alignas(ln_clongdouble) unsigned char onebuf[32];
         if (rdt->elsize > sizeof(onebuf)) {
             seterr(err, "reduction dtype too large for scalar buffer");
             goto fail_cast;
@@ -2095,7 +2155,7 @@ reduce_general_new(const ln_array *a, const uint8_t *axis_flags,
                     }
                 }
                 const char *vp = sp;
-                if (a->descr->type_num != rdt->type_num) {
+                if (a->descr->type_num != rdt->type_num || !(a->flags&LN_ARRAY_ALIGNED)) {
                     if (ln_cast_strided_numeric(sp, 0, a->descr,
                             (char *)onebuf, 0, rdt, 1, err) < 0) goto fail_cast;
                     vp = (const char *)onebuf;
@@ -2267,7 +2327,7 @@ accumulate_general_new(const ln_array *a, int axis, const ln_dtype *requested,
     }
     if (outer_nd == 0) outer_total = 1;
 
-    unsigned char curbuf[32];
+    _Alignas(ln_clongdouble) unsigned char curbuf[32];
     if (dt->elsize > sizeof(curbuf)) {
         ln_array_free(work);
         seterr(err, "accumulate dtype too large for scalar buffer");
@@ -2295,7 +2355,7 @@ accumulate_general_new(const ln_array *a, int axis, const ln_dtype *requested,
             char *prev = dst0 + (k - 1) * work->strides[axis];
             char *cur = dst0 + k * work->strides[axis];
             const char *vp = sp;
-            if (a->descr->type_num != dt->type_num) {
+            if (a->descr->type_num != dt->type_num || !(a->flags&LN_ARRAY_ALIGNED)) {
                 if (ln_cast_strided_numeric(sp, 0, a->descr,
                         (char *)curbuf, 0, dt, 1, err) < 0) {
                     ln_array_free(work);
@@ -2410,7 +2470,7 @@ reduceat_general_new(const ln_array *a, const ln_intp *indices,
     if (outer_nd == 0) outer_total = 1;
 
     char *cast_buffer = NULL;
-    if (a->descr->type_num != dt->type_num) {
+    if (a->descr->type_num != dt->type_num || !(a->flags&LN_ARRAY_ALIGNED)) {
         if (dt->elsize > SIZE_MAX / LN_UFUNC_BUFSIZE) {
             ln_array_free(work);
             seterr(err, "reduceat cast buffer is too large");
@@ -2450,7 +2510,7 @@ reduceat_general_new(const ln_array *a, const ln_intp *indices,
             if (count > 1) {
                 ln_intp remain = count - 1;
                 const char *sp = src_base + (start + 1) * a->strides[axis];
-                if (a->descr->type_num == dt->type_num) {
+                if (a->descr->type_num == dt->type_num && (a->flags&LN_ARRAY_ALIGNED)) {
                     char *args[3] = {dst, (char *)sp, dst};
                     ln_intp dims[1] = {remain};
                     ln_intp steps[3] = {0, a->strides[axis], 0};

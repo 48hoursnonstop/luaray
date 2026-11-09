@@ -56,3 +56,4 @@ jobs:
           lua5.4 examples/predicates112.lua
           lua5.4 examples/round113.lua
           lua5.4 examples/clip114.lua
+          lua5.4 examples/bytes115.lua

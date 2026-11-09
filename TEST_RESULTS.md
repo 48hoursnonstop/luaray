@@ -1,3 +1,29 @@
+## 0.115.0-dev verification (executed)
+
+- Full native/Lua regression passed **159/159 frozen fixture files**.
+- NumPy2.5.3 typed views **6,480 cases /332,518 checks**; byte exports/layouts
+  **4,464 /253,875**; unaligned arithmetic/reductions **5,850 /308,716**.
+  Combined **16,794 /895,109 exact checks**, including actual binary strings,
+  metadata, readonly/sharing and backing storage after writes. A string equality
+  counts as one check, not one per byte. Oracles initialize uint8 backing rather
+  than relying on uninitialized floating padding or invalid Unicode decoding.
+- Native C tests and **27 Lua checks** passed. Checked unaligned typed access,
+  ufuncs/reductions/accumulation/reduceat, owner lifetime, invalid dtype/order
+  arguments, readonly/empty views and native dimension/byte-count overflow.
+- Directed ASan/UBSan passed **35C+1Cpp units,19native /75Lua suites**.
+  Other dependencies uninstrumented; leaks disabled. Byte kernels/bindings,
+  shared core and legacy/generic iterator changes are included.
+- Exact regeneration of three fixtures and runtime inventory passed. The
+  public module example passed without Python. Inventory observed **350/675**
+  scoped names,324 missing,1N/A,0complete; itemsize/nbytes properties are outside
+  callable-name counts. Historical numerical expected states remain unchanged.
+- Raw byte references use little-endian x86-64; every host ABI, padding pattern
+  and downstream unaligned algorithm is not certified. K's Unicode-specific
+  source behavior is explicitly exercised.
+- Final source archive has the separate tools/release.py gate: clean extraction,
+  manifest check, rebuild, full regression and18 public examples. The published
+  verification JSON records that actual result independently of this document.
+
 ## 0.114.0-dev verification (executed)
 
 - Full native/Lua regression passed **156/156 frozen fixture files**.

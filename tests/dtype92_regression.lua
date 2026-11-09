@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.114.0-dev')
+assert(np._version=='0.115.0-dev')
 local a=np.arange(24,'int32'):reshape({2,3,4})
 assert(np.astype(a,'int32',{copy=false})==a)
 assert(np.astype(a,'int32',{order='C',copy=false})==a)

@@ -1,3 +1,28 @@
+## 0.115 — NumPy2.5.3 typed views, byte export and alignment
+
+Eight hashes in NUMPY_2_5_3_BYTES115_FILE_HASHES.sha256 pin common.c's dtype
+compatibility, convert.c's actual view/tobytes paths, method/property bindings,
+raw-array alignment, iterator setup and upstream tests. Independent native
+ln_bytes and Lua lua_bytes modules reuse owned buffer/header machinery. Views
+preserve storage/readonly state and follow last-axis itemsize changes; native
+dimension/byte overflow checks avoid unsafe allocations.
+
+convert.c has an observable dtype-specific K behavior: Unicode requires init and
+falls through ravel(K); ordinary numeric/bytes/time use a C-order destination.
+The export implementation preserves both paths, including raw invalid Unicode
+bytes. Deterministic uint8 backing initializes all byte references, avoiding
+invented long-double padding or text decoding of arbitrary bit patterns.
+
+raw_array_is_aligned informs recomputed flags. Core numeric scalar readers and
+writers use memcpy. Generic/legacy iterators, reductions, accumulation and
+reduceat stage unaligned operands; scalar loop buffers have explicit C11 alignment.
+Separate mathematical references exercise byte offsets1 and3. No guarantee is
+made for every downstream algorithm, ABI, device or foreign memory provider.
+
+Historical numeric assertions remain; only exact runtime version assertions
+advance. NumPy BSD attribution is retained. EN/ES references document unsupported
+dtype families, endian/subclass options, padding and raw-byte ABI scope.
+
 ## 0.114 — NumPy2.5.3 fused clip and uniform iterator buffering
 
 Eleven hashes in NUMPY_2_5_3_CLIP114_FILE_HASHES.sha256 pin clip.cpp,

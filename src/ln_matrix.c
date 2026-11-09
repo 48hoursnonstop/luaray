@@ -1,5 +1,8 @@
 #include "ln_matrix.h"
 #include "ln_layout.h"
+#include "ln_datetime.h"
+#include "ln_creation.h"
+#include "ln_write.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -58,4 +61,90 @@ ln_array *ln_matrix_diag(const ln_array *a,ln_intp offset,int flatten,ln_error *
                    flat->data+i*flat->strides[0],a->descr->elsize);
     }
     ln_array_free(flat);return out;
+}
+
+/* The shared uniform numeric reduction has no timedelta inner loop. Reduce
+ * converted ticks with its int64 loop and restore NaT propagation explicitly.
+ * This retains reduction layout and overflow semantics without converting any
+ * values through the host floating-point scalar boundary. */
+static ln_array *trace_timedelta(const ln_array *diagonal,const ln_dtype *result_dtype,
+        ln_array *out,ln_error *err)
+{
+    const ln_dtype *converted_dtype=ln_datetime_make_dtype(1,*ln_datetime_metadata(result_dtype),err);
+    if(!converted_dtype)return NULL;
+    ln_array *converted=ln_creation_convert(diagonal,converted_dtype,'K',-1,0,NULL,err);
+    if(!converted)return NULL;
+    ln_array *raw=ln_array_view(converted,converted->nd,converted->dimensions,
+            converted->strides,converted->data,err);
+    if(!raw){ln_array_free(converted);return NULL;}
+    raw->descr=ln_dtype_by_name("int64");
+    uint8_t axes[LN_MAXDIMS]={0};axes[raw->nd-1]=1;
+    ln_array *result=ln_reduce_ex(raw,axes,0,raw->descr,NULL,LN_REDUCE_SUM,0,0,0,1,err);
+    ln_array_free(raw);
+    if(!result){ln_array_free(converted);return NULL;}
+    ln_intp index[LN_MAXDIMS]={0},count=ln_array_size(result),length=converted->dimensions[converted->nd-1];
+    for(ln_intp i=0;i<count;++i){
+        char *input=converted->data,*destination=result->data;
+        for(int d=0;d<result->nd;++d){input+=index[d]*converted->strides[d];destination+=index[d]*result->strides[d];}
+        for(ln_intp j=0;j<length;++j){
+            int64_t tick;memcpy(&tick,input+j*converted->strides[converted->nd-1],sizeof tick);
+            if(tick==LN_DATETIME_NAT){memcpy(destination,&tick,sizeof tick);break;}
+        }
+        for(int d=result->nd-1;d>=0;--d){if(++index[d]<result->dimensions[d])break;index[d]=0;}
+    }
+    ln_array_free(converted);result->descr=result_dtype;
+    if(!out)return result;
+    int valid=out->nd==result->nd;
+    for(int d=0;valid&&d<result->nd;++d)valid=out->dimensions[d]==result->dimensions[d];
+    if(!valid){ln_array_free(result);return failure(err,"trace output has the wrong shape");}
+    int status=ln_array_copyto(out,result,NULL,1,LN_UNSAFE_CASTING,err);
+    ln_array_free(result);return status<0?NULL:out;
+}
+
+ln_array *ln_matrix_trace(const ln_array *a,ln_intp offset,int axis1,int axis2,
+        const ln_dtype *dtype,ln_array *out,ln_error *err)
+{
+    ln_array *diagonal=ln_matrix_diagonal(a,offset,axis1,axis2,err);
+    if(!diagonal)return NULL;
+    /* methods.c:array_trace passes a dtype type number, dropping parametric
+     * metadata. ufunc_object.c resolves (out, input, out), allowing mixed
+     * timedelta/integer loops. Keep this legacy trace contract separate from
+     * the uniform-dtype reduction helper. */
+    const ln_dtype *resolved=dtype;
+    char input_kind=a->descr->kind;
+    if(input_kind=='S'||input_kind=='U'||input_kind=='M')goto unsupported;
+    if(input_kind=='m'){
+        if(out&&out->descr->kind!='i'&&out->descr->kind!='u'&&out->descr->kind!='b'&&
+                out->descr->kind!='M'&&out->descr->kind!='m')goto unsupported;
+        resolved=a->descr;
+        if(out&&(out->descr->kind=='M'||out->descr->kind=='m')){
+            const ln_dtype *common=ln_common_dtype_descr(a->descr,out->descr);
+            if(!common)goto unsupported;
+            resolved=ln_datetime_make_dtype(out->descr->kind=='m',*ln_datetime_metadata(common),err);
+            if(!resolved)goto unsupported;
+        }
+    }else{
+        if(dtype&&dtype->kind=='M'){
+            if(!out||(out->descr->kind!='M'&&out->descr->kind!='m')||
+                    (input_kind!='b'&&input_kind!='i'&&input_kind!='u'))goto unsupported;
+            resolved=ln_dtype_by_name("int64");
+        }else if(dtype&&dtype->kind=='m')resolved=out?NULL:a->descr;
+        if(!resolved&&out&&(out->descr->kind=='M'||out->descr->kind=='m')){
+            if(input_kind!='b'&&input_kind!='i'&&input_kind!='u')goto unsupported;
+            resolved=ln_dtype_by_name("int64");
+        }
+    }
+    if(input_kind=='m'){
+        ln_array *result=trace_timedelta(diagonal,resolved,out,err);
+        ln_array_free(diagonal);return result;
+    }
+    uint8_t axes[LN_MAXDIMS]={0};axes[diagonal->nd-1]=1;
+    ln_array *result;
+    if(out){
+        int status=ln_reduce_into_ex(diagonal,axes,0,resolved,out,NULL,LN_REDUCE_SUM,0,0,0,1,err);
+        result=status<0?NULL:out;
+    }else result=ln_reduce_ex(diagonal,axes,0,resolved,NULL,LN_REDUCE_SUM,0,0,0,1,err);
+    ln_array_free(diagonal);return result;
+unsupported:
+    ln_array_free(diagonal);return failure(err,"trace has no compatible reduction signature");
 }

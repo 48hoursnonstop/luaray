@@ -12,6 +12,12 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.118.0-dev
+
+Added root and ndarray `trace` with arbitrary axes, dtype/output handling, staged
+alias-safe writes, and shared `linalg.trace` execution. Added timedelta reduction,
+NaT propagation, unit conversion, legacy dtype resolution and EN/ES reference guides.
+
 ## 0.117.0-dev
 
 Added `diagonal`, `diag`, `diagflat`, and `ndarray:diagonal`, including general axes,

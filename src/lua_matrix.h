@@ -4,4 +4,5 @@
 int ln_lua_diagonal(lua_State *L);
 int ln_lua_diag(lua_State *L);
 int ln_lua_diagflat(lua_State *L);
+int ln_lua_trace(lua_State *L);
 #endif

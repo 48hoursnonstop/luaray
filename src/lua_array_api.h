@@ -8,6 +8,7 @@
 ln_array *ln_lua_test_array(lua_State *L,int index);
 ln_array *ln_lua_legacy_array(lua_State *L,int index,const ln_dtype *dtype);
 int ln_lua_push_array(lua_State *L,ln_array *array);
+int ln_lua_push_scalar_or_array(lua_State *L,ln_array *array);
 int ln_lua_fail(lua_State *L,ln_error *err);
 int ln_lua_shape(lua_State *L,int index,ln_intp *dims,int *nd);
 const ln_dtype *ln_lua_creation_target(lua_State *L,int source_index,const ln_array *array,const ln_dtype *dtype,ln_error *err);

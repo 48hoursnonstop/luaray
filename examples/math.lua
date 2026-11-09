@@ -1,5 +1,5 @@
-local np = require('luaray')
-local x = np.linspace(0., 1., 5)
-local y = np.clip(np.square(x), 0., .5)
+local lr = require('luaray')
+local x = lr.linspace(0., 1., 5)
+local y = lr.clip(lr.square(x), 0., .5)
 assert(y.shape[1] == 5 and y:tolist()[5] == .5)
 print('Elementwise mathematics and clipping passed')

@@ -4,4 +4,8 @@
 /* Native axes are zero-based. Inputs are borrowed; results own their headers. */
 ln_array *ln_matrix_diagonal(const ln_array *a,ln_intp offset,int axis1,int axis2,ln_error *err);
 ln_array *ln_matrix_diag(const ln_array *a,ln_intp offset,int flatten,ln_error *err);
+/* With out==NULL the result is owned. Otherwise the returned pointer is the
+ * borrowed output, written only after a successful staged reduction. */
+ln_array *ln_matrix_trace(const ln_array *a,ln_intp offset,int axis1,int axis2,
+        const ln_dtype *dtype,ln_array *out,ln_error *err);
 #endif

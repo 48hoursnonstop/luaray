@@ -45,10 +45,10 @@ as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.117.0-dev** passed **55 native suites**, **87 Lua suites**, seven public
-examples and 26 executable documentation blocks. The new diagonal references
-passed **47,886 cases / 4,571,474 exact checks** against NumPy 2.5.3, including
-metadata, shared storage, read-only errors and actual backing states.
+LuaRay **0.118.0-dev** passed **55 native suites**, **88 Lua suites**, seven public
+examples and 32 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. New trace references
+passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
+metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
 The directed ASan/UBSan run instrumented `ln_matrix`, `ln_linalg`, `lua_matrix`,
 and `lua_module`, plus the native matrix test and Lua runner. All maintained tests

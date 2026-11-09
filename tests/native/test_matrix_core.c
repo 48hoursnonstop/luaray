@@ -28,5 +28,18 @@ int main(void)
     ln_array *empty=ln_matrix_diagonal(b,INTPTR_MIN,0,1,&err);assert(empty&&ln_array_size(empty)==0);
     ln_array_free(empty);ln_array_free(v);ln_array_free(b);ln_array_free(a);
     assert(ln_matrix_diag(NULL,0,1,&err)==NULL);
-    puts("matrix native: diagonal layout, shared lifetime, readonly, construction and overflow passed");
+    ln_intp square[]={2,2};a=ln_array_new(2,square,ln_dtype_by_name("int32"),0,0,&err);
+    int32_t cells[]={1,2,3,4};memcpy(a->data,cells,sizeof cells);
+    ln_array *sum=ln_matrix_trace(a,0,0,1,NULL,NULL,&err);assert(sum&&sum->nd==0);
+    double numeric=0;int64_t iv=0;int is_integer=0;
+    assert(ln_array_get_number(sum,NULL,&numeric,&iv,&is_integer,&err)==0&&is_integer&&iv==5);
+    ln_array_free(sum);
+    ln_array *alias=ln_array_view(a,0,NULL,NULL,a->data,&err);assert(alias);
+    assert(ln_matrix_trace(a,0,0,1,NULL,alias,&err)==alias&&((int32_t *)a->data)[0]==5);
+    alias->flags&=~LN_ARRAY_WRITEABLE;
+    assert(ln_matrix_trace(a,0,0,1,NULL,alias,&err)==NULL&&((int32_t *)a->data)[0]==5);
+    assert(ln_matrix_trace(a,0,0,0,NULL,NULL,&err)==NULL);
+    assert(ln_matrix_trace(a,0,0,1,NULL,a,&err)==NULL);
+    ln_array_free(alias);ln_array_free(a);
+    puts("matrix native: diagonal layout, shared lifetime, readonly, construction, overflow and staged trace passed");
 }

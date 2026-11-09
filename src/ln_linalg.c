@@ -1936,10 +1936,7 @@ ln_linalg_diagonal(const ln_array *a, ln_intp offset, ln_error *err)
 ln_array *
 ln_linalg_trace(const ln_array *a, ln_intp offset, const ln_dtype *dtype, ln_error *err)
 {
-    ln_array *d=ln_linalg_diagonal(a,offset,err);if(!d)return NULL;
-    uint8_t flags[LN_MAXDIMS]={0};if(d->nd>0)flags[d->nd-1]=1;
-    ln_array *r=ln_reduce_ex(d,flags,0,dtype,NULL,LN_REDUCE_SUM,0,0.0,0,1,err);
-    ln_array_free(d);return r;
+    return ln_matrix_trace(a,offset,a?a->nd-2:0,a?a->nd-1:1,dtype,NULL,err);
 }
 
 ln_array *

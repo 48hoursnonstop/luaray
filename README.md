@@ -12,13 +12,13 @@ generation. The public API uses Lua 5.4; numerical kernels run in C and C++.
 Building and running LuaRay requires no Python interpreter.
 
 ```lua
-local np = require("luaray")
+local lr = require("luaray")
 
-local values = np.array({1, 2, 3}, "float64")
-local squared = np.square(values)
-assert(np.sum(squared) == 14)
+local values = lr.array({1, 2, 3}, "float64")
+local squared = lr.square(values)
+assert(lr.sum(squared) == 14)
 
-local normal = np.cross({1, 0, 0}, {0, 1, 0})
+local normal = lr.cross({1, 0, 0}, {0, 1, 0})
 assert(normal:tolist()[3] == 1)
 ```
 
@@ -57,7 +57,7 @@ options, copying, and memory ownership.
 
 ## Compatibility
 
-**Current release: [0.117.0-dev](https://github.com/48hoursnonstop/luaray/releases/tag/v0.117.0-dev).**
+**Current release: [0.118.0-dev](https://github.com/48hoursnonstop/luaray/releases/tag/v0.118.0-dev).**
 LuaRay is under development. NumPy 2.5.3 is the primary behavioral reference;
 compatibility varies by operation, dtype, and option.
 

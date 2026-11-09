@@ -6,7 +6,7 @@
 
 int main(void)
 {
-    ln_error err={{0}};ln_intp shape[]={2,3};
+    ln_error err={0};ln_intp shape[]={2,3};
     ln_array *a=ln_array_new(2,shape,ln_dtype_by_name("int32"),0,0,&err);assert(a);
     memcpy(a->data,(int32_t[]){0,2,0,3,0,4},24);
     ln_array *coords[LN_MAXDIMS];int nout=-1;

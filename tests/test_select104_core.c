@@ -6,7 +6,7 @@
 
 int main(void)
 {
-    ln_error err={{0}};ln_intp shape[]={2,3};
+    ln_error err={0};ln_intp shape[]={2,3};
     const ln_dtype *dtype=ln_dtype_by_name("int32");
     ln_array *mask=ln_array_new(2,shape,ln_dtype_by_name("bool"),0,0,&err);
     ln_array *x=ln_array_new(2,shape,dtype,0,0,&err),*y=ln_array_new(0,NULL,dtype,0,1,&err);

@@ -5,7 +5,7 @@
 #include <string.h>
 int main(void)
 {
-    ln_error err={{0}};
+    ln_error err={0};
     assert(!ln_component_part(NULL,0,&err));
     ln_array *a=ln_array_new(1,(ln_intp[]){2},ln_dtype_by_name("complex64"),0,0,&err);assert(a);
     ln_cfloat values[]={{1,2},{3,4}};memcpy(a->data,values,sizeof values);

@@ -1,3 +1,34 @@
+# Current checkpoint — round0.113 release preparation
+
+Active /mnt/datos/luaray/.dev/round113 VERSION0.113.0-dev.8,226cases /
+481,492exactchecks,42Lua/native C passed. Full153/153 fixtures passed.
+ASan32units(31C+1Cpp),17native67Lua passed, session69624 complete.
+Inventory346/675,328missing,1N/A,allpartial. Public example passed.
+Next: three-fixture/inventory exact regeneration; tools/release.py clean source
+extraction/fullsuite/16examples, manifest/gzip/SHA; commitFFmain/tag/publicassets/
+Downloads/exactCI. Continue; no subagents authorized, no arbitrary quota stop.
+
+Native ln_round/lua_round preserve typed multiply/rint/divide composition and
+complex component assignment. Root TypeError fallback retry executes twice,
+method once: timedelta input/out atdec1 becomes100 versus10 before error.
+ln_error gained internal category field, all C aggregate initializers updated,
+all native objects cleanly rebuilt. No complete exception-class API claimed.
+Shared same_kind delegates central dtype casting, preventing invalid time casts.
+New ln_time_scale supports floating md/dm/m-d only (including LD→double);
+integer time scaling/ratios remain unsupported. Nine source pins. Exact source
+true_divide signature count7→8 with explicit temporal class assertions.
+Power10exponent>=309 stabilizesInfinity; source huge loops not executed.
+
+Latest public0.112 fed092b23d3318861da233b85a78bf534ab4c517 SHA
+92eb913e554d3a749cb82482365157cd7520ac55b3742f1d20a3f4894ea87ec0,
+824files/823manifest,150fixtures/15examples,ASan29units16native63Lua.
+Exact CI42556374326 SUCCESS; public digest/Downloads verified.
+Quota renewed/change of telemetry window: latest10%used90%remaining03:53UTC;
+previous99% is historical. User requests work until complete/usage exhausted;
+revoked50%stop must not be applied. luanimath goal unfinished/dependencies first.
+Next: clip, dtype views, integer temporal arithmetic, remaining NumPy inventory.
+Older checkpoints below historical.
+
 # Current checkpoint — predicates0.112 release preparation
 
 Active /mnt/datos/luaray/.dev/predicates112 VERSION0.112.0-dev.7,434cases /

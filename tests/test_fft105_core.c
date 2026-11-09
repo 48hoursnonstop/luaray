@@ -8,7 +8,7 @@
 
 int main(void)
 {
-    ln_error err={{0}};
+    ln_error err={0};
     const ln_dtype *f64=ln_dtype_by_name("float64"),*c128=ln_dtype_by_name("complex128");
     ln_array *spacing=ln_array_new(0,NULL,f64,0,0,&err);assert(spacing);
     memcpy(spacing->data,(double[]){0.5},8);

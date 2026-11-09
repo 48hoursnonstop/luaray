@@ -172,8 +172,14 @@ typedef struct ln_array {
     int flags;
 } ln_array;
 
+typedef enum ln_error_kind {
+    LN_ERROR_NONE=0,LN_ERROR_TYPE,LN_ERROR_VALUE,LN_ERROR_MEMORY,LN_ERROR_OVERFLOW
+} ln_error_kind;
 typedef struct ln_error {
     char message[512];
+    /* Internal control flow (e.g. NumPy _wrapfunc TypeError retry); not a
+     * complete Python exception hierarchy at the public Lua boundary. */
+    ln_error_kind kind;
 } ln_error;
 
 /*

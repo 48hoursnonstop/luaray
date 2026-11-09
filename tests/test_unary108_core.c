@@ -7,7 +7,7 @@
 
 int main(void)
 {
-    ln_error e={{0}};ln_intp shape[]={4};
+    ln_error e={0};ln_intp shape[]={4};
     const ln_ufunc *rint_u=ln_ufunc_by_name("rint");assert(rint_u);
     assert(ln_unary_math_count()==10);
     assert(ln_ufunc_by_name("conj")==ln_ufunc_by_name("conjugate"));

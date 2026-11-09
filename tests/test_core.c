@@ -18,7 +18,7 @@
 
 static void chk(int ok,const char*msg){if(!ok){fprintf(stderr,"FAIL: %s\n",msg);assert(ok);}}
 int main(void){
-    ln_error e={{0}};
+    ln_error e={0};
     const ln_dtype*f8=ln_dtype_by_name("float64");
     ln_intp sh22[]={2,2}; ln_array*a=ln_array_new(2,sh22,f8,0,1,&e); chk(a!=NULL,e.message); chk(a->strides[0]==16&&a->strides[1]==8,"C strides 2x2"); chk((a->flags&LN_ARRAY_C_CONTIGUOUS)!=0,"C flag"); chk((a->flags&LN_ARRAY_F_CONTIGUOUS)==0,"not F flag"); ln_array_free(a);
 
@@ -88,7 +88,7 @@ int main(void){
         chk(strcmp(ln_dtype_by_name("m8[W/13]")->name,"timedelta64[0Y]")==0,"upstream W divisor 0Y quirk preserved");
         chk(strcmp(ln_dtype_by_name("M8[μs]")->name,"datetime64[us]")==0,"UTF-8 microsecond unit accepted");
 
-        int64_t cv=0; ln_error de={{0}};
+        int64_t cv=0; ln_error de={0};
         chk(ln_datetime_cast_value(24,ln_datetime_metadata(ln_dtype_by_name("timedelta64[h]")),
                 ln_datetime_metadata(ln_dtype_by_name("timedelta64[D]")),&cv,&de)==0&&cv==1,
             "datetime cast 24h -> 1D");
@@ -367,7 +367,7 @@ int main(void){
 
     /* native PocketFFT core */
     {
-        ln_intp sh[]={4}; ln_error fe={{0}};
+        ln_intp sh[]={4}; ln_error fe={0};
         ln_array *x=ln_array_new(1,sh,ln_dtype_by_num(LN_DOUBLE),0,1,&fe);
         chk(x!=NULL,"fft input alloc");
         ln_intp ix[]={1}; chk(ln_array_set_number(x,ix,1.0,1,0,&fe)==0,"fft input set");
@@ -442,7 +442,8 @@ int main(void){
         u=ln_ufunc_by_name("add");
         chk(u&&u->nin==2&&u->nout==1&&u->nloops>=18,"add migrated registry signatures");
         u=ln_ufunc_by_name("true_divide");
-        chk(u&&u->nin==2&&u->nout==1&&u->nloops==7,"true_divide migrated registry signatures");
+        chk(u&&u->nin==2&&u->nout==1&&u->nloops==8,"true_divide numeric and floating-timedelta signatures");
+        chk(u->loops[7].classes[0]->legacy_type_num==LN_TIMEDELTA && u->loops[7].classes[1]->legacy_type_num==LN_DOUBLE,"timedelta division signature preserves temporal operand class");
         u=ln_ufunc_by_name("equal");
         chk(u&&u->nin==2&&u->nout==1&&u->nloops>=20,"comparison mixed-64 registry signatures");
         u=ln_ufunc_by_name("absolute");

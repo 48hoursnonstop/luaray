@@ -9,7 +9,7 @@
 
 int main(void)
 {
-    ln_error e={{0}};ln_intp shape[]={4};
+    ln_error e={0};ln_intp shape[]={4};
     assert(ln_binary_math_count()==2);
     assert(!ln_binary_math_by_name(NULL)&&!ln_binary_math_by_name("absent"));
     ln_array *a=ln_array_new(1,shape,ln_dtype_by_name("int64"),0,0,&e);assert(a);

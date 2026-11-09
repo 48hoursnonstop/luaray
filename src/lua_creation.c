@@ -93,7 +93,7 @@ static int convert_function(lua_State *L,int kind)
         if(options.copy==0)return luaL_error(L,"unable to avoid a copy while creating an array as requested");
         input=ln_lua_legacy_array(L,1,options.dtype);input_index=lua_gettop(L);
     }
-    ln_error err={{0}};
+    ln_error err={0};
     const ln_dtype *dtype=ln_lua_creation_target(L,1,input,options.dtype,&err);if(!dtype)return ln_lua_fail(L,&err);
     int copy=untyped&&options.copy==1?-1:options.copy,identity=0;
     ln_array *result=ln_creation_convert(input,dtype,options.order,copy,options.ndmin,&identity,&err);
@@ -117,7 +117,7 @@ static int filled_function(lua_State *L,int kind)
     int first=fill?3:2;
     if(argc<first-1||argc>first+1)return luaL_error(L,"creation requires prototype/shape, optional fill, dtype and options");
     creation_options options;parse_options(L,kind,first,argc,&options);
-    ln_error err={{0}};ln_array *prototype=NULL,*result=NULL;int fill_index=2;
+    ln_error err={0};ln_array *prototype=NULL,*result=NULL;int fill_index=2;
     if(shape_constructor) {
         ln_lua_shape(L,1,options.shape,&options.shape_nd);
         if(options.order!='C'&&options.order!='F')return luaL_error(L,"shape constructors support C or F memory order");

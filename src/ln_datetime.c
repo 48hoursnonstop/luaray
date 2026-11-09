@@ -57,7 +57,7 @@ static const ln_dtype_descr *dt_common_instance(const ln_dtype_descr *a,const ln
     if(at && !bt){return a->type_num==LN_TIMEDELTA && (b->kind=='i'||b->kind=='u'||b->kind=='b') && !(b->kind=='u' && b->elsize>=sizeof(int64_t)) ? a : NULL;}
     if(bt && !at){return b->type_num==LN_TIMEDELTA && (a->kind=='i'||a->kind=='u'||a->kind=='b') && !(a->kind=='u' && a->elsize>=sizeof(int64_t)) ? b : NULL;}
     if(!at||!bt)return NULL;
-    ln_datetime_meta out; ln_error e={{0}}; const ln_datetime_meta *ma=ln_datetime_metadata(a),*mb=ln_datetime_metadata(b);
+    ln_datetime_meta out; ln_error e={0}; const ln_datetime_meta *ma=ln_datetime_metadata(a),*mb=ln_datetime_metadata(b);
     if(ln_datetime_metadata_gcd(ma,mb,a->type_num==LN_TIMEDELTA,b->type_num==LN_TIMEDELTA,&out,&e)<0)return NULL;
     return ln_datetime_make_dtype(a->type_num==LN_DATETIME||b->type_num==LN_DATETIME?0:1,out,NULL);
 }

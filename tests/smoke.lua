@@ -1,5 +1,5 @@
 local np = require("luaray_core")
-assert(np._version == "0.112.0-dev")
+assert(np._version == "0.113.0-dev")
 
 local a = np.array({1, 2, 3, 4})
 assert(a.dtype == "int64")

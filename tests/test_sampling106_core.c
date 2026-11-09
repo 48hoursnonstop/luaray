@@ -5,7 +5,7 @@
 #include <string.h>
 int main(void)
 {
-    ln_error err={{0}};const ln_dtype *dtype=ln_dtype_by_name("float64");
+    ln_error err={0};const ln_dtype *dtype=ln_dtype_by_name("float64");
     ln_array *a=ln_array_new(0,NULL,dtype,0,0,&err),*b=ln_array_new(0,NULL,dtype,0,0,&err);assert(a&&b);
     memcpy(a->data,(double[]){-1},8);memcpy(b->data,(double[]){1},8);
     ln_array *step=NULL,*out=ln_sampling_linspace(a,b,5,1,0,dtype,NULL,&step,&err);assert(out&&step);

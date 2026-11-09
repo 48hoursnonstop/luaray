@@ -7,7 +7,7 @@
 
 int main(void)
 {
-    ln_error err={{0}};ln_intp shape[]={2,3},ishape[]={2,1};
+    ln_error err={0};ln_intp shape[]={2,3},ishape[]={2,1};
     const ln_dtype *intp=ln_dtype_by_name(sizeof(ln_intp)==8?"int64":"int32");
     ln_array *a=ln_array_new(2,shape,ln_dtype_by_name("int32"),0,0,&err);
     ln_array *indices=ln_array_new(2,ishape,intp,0,0,&err);

@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 int main(void){
-    ln_error e={{0}};
+    ln_error e={0};
     ln_intp dims[]={2,4};
     ln_array *a=ln_array_new(2,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     assert(a);

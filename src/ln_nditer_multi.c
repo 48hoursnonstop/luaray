@@ -92,33 +92,12 @@ apply_keeporder_strides(ln_array *a,const ln_multi_order_axis *axes,int nd)
 static void
 iter_error(ln_error *err, const char *msg)
 {
-    if (err) snprintf(err->message,sizeof(err->message),"%s",msg?msg:"iterator error");
-}
-
-static int
-dtype_kind_order(char kind)
-{
-    switch(kind) {
-        case 'b': return 0; case 'u': return 1; case 'i': return 2;
-        case 'f': return 4; case 'c': return 5; default: return -1;
-    }
+    if (err){snprintf(err->message,sizeof(err->message),"%s",msg?msg:"iterator error");err->kind=LN_ERROR_VALUE;}
 }
 
 static int
 can_cast_same_kind(const ln_dtype *from,const ln_dtype *to)
-{
-    if(from==to)return 1;
-    if(from->type_num==to->type_num &&
-            (from->type_num==LN_DATETIME||from->type_num==LN_TIMEDELTA)) {
-        return ln_datetime_can_cast_same_kind(ln_datetime_metadata(from),
-                ln_datetime_metadata(to),from->type_num==LN_TIMEDELTA);
-    }
-    if(from->type_num==to->type_num)return 1;
-    const ln_dtype *p=ln_promote_dtype(from,to);
-    if(p&&p->type_num==to->type_num)return 1;
-    int f=dtype_kind_order(from->kind),t=dtype_kind_order(to->kind);
-    return f>=0&&t>=0&&f<=t;
-}
+{return ln_dtype_can_cast(from,to,LN_SAME_KIND_CASTING);}
 
 static int
 same_shape(const ln_array *a,int nd,const ln_intp *shape)
@@ -198,7 +177,7 @@ ln_nditer_multi_execute(int nin,int nout,
                 char msg[256];snprintf(msg,sizeof(msg),
                     "Cannot cast ufunc output from dtype('%s') to dtype('%s') with casting rule 'same_kind'",
                     loopdt->name,outputs[j]->descr->name);
-                iter_error(err,msg);goto fail;
+                iter_error(err,msg);if(err)err->kind=LN_ERROR_TYPE;goto fail;
             }
         }
     }

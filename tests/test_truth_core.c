@@ -5,7 +5,7 @@
 #include <string.h>
 #include <math.h>
 int main(void){
-    ln_error err={{0}};
+    ln_error err={0};
     /* A number which is not exactly representable as double must remain
      * truthy. Both logical axes and counts operate on the original bytes. */
     ln_array *a=ln_array_new(2,(ln_intp[]){2,3},ln_dtype_by_name("uint64"),0,1,&err);

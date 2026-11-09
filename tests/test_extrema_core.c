@@ -11,7 +11,7 @@ static int64_t val(const ln_array *a,ln_intp i,ln_intp j){
     return x;
 }
 int main(void){
-    ln_error e={{0}};
+    ln_error e={0};
     ln_intp dims[]={2,3};
     ln_array *a=ln_array_new(2,dims,ln_dtype_by_num(LN_LONGLONG),0,0,&e);
     assert(a);

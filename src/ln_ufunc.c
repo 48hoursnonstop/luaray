@@ -5,6 +5,7 @@
 #include "ln_string.h"
 #include "ln_unary_math.h"
 #include "ln_binary_math.h"
+#include "ln_time_scale.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +14,7 @@
 static void
 ufunc_error(ln_error *err,const char *msg)
 {
-    if(err)snprintf(err->message,sizeof(err->message),"%s",msg?msg:"ufunc error");
+    if(err){snprintf(err->message,sizeof(err->message),"%s",msg?msg:"ufunc error");err->kind=LN_ERROR_TYPE;}
 }
 
 static int
@@ -281,8 +282,14 @@ static int resolve_subtract(const ln_ufunc*u,const ln_array*const*i,const ln_ufu
     }
     return resolve_uniform_binary_common(u,i,r,e,1,0);
 }
-static int resolve_multiply(const ln_ufunc*u,const ln_array*const*i,const ln_ufunc_loop**r,ln_error*e){return resolve_uniform_binary_common(u,i,r,e,0,0);} 
-static int resolve_true_divide(const ln_ufunc*u,const ln_array*const*i,const ln_ufunc_loop**r,ln_error*e){return resolve_uniform_binary_common(u,i,r,e,0,1);} 
+static int resolve_multiply(const ln_ufunc*u,const ln_array*const*i,const ln_ufunc_loop**r,ln_error*e){
+    if(is_time_dtype(i[0]->descr)||is_time_dtype(i[1]->descr))return ln_time_scale_resolve(u,i,r,e);
+    return resolve_uniform_binary_common(u,i,r,e,0,0);
+}
+static int resolve_true_divide(const ln_ufunc*u,const ln_array*const*i,const ln_ufunc_loop**r,ln_error*e){
+    if(is_time_dtype(i[0]->descr)||is_time_dtype(i[1]->descr))return ln_time_scale_resolve(u,i,r,e);
+    return resolve_uniform_binary_common(u,i,r,e,0,1);
+}
 
 
 typedef struct ln_string_compare_data {
@@ -307,7 +314,7 @@ resolve_string_compare_data(const ln_ufunc_loop *method,
                             void **loop_data,ln_error *err)
 {
     ln_string_compare_data *d=(ln_string_compare_data*)malloc(sizeof(*d));
-    if(!d){ufunc_error(err,"out of memory");return -1;}
+    if(!d){ufunc_error(err,"out of memory");if(err)err->kind=LN_ERROR_MEMORY;return -1;}
     d->op=*(const ln_binary_op*)method->data;d->a=descrs[0];d->b=descrs[1];*loop_data=d;return 0;
 }
 
@@ -316,7 +323,7 @@ string_compare_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,v
 {
     const ln_string_compare_data *d=(const ln_string_compare_data*)data;
     for(ln_intp i=0;i<dimensions[0];++i){
-        int c=0;ln_error e={{0}};
+        int c=0;ln_error e={0};
         int rc=ln_string_compare_one(args[0]+i*steps[0],d->a,args[1]+i*steps[1],d->b,&c,&e);
         uint8_t r=0;
         if(rc==0){switch(d->op){
@@ -589,6 +596,8 @@ init_registry(void)
         if(i==0)for(int k=0;k<2;++k){
             ln_binary_math_string_add_method(&arithmetic_loops[i][n++],k);
         }
+        if(i==2){ln_time_scale_method(&arithmetic_loops[i][n++],0,0);ln_time_scale_method(&arithmetic_loops[i][n++],1,0);}
+        if(i==3)ln_time_scale_method(&arithmetic_loops[i][n++],0,1);
         append_ufunc(anames[i],2,1,arithmetic_loops[i],n,ares[i]);
     }
 
@@ -805,7 +814,7 @@ ln_ufunc_execute_operands(const ln_ufunc *u,const ln_ufunc_operand *operands,
             size_t width=operands[weak_i].string_len;
             if(sd->type_num==LN_UNICODE && ln_string_utf8_codepoints(operands[weak_i].string,operands[weak_i].string_len,&width,err)<0)return -1;
             const ln_dtype_descr *dt=ln_string_make_dtype(sd->type_num==LN_UNICODE,width,sd->byteorder,err);if(!dt)return -1;
-            size_t cap=dt->elsize?dt->elsize:1;dynamic_storage[weak_i]=(char*)calloc(1,cap);if(!dynamic_storage[weak_i]){ufunc_error(err,"out of memory");return -1;}
+            size_t cap=dt->elsize?dt->elsize:1;dynamic_storage[weak_i]=(char*)calloc(1,cap);if(!dynamic_storage[weak_i]){ufunc_error(err,"out of memory");if(err)err->kind=LN_ERROR_MEMORY;return -1;}
             memset(&temps[weak_i],0,sizeof(temps[weak_i]));temps[weak_i].data=dynamic_storage[weak_i];temps[weak_i].nd=0;temps[weak_i].descr=dt;temps[weak_i].flags=LN_ARRAY_WRITEABLE|LN_ARRAY_ALIGNED|LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS;
             if(ln_string_pack_utf8(dt,dynamic_storage[weak_i],operands[weak_i].string,operands[weak_i].string_len,err)<0){free(dynamic_storage[weak_i]);return -1;}
         }else if(materialize_weak_operand(u,&operands[weak_i],inputs[strong_i],

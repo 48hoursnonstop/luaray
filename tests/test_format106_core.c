@@ -11,7 +11,7 @@
 static unsigned long cases;
 static void check_cast(const void *input,int type,const char *text)
 {
-    ln_error err={{0}};unsigned char ascii[130],unicode[514];
+    ln_error err={0};unsigned char ascii[130],unicode[514];
     const ln_dtype *dtype=ln_dtype_by_num(type);
     memset(ascii,0xa5,sizeof(ascii));memset(unicode,0xa5,sizeof(unicode));
     assert(ln_cast_strided_numeric(input,0,dtype,(char *)ascii+1,0,ln_dtype_by_name("S128"),1,&err)==0);

@@ -9,7 +9,7 @@
 #include <string.h>
 int main(void)
 {
-    ln_error err={{0}};const ln_dtype *i32=ln_dtype_by_name("int32"),*f32=ln_dtype_by_name("float32");
+    ln_error err={0};const ln_dtype *i32=ln_dtype_by_name("int32"),*f32=ln_dtype_by_name("float32");
     ln_array *a=ln_array_new(2,(ln_intp[]){2,3},i32,0,0,&err);assert(a);
     memcpy(a->data,(int32_t[]){0,1,2,3,4,5},24);
     ln_array *f=ln_array_transpose(a,&err);assert(f);

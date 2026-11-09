@@ -52,7 +52,7 @@ int ln_lua_layout_reshape(lua_State *L)
     options opt=parse_options(L,3,1);
     ln_intp shape[LN_MAXDIMS];int nd=0;
     if(ln_lua_shape(L,2,shape,&nd))return 0;
-    ln_array *a=input(L);ln_error err={{0}};
+    ln_array *a=input(L);ln_error err={0};
     ln_array *result=ln_layout_reshape(a,nd,shape,opt.order,opt.copy,&err);
     return result?ln_lua_push_array(L,result):ln_lua_fail(L,&err);
 }
@@ -60,7 +60,7 @@ int ln_lua_layout_ravel(lua_State *L)
 {
     if(lua_gettop(L)<1)return luaL_error(L,"ravel requires an input");
     options opt=parse_options(L,2,0);
-    ln_array *a=input(L);ln_error err={{0}};
+    ln_array *a=input(L);ln_error err={0};
     ln_array *result=ln_layout_ravel(a,opt.order,&err);
     return result?ln_lua_push_array(L,result):ln_lua_fail(L,&err);
 }
@@ -69,6 +69,6 @@ int ln_lua_layout_flatten(lua_State *L)
     options opt=parse_options(L,2,0);
     ln_array *a=ln_lua_test_array(L,1);
     if(!a)return luaL_error(L,"flatten method requires an ndarray");
-    ln_error err={{0}};ln_array *result=ln_layout_flatten(a,opt.order,&err);
+    ln_error err={0};ln_array *result=ln_layout_flatten(a,opt.order,&err);
     return result?ln_lua_push_array(L,result):ln_lua_fail(L,&err);
 }

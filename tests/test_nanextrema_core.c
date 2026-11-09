@@ -10,7 +10,7 @@
 static double dbl(const ln_array *a,ln_intp i){double v;memcpy(&v,a->data+(a->nd?i*a->strides[0]:0),sizeof(v));return v;}
 static ln_intp idx(const ln_array *a,ln_intp i){ln_intp v;memcpy(&v,a->data+(a->nd?i*a->strides[0]:0),sizeof(v));return v;}
 int main(void){
- ln_error e={{0}};
+ ln_error e={0};
  ln_array *a=ln_array_new(2,(ln_intp[]){2,3},ln_dtype_by_num(LN_DOUBLE),0,0,&e);
  assert(a);
  double vals[]={NAN,5,1,2,NAN,6};memcpy(a->data,vals,sizeof(vals));

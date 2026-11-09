@@ -7,7 +7,7 @@
 #include <string.h>
 int main(void)
 {
-    ln_error err={{0}};int identity=-1;
+    ln_error err={0};int identity=-1;
     assert(!ln_component_reality(NULL,1,&err));
     assert(!ln_component_close(NULL,100,&identity,&err)&&identity==0);
     ln_array *a=ln_array_new(1,(ln_intp[]){3},ln_dtype_by_name("complex128"),0,0,&err);assert(a);

@@ -5,11 +5,11 @@
 #include <string.h>
 
 static int64_t item(const ln_array *a,ln_intp i,ln_intp j){
-    ln_intp idx[2]={i,j};double dv=0;int64_t v=0;int isint=0;ln_error e={{0}};
+    ln_intp idx[2]={i,j};double dv=0;int64_t v=0;int isint=0;ln_error e={0};
     assert(ln_array_get_number(a,idx,&dv,&v,&isint,&e)==0);return v;
 }
 int main(void){
-    ln_error e={{0}};
+    ln_error e={0};
     const ln_dtype_descr *dtype=ln_dtype_by_name("int32");
     ln_intp shape[]={2,3};
     ln_array *a=ln_array_new(2,shape,dtype,0,0,&e);assert(a);

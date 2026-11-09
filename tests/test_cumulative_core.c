@@ -7,7 +7,7 @@
 #include <math.h>
 
 int main(void) {
-    ln_error err={{0}};
+    ln_error err={0};
     /* uint64 must not round through double when preparing nan-aware input. */
     ln_array *a=ln_array_new(1,(ln_intp[]){3},ln_dtype_by_num(LN_ULONGLONG),0,0,&err);
     assert(a);

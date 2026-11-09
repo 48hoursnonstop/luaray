@@ -1,6 +1,7 @@
 #include "ln_core.h"
 #include "lua_layout.h"
 #include "lua_components.h"
+#include "lua_round.h"
 #include "ln_random.h"
 #include "ln_multivariate_normal.h"
 #include "ln_mapping.h"
@@ -247,7 +248,7 @@ fft_function(lua_State *L,lua_fft_kind kind)
     if(nargs<1 || nargs>5)return luaL_error(L,"FFT expects input and optional n, axis, norm and out");
     const ln_array *input=broadcast_arg(L,1);fft_call_options o;
     if(parse_fft_call(L,input,kind,&o,nargs))return 0;
-    ln_error e={{0}};ln_array *r=NULL;
+    ln_error e={0};ln_array *r=NULL;
     const ln_dtype *outdt=o.out?o.out->a->descr:NULL;
     if(kind==LUA_FFT_FFT) r=ln_fft_fft(input,o.n,o.axis,0,o.norm,outdt,&e);
     else if(kind==LUA_FFT_IFFT) r=ln_fft_fft(input,o.n,o.axis,1,o.norm,outdt,&e);
@@ -286,7 +287,7 @@ static int fft_frequency_function(lua_State *L,int real_only) {
     if(lua_type(L,2)==LUA_TTABLE)return luaL_error(L,"spacing must be a numeric scalar or ndarray");
     int scalar=lua_type(L,2)==LUA_TNUMBER || lua_type(L,2)==LUA_TBOOLEAN || test_complex(L,2)!=NULL;
     const ln_array *spacing=broadcast_arg(L,2);
-    ln_error err={{0}};ln_array *result=ln_fft_frequency(n,spacing,scalar,real_only,&err);
+    ln_error err={0};ln_array *result=ln_fft_frequency(n,spacing,scalar,real_only,&err);
     if(!result)return fail(L,&err);
     return push_array(L,result);
 }
@@ -307,7 +308,7 @@ static int fft_shift_function(lua_State *L,int inverse) {
             normalize_lua_axis(L,lua_tointegerx(L,-1,NULL),input->nd,&axes[j]);lua_pop(L,1);
         }
     }
-    ln_error err={{0}};ln_array *result=ln_fft_shift(input,axes,count,inverse,&err);
+    ln_error err={0};ln_array *result=ln_fft_shift(input,axes,count,inverse,&err);
     if(!result)return fail(L,&err);
     return push_array(L,result);
 }
@@ -507,7 +508,7 @@ static int fft_nd_function(lua_State *L, lua_fft_nd_kind kind, int default_2d)
     if(parse_fft_nd_call(L,u->a,kind,default_2d,&o)) return 0;
     if(o.ntrans==0){ free_fft_nd_options(&o); lua_pushvalue(L,1); return 1; }
 
-    ln_error e={{0}}; const ln_array *cur=u->a; ln_array *owned=NULL;
+    ln_error e={0}; const ln_array *cur=u->a; ln_array *owned=NULL;
     int failed=0;
     if(kind==LUA_FFT_FFTN || kind==LUA_FFT_IFFTN) {
         lua_fft_kind one=(kind==LUA_FFT_FFTN)?LUA_FFT_FFT:LUA_FFT_IFFT;
@@ -645,7 +646,7 @@ static int push_datetime_scalar(lua_State *L,int64_t value,const ln_dtype *descr
 }
 static int datetime_scalar_tostring(lua_State *L){
     lua_datetime_scalar *x=test_datetime_scalar(L,1);if(!x)return luaL_error(L,"invalid datetime scalar");
-    const ln_datetime_meta *m=ln_datetime_metadata(x->descr);char buf[192];ln_error e={{0}};
+    const ln_datetime_meta *m=ln_datetime_metadata(x->descr);char buf[192];ln_error e={0};
     if(x->descr->type_num==LN_DATETIME && m){
         if(ln_datetime_format_iso8601(x->value,m,m->base,0,LN_DT_TZ_NAIVE,0,LN_DT_CAST_SAME_KIND,buf,sizeof(buf),&e)<0)
             return fail(L,&e);
@@ -664,14 +665,14 @@ static int datetime_scalar_index(lua_State *L){
     if(strcmp(k,"isnat")==0){lua_pushboolean(L,x->value==LN_DATETIME_NAT);return 1;}
     if(strcmp(k,"unit")==0){const ln_datetime_meta*m=ln_datetime_metadata(x->descr);lua_pushstring(L,m?ln_datetime_unit_name(m->base):"generic");return 1;}
     if(strcmp(k,"multiplier")==0){const ln_datetime_meta*m=ln_datetime_metadata(x->descr);lua_pushinteger(L,m?m->num:1);return 1;}
-    if(strcmp(k,"iso")==0 && x->descr->type_num==LN_DATETIME){const ln_datetime_meta*m=ln_datetime_metadata(x->descr);char b[192];ln_error e={{0}};if(ln_datetime_format_iso8601(x->value,m,m->base,0,LN_DT_TZ_NAIVE,0,LN_DT_CAST_SAME_KIND,b,sizeof(b),&e)<0)return fail(L,&e);lua_pushstring(L,b);return 1;}
+    if(strcmp(k,"iso")==0 && x->descr->type_num==LN_DATETIME){const ln_datetime_meta*m=ln_datetime_metadata(x->descr);char b[192];ln_error e={0};if(ln_datetime_format_iso8601(x->value,m,m->base,0,LN_DT_TZ_NAIVE,0,LN_DT_CAST_SAME_KIND,b,sizeof(b),&e)<0)return fail(L,&e);lua_pushstring(L,b);return 1;}
     lua_pushnil(L);return 1;
 }
 static int datetime_scalar_eq(lua_State *L){
     lua_datetime_scalar *a=test_datetime_scalar(L,1),*b=test_datetime_scalar(L,2);if(!a||!b){lua_pushboolean(L,0);return 1;}
     if(a->value==LN_DATETIME_NAT||b->value==LN_DATETIME_NAT){lua_pushboolean(L,0);return 1;}
     const ln_dtype *p=ln_promote_dtype(a->descr,b->descr);if(!p){lua_pushboolean(L,0);return 1;}
-    const ln_datetime_meta *pm=ln_datetime_metadata(p);int64_t av,bv;ln_error e={{0}};
+    const ln_datetime_meta *pm=ln_datetime_metadata(p);int64_t av,bv;ln_error e={0};
     if(ln_datetime_cast_value(a->value,ln_datetime_metadata(a->descr),pm,&av,&e)<0||ln_datetime_cast_value(b->value,ln_datetime_metadata(b->descr),pm,&bv,&e)<0){lua_pushboolean(L,0);return 1;}
     lua_pushboolean(L,av==bv);return 1;
 }
@@ -689,7 +690,7 @@ static int datetime_scalar_ctor_common(lua_State *L,int td){
             if(strcmp(s,"NaT")==0||strcmp(s,"nat")==0){v=LN_DATETIME_NAT;}
             else return luaL_error(L,"timedelta64 string construction currently supports only 'NaT'; use integer count + unit");
         }else{
-            const ln_dtype_descr *parsed=NULL;ln_error e={{0}};int hadtz=0;
+            const ln_dtype_descr *parsed=NULL;ln_error e={0};int hadtz=0;
             const ln_dtype_descr *req=has_unit?dt:NULL;
             if(ln_datetime_parse_iso8601(s,req,&parsed,&v,&hadtz,&e)<0)return fail(L,&e);
             dt=parsed;
@@ -700,7 +701,7 @@ static int datetime_scalar_ctor_common(lua_State *L,int td){
 }
 static int np_datetime64(lua_State *L){return datetime_scalar_ctor_common(L,0);}
 static int np_timedelta64(lua_State *L){return datetime_scalar_ctor_common(L,1);}
-static int push_scalar_at(lua_State*L,const ln_array*a,const ln_intp*idx){ln_error e={{0}};if(ln_string_is_dtype(a->descr)){char *ss=NULL;size_t nn=0;if(ln_array_get_string(a,idx,&ss,&nn,&e)<0)return fail(L,&e);lua_pushlstring(L,ss,nn);free(ss);return 1;}if(a->descr->kind=='M'||a->descr->kind=='m'){double d=0;int64_t iv=0;int isint=0;if(ln_array_get_number(a,idx,&d,&iv,&isint,&e)<0)return fail(L,&e);return push_datetime_scalar(L,iv,a->descr);}if(a->descr->kind=='c'){long double r=0,i=0;if(ln_array_get_complex(a,idx,&r,&i,&e)<0)return fail(L,&e);return push_complex(L,r,i);}double d=0;int64_t iv=0;int isint=0;if(ln_array_get_number(a,idx,&d,&iv,&isint,&e)<0)return fail(L,&e);if(a->descr->type_num==LN_BOOL)lua_pushboolean(L,iv!=0);else if(isint)lua_pushinteger(L,(lua_Integer)iv);else lua_pushnumber(L,d);return 1;}
+static int push_scalar_at(lua_State*L,const ln_array*a,const ln_intp*idx){ln_error e={0};if(ln_string_is_dtype(a->descr)){char *ss=NULL;size_t nn=0;if(ln_array_get_string(a,idx,&ss,&nn,&e)<0)return fail(L,&e);lua_pushlstring(L,ss,nn);free(ss);return 1;}if(a->descr->kind=='M'||a->descr->kind=='m'){double d=0;int64_t iv=0;int isint=0;if(ln_array_get_number(a,idx,&d,&iv,&isint,&e)<0)return fail(L,&e);return push_datetime_scalar(L,iv,a->descr);}if(a->descr->kind=='c'){long double r=0,i=0;if(ln_array_get_complex(a,idx,&r,&i,&e)<0)return fail(L,&e);return push_complex(L,r,i);}double d=0;int64_t iv=0;int isint=0;if(ln_array_get_number(a,idx,&d,&iv,&isint,&e)<0)return fail(L,&e);if(a->descr->type_num==LN_BOOL)lua_pushboolean(L,iv!=0);else if(isint)lua_pushinteger(L,(lua_Integer)iv);else lua_pushnumber(L,d);return 1;}
 
 static int read_lua_integer_value(lua_State *L, int arg, lua_Integer *out) {
     int ok = 0;
@@ -954,7 +955,7 @@ static int build_indices(lua_State *L, lua_array *u, int first, int nraw,
             double d = 0;
             int64_t iv = 0;
             int isint = 0;
-            ln_error e={{0}};
+            ln_error e={0};
             if (ln_array_get_number(arr,NULL,&d,&iv,&isint,&e) < 0) {
                 fail(L,&e);
                 goto fail;
@@ -1043,7 +1044,7 @@ static int build_indices(lua_State *L, lua_array *u, int first, int nraw,
             double d=0;
             int64_t iv=0;
             int isint=0;
-            ln_error e={{0}};
+            ln_error e={0};
             if (ln_array_get_number(r->array,NULL,&d,&iv,&isint,&e) < 0) {
                 fail(L,&e);
                 goto fail;
@@ -1095,7 +1096,7 @@ static int build_indices(lua_State *L, lua_array *u, int first, int nraw,
 
             ln_array *nz[LN_MAXDIMS]={0};
             int nnz=0;
-            ln_error e={{0}};
+            ln_error e={0};
             if (ln_boolean_nonzero_indices(r->array,nz,&nnz,&e) < 0) {
                 fail(L,&e);
                 goto fail;
@@ -1182,7 +1183,7 @@ static int array_get(lua_State*L){
     built_index b;
     if (build_indices(L,u,2,nraw,&b)) return 0;
 
-    ln_error e={{0}};
+    ln_error e={0};
     if (b.boolean_mask) {
         ln_array *r=ln_array_boolean_get(u->a,b.boolean_mask,&e);
         free_built_index(&b);
@@ -1237,7 +1238,7 @@ static int assign_indexed(lua_State *L, lua_array *u, int value_arg,
         return luaL_error(L,"cannot assign complex scalar to non-complex ndarray");
     }
 
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array scalar_complex,scalar_string;
     ln_clongdouble complex_storage;
     char *string_storage=NULL;
@@ -1334,8 +1335,8 @@ static int array_reshape(lua_State*L){return ln_lua_layout_reshape(L);}
 static int push_nested(lua_State*L,const ln_array*a,int depth,ln_intp*idx){if(depth==a->nd)return push_scalar_at(L,a,idx);ln_intp n=a->dimensions[depth];lua_createtable(L,(int)n,0);for(ln_intp i=0;i<n;i++){idx[depth]=i;push_nested(L,a,depth+1,idx);lua_seti(L,-2,(lua_Integer)i+1);}return 1;}
 static int array_tolist(lua_State*L){lua_array*u=check_array(L,1);luaL_checkstack(L,u->a->nd+8,"array conversion exceeds Lua stack capacity");ln_intp idx[LN_MAXDIMS]={0};return push_nested(L,u->a,0,idx);}
 
-static int array_index(lua_State*L){lua_array*u=check_array(L,1);int t=lua_type(L,2);if(t==LUA_TNUMBER){if(u->a->nd==0)return luaL_error(L,"too many indices for array: array is 0-dimensional");ln_intp ix; if(read_lua_index(L,2,u->a->dimensions[0],&ix))return 0;if(u->a->nd==1){ln_intp idx[]={ix};return push_scalar_at(L,u->a,idx);}ln_error e={{0}};ln_array*v=ln_array_view(u->a,u->a->nd-1,u->a->dimensions+1,u->a->strides+1,u->a->data+ix*u->a->strides[0],&e);if(!v)return fail(L,&e);
-    return push_array(L,v);}if(t==LUA_TUSERDATA && (test_index_spec(L,2)||test_array(L,2)))return array_get(L);const char*k=lua_tostring(L,2);if(!k){lua_pushnil(L);return 1;}if(strcmp(k,"shape")==0)return array_shape(L);if(strcmp(k,"strides")==0)return array_strides(L);if(strcmp(k,"ndim")==0){lua_pushinteger(L,u->a->nd);return 1;}if(strcmp(k,"size")==0){lua_pushinteger(L,(lua_Integer)ln_array_size(u->a));return 1;}if(strcmp(k,"dtype")==0){lua_pushstring(L,u->a->descr->name);return 1;}if(strcmp(k,"copy")==0){lua_pushcfunction(L,ln_lua_array_copy);return 1;}if(strcmp(k,"real")==0)return ln_lua_real(L);if(strcmp(k,"imag")==0)return ln_lua_imag(L);if(strcmp(k,"ravel")==0){lua_pushcfunction(L,ln_lua_layout_ravel);return 1;}if(strcmp(k,"flatten")==0){lua_pushcfunction(L,ln_lua_layout_flatten);return 1;}if(strcmp(k,"get")==0){lua_pushcfunction(L,array_get);return 1;}if(strcmp(k,"set")==0){lua_pushcfunction(L,array_set);return 1;}if(strcmp(k,"take")==0){lua_pushcfunction(L,np_take);return 1;}if(strcmp(k,"choose")==0){lua_pushcfunction(L,np_choose);return 1;}if(strcmp(k,"nonzero")==0){lua_pushcfunction(L,np_nonzero);return 1;}if(strcmp(k,"compress")==0){lua_pushcfunction(L,array_compress);return 1;}if(strcmp(k,"put")==0){lua_pushcfunction(L,np_put);return 1;}if(strcmp(k,"reshape")==0){lua_pushcfunction(L,array_reshape);return 1;}if(strcmp(k,"transpose")==0||strcmp(k,"T")==0){if(strcmp(k,"T")==0){lua_settop(L,1);return array_transpose(L);}lua_pushcfunction(L,array_transpose);return 1;}if(strcmp(k,"swapaxes")==0){lua_pushcfunction(L,np_swapaxes);return 1;}if(strcmp(k,"moveaxis")==0){lua_pushcfunction(L,np_moveaxis);return 1;}if(strcmp(k,"squeeze")==0){lua_pushcfunction(L,np_squeeze);return 1;}if(strcmp(k,"flip")==0){lua_pushcfunction(L,np_flip);return 1;}if(strcmp(k,"tile")==0){lua_pushcfunction(L,np_tile);return 1;}if(strcmp(k,"roll")==0){lua_pushcfunction(L,np_roll);return 1;}if(strcmp(k,"rollaxis")==0){lua_pushcfunction(L,np_rollaxis);return 1;}if(strcmp(k,"repeat_elements")==0||strcmp(k,"repeat")==0){lua_pushcfunction(L,np_repeat_elements);return 1;}if(strcmp(k,"tolist")==0){lua_pushcfunction(L,array_tolist);return 1;}if(strcmp(k,"astype")==0){lua_pushcfunction(L,np_astype);return 1;}if(strcmp(k,"count_nonzero")==0){lua_pushcfunction(L,np_count_nonzero);return 1;}if(strcmp(k,"any")==0){lua_pushcfunction(L,np_any);return 1;}if(strcmp(k,"all")==0){lua_pushcfunction(L,np_all);return 1;}if(strcmp(k,"sum")==0){lua_pushcfunction(L,np_sum);return 1;}if(strcmp(k,"nansum")==0){lua_pushcfunction(L,np_nansum);return 1;}if(strcmp(k,"nanprod")==0){lua_pushcfunction(L,np_nanprod);return 1;}if(strcmp(k,"cumsum")==0){lua_pushcfunction(L,np_cumsum);return 1;}if(strcmp(k,"cumprod")==0){lua_pushcfunction(L,np_cumprod);return 1;}if(strcmp(k,"nancumsum")==0){lua_pushcfunction(L,np_nancumsum);return 1;}if(strcmp(k,"nancumprod")==0){lua_pushcfunction(L,np_nancumprod);return 1;}if(strcmp(k,"nanmean")==0){lua_pushcfunction(L,np_nanmean);return 1;}if(strcmp(k,"nanvar")==0){lua_pushcfunction(L,np_nanvar);return 1;}if(strcmp(k,"nanstd")==0){lua_pushcfunction(L,np_nanstd);return 1;}if(strcmp(k,"prod")==0){lua_pushcfunction(L,np_prod);return 1;}if(strcmp(k,"mean")==0){lua_pushcfunction(L,np_mean);return 1;}if(strcmp(k,"var")==0){lua_pushcfunction(L,np_var);return 1;}if(strcmp(k,"std")==0){lua_pushcfunction(L,np_std);return 1;}if(strcmp(k,"nanmin")==0){lua_pushcfunction(L,np_nanmin);return 1;}if(strcmp(k,"nanmax")==0){lua_pushcfunction(L,np_nanmax);return 1;}if(strcmp(k,"nanargmin")==0){lua_pushcfunction(L,np_nanargmin);return 1;}if(strcmp(k,"nanargmax")==0){lua_pushcfunction(L,np_nanargmax);return 1;}if(strcmp(k,"min")==0||strcmp(k,"amin")==0){lua_pushcfunction(L,np_amin);return 1;}if(strcmp(k,"max")==0||strcmp(k,"amax")==0){lua_pushcfunction(L,np_amax);return 1;}if(strcmp(k,"argmin")==0){lua_pushcfunction(L,np_argmin);return 1;}if(strcmp(k,"argmax")==0){lua_pushcfunction(L,np_argmax);return 1;}if(strcmp(k,"ptp")==0){lua_pushcfunction(L,np_ptp);return 1;}if(strcmp(k,"median")==0){lua_pushcfunction(L,np_median);return 1;}if(strcmp(k,"nanmedian")==0){lua_pushcfunction(L,np_nanmedian);return 1;}if(strcmp(k,"matmul")==0){lua_pushcfunction(L,np_matmul);return 1;}if(strcmp(k,"dot")==0){lua_pushcfunction(L,np_dot);return 1;}if(strcmp(k,"sort")==0){lua_pushcfunction(L,array_sort_inplace);return 1;}if(strcmp(k,"argsort")==0){lua_pushcfunction(L,np_argsort);return 1;}if(strcmp(k,"partition")==0){lua_pushcfunction(L,array_partition_inplace);return 1;}if(strcmp(k,"argpartition")==0){lua_pushcfunction(L,np_argpartition);return 1;}if(strcmp(k,"searchsorted")==0){lua_pushcfunction(L,np_searchsorted);return 1;}lua_pushnil(L);return 1;}
+static int array_index(lua_State*L){lua_array*u=check_array(L,1);int t=lua_type(L,2);if(t==LUA_TNUMBER){if(u->a->nd==0)return luaL_error(L,"too many indices for array: array is 0-dimensional");ln_intp ix; if(read_lua_index(L,2,u->a->dimensions[0],&ix))return 0;if(u->a->nd==1){ln_intp idx[]={ix};return push_scalar_at(L,u->a,idx);}ln_error e={0};ln_array*v=ln_array_view(u->a,u->a->nd-1,u->a->dimensions+1,u->a->strides+1,u->a->data+ix*u->a->strides[0],&e);if(!v)return fail(L,&e);
+    return push_array(L,v);}if(t==LUA_TUSERDATA && (test_index_spec(L,2)||test_array(L,2)))return array_get(L);const char*k=lua_tostring(L,2);if(!k){lua_pushnil(L);return 1;}if(strcmp(k,"shape")==0)return array_shape(L);if(strcmp(k,"strides")==0)return array_strides(L);if(strcmp(k,"ndim")==0){lua_pushinteger(L,u->a->nd);return 1;}if(strcmp(k,"size")==0){lua_pushinteger(L,(lua_Integer)ln_array_size(u->a));return 1;}if(strcmp(k,"dtype")==0){lua_pushstring(L,u->a->descr->name);return 1;}if(strcmp(k,"copy")==0){lua_pushcfunction(L,ln_lua_array_copy);return 1;}if(strcmp(k,"real")==0)return ln_lua_real(L);if(strcmp(k,"imag")==0)return ln_lua_imag(L);if(strcmp(k,"round")==0){lua_pushcfunction(L,ln_lua_round_method);return 1;}if(strcmp(k,"ravel")==0){lua_pushcfunction(L,ln_lua_layout_ravel);return 1;}if(strcmp(k,"flatten")==0){lua_pushcfunction(L,ln_lua_layout_flatten);return 1;}if(strcmp(k,"get")==0){lua_pushcfunction(L,array_get);return 1;}if(strcmp(k,"set")==0){lua_pushcfunction(L,array_set);return 1;}if(strcmp(k,"take")==0){lua_pushcfunction(L,np_take);return 1;}if(strcmp(k,"choose")==0){lua_pushcfunction(L,np_choose);return 1;}if(strcmp(k,"nonzero")==0){lua_pushcfunction(L,np_nonzero);return 1;}if(strcmp(k,"compress")==0){lua_pushcfunction(L,array_compress);return 1;}if(strcmp(k,"put")==0){lua_pushcfunction(L,np_put);return 1;}if(strcmp(k,"reshape")==0){lua_pushcfunction(L,array_reshape);return 1;}if(strcmp(k,"transpose")==0||strcmp(k,"T")==0){if(strcmp(k,"T")==0){lua_settop(L,1);return array_transpose(L);}lua_pushcfunction(L,array_transpose);return 1;}if(strcmp(k,"swapaxes")==0){lua_pushcfunction(L,np_swapaxes);return 1;}if(strcmp(k,"moveaxis")==0){lua_pushcfunction(L,np_moveaxis);return 1;}if(strcmp(k,"squeeze")==0){lua_pushcfunction(L,np_squeeze);return 1;}if(strcmp(k,"flip")==0){lua_pushcfunction(L,np_flip);return 1;}if(strcmp(k,"tile")==0){lua_pushcfunction(L,np_tile);return 1;}if(strcmp(k,"roll")==0){lua_pushcfunction(L,np_roll);return 1;}if(strcmp(k,"rollaxis")==0){lua_pushcfunction(L,np_rollaxis);return 1;}if(strcmp(k,"repeat_elements")==0||strcmp(k,"repeat")==0){lua_pushcfunction(L,np_repeat_elements);return 1;}if(strcmp(k,"tolist")==0){lua_pushcfunction(L,array_tolist);return 1;}if(strcmp(k,"astype")==0){lua_pushcfunction(L,np_astype);return 1;}if(strcmp(k,"count_nonzero")==0){lua_pushcfunction(L,np_count_nonzero);return 1;}if(strcmp(k,"any")==0){lua_pushcfunction(L,np_any);return 1;}if(strcmp(k,"all")==0){lua_pushcfunction(L,np_all);return 1;}if(strcmp(k,"sum")==0){lua_pushcfunction(L,np_sum);return 1;}if(strcmp(k,"nansum")==0){lua_pushcfunction(L,np_nansum);return 1;}if(strcmp(k,"nanprod")==0){lua_pushcfunction(L,np_nanprod);return 1;}if(strcmp(k,"cumsum")==0){lua_pushcfunction(L,np_cumsum);return 1;}if(strcmp(k,"cumprod")==0){lua_pushcfunction(L,np_cumprod);return 1;}if(strcmp(k,"nancumsum")==0){lua_pushcfunction(L,np_nancumsum);return 1;}if(strcmp(k,"nancumprod")==0){lua_pushcfunction(L,np_nancumprod);return 1;}if(strcmp(k,"nanmean")==0){lua_pushcfunction(L,np_nanmean);return 1;}if(strcmp(k,"nanvar")==0){lua_pushcfunction(L,np_nanvar);return 1;}if(strcmp(k,"nanstd")==0){lua_pushcfunction(L,np_nanstd);return 1;}if(strcmp(k,"prod")==0){lua_pushcfunction(L,np_prod);return 1;}if(strcmp(k,"mean")==0){lua_pushcfunction(L,np_mean);return 1;}if(strcmp(k,"var")==0){lua_pushcfunction(L,np_var);return 1;}if(strcmp(k,"std")==0){lua_pushcfunction(L,np_std);return 1;}if(strcmp(k,"nanmin")==0){lua_pushcfunction(L,np_nanmin);return 1;}if(strcmp(k,"nanmax")==0){lua_pushcfunction(L,np_nanmax);return 1;}if(strcmp(k,"nanargmin")==0){lua_pushcfunction(L,np_nanargmin);return 1;}if(strcmp(k,"nanargmax")==0){lua_pushcfunction(L,np_nanargmax);return 1;}if(strcmp(k,"min")==0||strcmp(k,"amin")==0){lua_pushcfunction(L,np_amin);return 1;}if(strcmp(k,"max")==0||strcmp(k,"amax")==0){lua_pushcfunction(L,np_amax);return 1;}if(strcmp(k,"argmin")==0){lua_pushcfunction(L,np_argmin);return 1;}if(strcmp(k,"argmax")==0){lua_pushcfunction(L,np_argmax);return 1;}if(strcmp(k,"ptp")==0){lua_pushcfunction(L,np_ptp);return 1;}if(strcmp(k,"median")==0){lua_pushcfunction(L,np_median);return 1;}if(strcmp(k,"nanmedian")==0){lua_pushcfunction(L,np_nanmedian);return 1;}if(strcmp(k,"matmul")==0){lua_pushcfunction(L,np_matmul);return 1;}if(strcmp(k,"dot")==0){lua_pushcfunction(L,np_dot);return 1;}if(strcmp(k,"sort")==0){lua_pushcfunction(L,array_sort_inplace);return 1;}if(strcmp(k,"argsort")==0){lua_pushcfunction(L,np_argsort);return 1;}if(strcmp(k,"partition")==0){lua_pushcfunction(L,array_partition_inplace);return 1;}if(strcmp(k,"argpartition")==0){lua_pushcfunction(L,np_argpartition);return 1;}if(strcmp(k,"searchsorted")==0){lua_pushcfunction(L,np_searchsorted);return 1;}lua_pushnil(L);return 1;}
 
 static const char *
 registered_binary_name(ln_binary_op op)
@@ -1402,7 +1403,7 @@ static int binary_meta(lua_State*L,ln_binary_op op)
     if(!parse_binary_ufunc_operand(L,1,&operands[0])||!parse_binary_ufunc_operand(L,2,&operands[1]))
         return luaL_error(L,"operand must be ndarray, string, number, boolean, or luaray.complex");
     ln_array *r=NULL;
-    ln_error e={{0}};
+    ln_error e={0};
     if(ln_ufunc_execute_operands(u,operands,&r,NULL,&e)<0)return fail(L,&e);
     return push_array(L,r);
 }
@@ -1417,7 +1418,7 @@ static int array_band(lua_State*L){return binary_meta(L,LN_OP_BITWISE_AND);}
 static int array_bor(lua_State*L){return binary_meta(L,LN_OP_BITWISE_OR);}
 static int array_bxor(lua_State*L){return binary_meta(L,LN_OP_BITWISE_XOR);}
 static int array_unm(lua_State*L){
-    lua_array *a=check_array(L,1); ln_error e={{0}};
+    lua_array *a=check_array(L,1); ln_error e={0};
     const ln_ufunc *u=ln_ufunc_by_name("negative");
     ln_array *r=NULL;
     if(u){const ln_array *inputs[1]={a->a};if(ln_ufunc_execute(u,inputs,&r,NULL,&e)<0)r=NULL;}
@@ -1526,7 +1527,7 @@ binary_function_named(lua_State *L, const char *name)
         operands[i].kind=LN_UFUNC_OPERAND_ARRAY;
     }
     ln_array *out=opts.out?opts.out->a:NULL;
-    ln_error e={{0}};
+    ln_error e={0};
     if(ln_ufunc_execute_operands(u,operands,&out,opts.where,&e)<0)return fail(L,&e);
     if(opts.out)return push_existing_out(L,&opts);
     return push_array(L,out);
@@ -1538,7 +1539,7 @@ unary_function_named(lua_State *L, const char *name)
     ufunc_call_options opts;
     if(parse_ufunc_call_options(L,2,&opts))return 0;
     const ln_array *a=broadcast_arg(L,1);
-    ln_error e={{0}};
+    ln_error e={0};
     const ln_ufunc *u=ln_ufunc_by_name(name);
     if(!u||u->nin!=1||u->nout!=1)
         return luaL_error(L,"internal error: unary ufunc '%s' is not registered",name);
@@ -1667,7 +1668,7 @@ multiout_unary_function(lua_State *L,const char *name)
     const ln_array *inputs[1]={a->a};
     ln_array *outs[2]={o.out[0]?o.out[0]->a:NULL,o.out[1]?o.out[1]->a:NULL};
     int allocated[2]={outs[0]==NULL,outs[1]==NULL};
-    ln_error e={{0}};
+    ln_error e={0};
     if(ln_ufunc_execute(u,inputs,outs,o.where,&e)<0)return fail(L,&e);
     push_multiout_result(L,&o,0,outs[0],allocated[0]);
     push_multiout_result(L,&o,1,outs[1],allocated[1]);
@@ -1685,7 +1686,7 @@ multiout_binary_function(lua_State *L,const char *name)
     const ln_array *inputs[2]={a->a,b->a};
     ln_array *outs[2]={o.out[0]?o.out[0]->a:NULL,o.out[1]?o.out[1]->a:NULL};
     int allocated[2]={outs[0]==NULL,outs[1]==NULL};
-    ln_error e={{0}};
+    ln_error e={0};
     if(ln_ufunc_execute(u,inputs,outs,o.where,&e)<0)return fail(L,&e);
     push_multiout_result(L,&o,0,outs[0],allocated[0]);
     push_multiout_result(L,&o,1,outs[1],allocated[1]);
@@ -1713,7 +1714,7 @@ generic_binary_ufunc_function(lua_State *L,const char *name)
     else{
         memset(&scalar,0,sizeof(scalar));scalar.data=(char*)storage;scalar.nd=0;
         scalar.flags=LN_ARRAY_WRITEABLE|LN_ARRAY_ALIGNED|LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS;
-        ln_error pe={{0}};
+        ln_error pe={0};
         if(lua_type(L,2)==LUA_TBOOLEAN){
             scalar.descr=ln_dtype_by_num(LN_BOOL);
             if(ln_array_pack_number(&scalar,NULL,(double)lua_toboolean(L,2),(int64_t)lua_toboolean(L,2),1,&pe)<0)return fail(L,&pe);
@@ -1728,7 +1729,7 @@ generic_binary_ufunc_function(lua_State *L,const char *name)
     }
     const ln_array *inputs[2]={a->a,barr};
     ln_array *out=opts.out?opts.out->a:NULL;
-    ln_error e={{0}};
+    ln_error e={0};
     if(ln_ufunc_execute(u,inputs,&out,opts.where,&e)<0)return fail(L,&e);
     if(opts.out)return push_existing_out(L,&opts);
     return push_array(L,out);
@@ -1901,7 +1902,7 @@ static int np_astype(lua_State*L){
         }
         lua_pop(L,1);
     }
-    ln_error e={{0}};
+    ln_error e={0};
     const ln_dtype*resolved=resolve_astype_target(a->a,dt,&e);
     if(!resolved)return fail(L,&e);
     const int same=ln_dtype_cast_safety(a->a->descr,resolved)==LN_NO_CASTING;
@@ -1972,7 +1973,7 @@ static int np_min_scalar_type(lua_State *L) {
     else if(lua_type(L,1)==LUA_TSTRING){
         size_t nbytes=0,nchars=0;
         const char *value=lua_tolstring(L,1,&nbytes);
-        ln_error e={{0}};
+        ln_error e={0};
         if(ln_string_utf8_codepoints(value,nbytes,&nchars,&e)<0)return fail(L,&e);
         /* NumPy's Python-str scalar uses Unicode codepoints, never UTF-8
          * byte length, and selects <U1 for an empty string. */
@@ -2162,7 +2163,7 @@ static int scan_dtype(lua_State*L,int idx,int*has_complex,int*has_float,int*has_
 
 static int lua_scalar_string_value(lua_State *L,int idx,const char **out,size_t *out_n,int *needs_pop);
 
-static int fill_table(lua_State*L,int idx,ln_array*a,int depth,ln_intp*indices){idx=lua_absindex(L,idx);if(depth==a->nd){int t=lua_type(L,idx);ln_error e={{0}};lua_datetime_scalar*ds=test_datetime_scalar(L,idx);if(ds){if(!(a->descr->kind=='M'||a->descr->kind=='m'))return luaL_error(L,"datetime scalar requires datetime/timedelta destination dtype");int64_t v=ds->value;if(ds->descr!=a->descr){if(ln_datetime_cast_value(v,ln_datetime_metadata(ds->descr),ln_datetime_metadata(a->descr),&v,&e)<0)return fail(L,&e);}return ln_array_set_number(a,indices,0,v,1,&e)<0?fail(L,&e):0;}lua_complex*z=test_complex(L,idx);if(ln_string_is_dtype(a->descr)&&(z||t==LUA_TBOOLEAN||t==LUA_TNUMBER||t==LUA_TSTRING)){const char*ss=NULL;size_t nn=0;int pop=0;if(lua_scalar_string_value(L,idx,&ss,&nn,&pop))return 1;int rc=ln_array_pack_string(a,indices,ss,nn,&e);if(pop)lua_pop(L,1);return rc<0?fail(L,&e):0;}if(z)return ln_array_pack_complex(a,indices,z->real,z->imag,&e)<0?fail(L,&e):0;if(t==LUA_TBOOLEAN){int64_t v=lua_toboolean(L,idx);return ln_array_pack_number(a,indices,0,v,1,&e)<0?fail(L,&e):0;}if(t==LUA_TNUMBER){int isint=lua_isinteger(L,idx);int ok=0;double d=lua_tonumberx(L,idx,&ok);int64_t iv=isint?(int64_t)lua_tointegerx(L,idx,NULL):0;if(!ok)return luaL_error(L,"array element is not numeric");return ln_array_pack_number(a,indices,d,iv,isint,&e)<0?fail(L,&e):0;}if(t==LUA_TSTRING && ln_string_is_dtype(a->descr)){size_t nn=0;const char*ss=lua_tolstring(L,idx,&nn);return ln_array_pack_string(a,indices,ss,nn,&e)<0?fail(L,&e):0;}if(t==LUA_TSTRING && a->descr->type_num==LN_DATETIME){const char*ss=lua_tostring(L,idx);const ln_dtype_descr*pd=NULL;int64_t vv=0;int tz=0;if(ln_datetime_parse_iso8601(ss,a->descr,&pd,&vv,&tz,&e)<0)return fail(L,&e);return ln_array_pack_number(a,indices,0,vv,1,&e)<0?fail(L,&e):0;}return luaL_error(L,"array element type unsupported");}if(lua_type(L,idx)!=LUA_TTABLE)return luaL_error(L,"inhomogeneous array shape");size_t n=lua_rawlen(L,idx);if((ln_intp)n!=a->dimensions[depth])return luaL_error(L,"inhomogeneous array shape");for(size_t i=1;i<=n;i++){indices[depth]=(ln_intp)i-1;lua_geti(L,idx,(lua_Integer)i);if(fill_table(L,-1,a,depth+1,indices)){lua_pop(L,1);return 1;}lua_pop(L,1);}return 0;}
+static int fill_table(lua_State*L,int idx,ln_array*a,int depth,ln_intp*indices){idx=lua_absindex(L,idx);if(depth==a->nd){int t=lua_type(L,idx);ln_error e={0};lua_datetime_scalar*ds=test_datetime_scalar(L,idx);if(ds){if(!(a->descr->kind=='M'||a->descr->kind=='m'))return luaL_error(L,"datetime scalar requires datetime/timedelta destination dtype");int64_t v=ds->value;if(ds->descr!=a->descr){if(ln_datetime_cast_value(v,ln_datetime_metadata(ds->descr),ln_datetime_metadata(a->descr),&v,&e)<0)return fail(L,&e);}return ln_array_set_number(a,indices,0,v,1,&e)<0?fail(L,&e):0;}lua_complex*z=test_complex(L,idx);if(ln_string_is_dtype(a->descr)&&(z||t==LUA_TBOOLEAN||t==LUA_TNUMBER||t==LUA_TSTRING)){const char*ss=NULL;size_t nn=0;int pop=0;if(lua_scalar_string_value(L,idx,&ss,&nn,&pop))return 1;int rc=ln_array_pack_string(a,indices,ss,nn,&e);if(pop)lua_pop(L,1);return rc<0?fail(L,&e):0;}if(z)return ln_array_pack_complex(a,indices,z->real,z->imag,&e)<0?fail(L,&e):0;if(t==LUA_TBOOLEAN){int64_t v=lua_toboolean(L,idx);return ln_array_pack_number(a,indices,0,v,1,&e)<0?fail(L,&e):0;}if(t==LUA_TNUMBER){int isint=lua_isinteger(L,idx);int ok=0;double d=lua_tonumberx(L,idx,&ok);int64_t iv=isint?(int64_t)lua_tointegerx(L,idx,NULL):0;if(!ok)return luaL_error(L,"array element is not numeric");return ln_array_pack_number(a,indices,d,iv,isint,&e)<0?fail(L,&e):0;}if(t==LUA_TSTRING && ln_string_is_dtype(a->descr)){size_t nn=0;const char*ss=lua_tolstring(L,idx,&nn);return ln_array_pack_string(a,indices,ss,nn,&e)<0?fail(L,&e):0;}if(t==LUA_TSTRING && a->descr->type_num==LN_DATETIME){const char*ss=lua_tostring(L,idx);const ln_dtype_descr*pd=NULL;int64_t vv=0;int tz=0;if(ln_datetime_parse_iso8601(ss,a->descr,&pd,&vv,&tz,&e)<0)return fail(L,&e);return ln_array_pack_number(a,indices,0,vv,1,&e)<0?fail(L,&e):0;}return luaL_error(L,"array element type unsupported");}if(lua_type(L,idx)!=LUA_TTABLE)return luaL_error(L,"inhomogeneous array shape");size_t n=lua_rawlen(L,idx);if((ln_intp)n!=a->dimensions[depth])return luaL_error(L,"inhomogeneous array shape");for(size_t i=1;i<=n;i++){indices[depth]=(ln_intp)i-1;lua_geti(L,idx,(lua_Integer)i);if(fill_table(L,-1,a,depth+1,indices)){lua_pop(L,1);return 1;}lua_pop(L,1);}return 0;}
 
 static const ln_dtype* dtype_arg(lua_State*L,int idx,const ln_dtype*def){if(lua_gettop(L)<idx||lua_type(L,idx)==LUA_TNIL)return def;const char*s=lua_tostring(L,idx);if(!s)return NULL;return ln_dtype_by_name(s);}
 
@@ -2170,7 +2171,7 @@ static int infer_temporal_descr(lua_State *L,int idx,int timedelta,const ln_dtyp
     idx=lua_absindex(L,idx);int t=lua_type(L,idx);
     if(t==LUA_TTABLE){size_t n=lua_rawlen(L,idx);for(size_t i=1;i<=n;i++){lua_geti(L,idx,(lua_Integer)i);if(infer_temporal_descr(L,-1,timedelta,acc)){lua_pop(L,1);return 1;}lua_pop(L,1);}return 0;}
     lua_datetime_scalar *ds=test_datetime_scalar(L,idx);
-    const ln_dtype_descr *d=NULL;ln_error e={{0}};
+    const ln_dtype_descr *d=NULL;ln_error e={0};
     if(ds){if((ds->descr->type_num==LN_TIMEDELTA)!=timedelta)return luaL_error(L,"mixed datetime64/timedelta64 values cannot discover a generic temporal dtype");d=ds->descr;}
     else if(!timedelta&&t==LUA_TSTRING){int64_t v=0;int tz=0;if(ln_datetime_parse_iso8601(lua_tostring(L,idx),NULL,&d,&v,&tz,&e)<0)return fail(L,&e);}
     else if(timedelta&&t==LUA_TSTRING&&strcmp(lua_tostring(L,idx),"NaT")==0)d=ln_datetime_default_dtype(1);
@@ -2200,7 +2201,7 @@ infer_string_width_any(lua_State *L,int idx,int unicode_kind,size_t *maxw)
     idx=lua_absindex(L,idx);int t=lua_type(L,idx);
     if(t==LUA_TTABLE){size_t n=lua_rawlen(L,idx);for(size_t i=1;i<=n;i++){lua_geti(L,idx,(lua_Integer)i);if(infer_string_width_any(L,-1,unicode_kind,maxw)){lua_pop(L,1);return 1;}lua_pop(L,1);}return 0;}
     const char *ss=NULL;size_t nb=0;int pop=0;if(lua_scalar_string_value(L,idx,&ss,&nb,&pop))return 1;
-    size_t w=nb;ln_error e={{0}};if(unicode_kind&&ln_string_utf8_codepoints(ss,nb,&w,&e)<0){if(pop)lua_pop(L,1);return fail(L,&e);}if(w>*maxw)*maxw=w;if(pop)lua_pop(L,1);return 0;
+    size_t w=nb;ln_error e={0};if(unicode_kind&&ln_string_utf8_codepoints(ss,nb,&w,&e)<0){if(pop)lua_pop(L,1);return fail(L,&e);}if(w>*maxw)*maxw=w;if(pop)lua_pop(L,1);return 0;
 }
 
 
@@ -2213,7 +2214,7 @@ static int np_array_legacy(lua_State*L){
         dt=dtype_arg(L,2,NULL);if(!dt)return luaL_error(L,"unsupported dtype");
         const ln_datetime_meta *tm=ln_datetime_metadata(dt);
         if(tm&&tm->base==LN_FR_GENERIC&&lua_type(L,1)==LUA_TTABLE){const ln_dtype_descr *found=NULL;if(infer_temporal_descr(L,1,dt->type_num==LN_TIMEDELTA,&found))return 0;if(found)dt=found;}
-        if(ln_string_is_dtype(dt)&&ln_string_nchars(dt)==0){size_t w=0;if(infer_string_width_any(L,1,dt->type_num==LN_UNICODE,&w))return 0;ln_error se={{0}};dt=ln_string_make_dtype(dt->type_num==LN_UNICODE,w?w:1,dt->byteorder,&se);if(!dt)return fail(L,&se);}
+        if(ln_string_is_dtype(dt)&&ln_string_nchars(dt)==0){size_t w=0;if(infer_string_width_any(L,1,dt->type_num==LN_UNICODE,&w))return 0;ln_error se={0};dt=ln_string_make_dtype(dt->type_num==LN_UNICODE,w?w:1,dt->byteorder,&se);if(!dt)return fail(L,&se);}
     }else{
         int hc=0,hf=0,hi=0,hb=0,hs=0;if(scan_dtype(L,1,&hc,&hf,&hi,&hb,&hs))return 0;
         if(hs){
@@ -2225,10 +2226,10 @@ static int np_array_legacy(lua_State*L){
             if(hi&&w<21)w=21;
             if(hf&&w<32)w=32;
             if(hc&&w<64)w=64;
-            ln_error se={{0}};dt=ln_string_make_dtype(1,w?w:1,'=',&se);if(!dt)return fail(L,&se);
+            ln_error se={0};dt=ln_string_make_dtype(1,w?w:1,'=',&se);if(!dt)return fail(L,&se);
         }else dt=hc?ln_dtype_by_num(LN_CDOUBLE):(hf?ln_dtype_by_num(LN_DOUBLE):(hi?ln_dtype_by_name("int64"):(hb?ln_dtype_by_num(LN_BOOL):ln_dtype_by_num(LN_DOUBLE))));
     }
-    ln_error e={{0}};ln_array*a=ln_array_new(nd,dims,dt,0,0,&e);if(!a)return fail(L,&e);
+    ln_error e={0};ln_array*a=ln_array_new(nd,dims,dt,0,0,&e);if(!a)return fail(L,&e);
     push_array(L,a);ln_intp idx[LN_MAXDIMS]={0};if(fill_table(L,1,a,0,idx))return 0;return 1;
 }
 
@@ -2314,7 +2315,7 @@ join_function(lua_State *L, int stack)
         }
         lua_pop(L,1);
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *result=ln_join_arrays(inputs,n,axis,stack,dtype,casting,out?out->a:NULL,&e);
     if(!result)return fail(L,&e);
     if(out) { lua_getfield(L,options_index,"out"); return 1; }
@@ -2372,7 +2373,7 @@ static int shape_stack_function(lua_State *L, ln_stack_kind kind) {
             lua_remove(L,-2);
             u=check_array(L,-1);
         }
-        ln_error e={{0}};
+        ln_error e={0};
         ln_array *view=NULL;
         if(kind==LN_HSTACK) {
             view=ln_axis_atleast(u->a,1,&e);
@@ -2395,7 +2396,7 @@ static int shape_stack_function(lua_State *L, ln_stack_kind kind) {
         inputs[i]=view;
         push_array(L,view); /* ensure every temporary view gets finalized */
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *result=ln_join_arrays(inputs,n,axis,0,dtype,casting,NULL,&e);
     if(!result)return fail(L,&e);
     return push_array(L,result);
@@ -2421,7 +2422,7 @@ static int np_append(lua_State *L) {
         if(normalize_lua_axis(L,luaL_checkinteger(L,3),a->nd,&axis))return 0;
     }
     const ln_array *inputs[2]={a,b};
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *result=ln_join_arrays(inputs,2,axis,0,NULL,LN_SAME_KIND_CASTING,NULL,&e);
     if(!result)return fail(L,&e);
     return push_array(L,result);
@@ -2489,7 +2490,7 @@ static int np_delete(lua_State *L) {
         if(boolean && size!=count)return luaL_error(L,"boolean delete mask has wrong length");
         for(ln_intp j=0;j<size;j++) {
             ln_intp coords[1]={j};
-            double val=0;int64_t iv=0;int isint=0;ln_error e={{0}};
+            double val=0;int64_t iv=0;int isint=0;ln_error e={0};
             if(ln_array_get_number(ia,coords,&val,&iv,&isint,&e)<0)return fail(L,&e);
             if(!boolean && ia->descr->type_num==LN_ULONGLONG && iv<0)
                 return luaL_error(L,"uint64 delete index exceeds signed intp range");
@@ -2497,7 +2498,7 @@ static int np_delete(lua_State *L) {
             else if(mark_delete_position(L,remove,count,(lua_Integer)iv))return 0;
         }
     } else return luaL_error(L,"delete indices must be integers, an index table, integer/boolean ndarray or np.slice");
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *result=ln_delete(a,axis,remove,count,&e);
     if(!result)return fail(L,&e);
     return push_array(L,result);
@@ -2592,7 +2593,7 @@ static int np_insert(lua_State *L) {
         if(boolean && n!=length)return luaL_error(L,"boolean insert mask has wrong length");
         ln_intp count=0;
         for(ln_intp j=0;j<n;j++){
-            ln_intp idx[1]={j};double val=0;int64_t iv=0;int isint=0;ln_error e={{0}};
+            ln_intp idx[1]={j};double val=0;int64_t iv=0;int isint=0;ln_error e={0};
             if(ln_array_get_number(ia,ia->nd==0?NULL:idx,&val,&iv,&isint,&e)<0)return fail(L,&e);
             if(boolean){if(iv!=0)positions[count++]=j;}
             else {
@@ -2604,7 +2605,7 @@ static int np_insert(lua_State *L) {
         n=count;
     }
     ln_array *values=broadcast_arg(L,3);
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_insert(a,axis,positions,n,scalar,values,&e);
     if(!out)return fail(L,&e);
     return push_array(L,out);
@@ -2677,7 +2678,7 @@ static int split_function(lua_State *L, int flavor)
             lua_pop(L,1);
             next=(ln_intp)raw;
         }
-        ln_error e={{0}};
+        ln_error e={0};
         ln_array *view=ln_split_view(a,axis,prev,next,&e);
         if(!view)return fail(L,&e);
         push_array(L,view);
@@ -2708,14 +2709,14 @@ coerce_numeric_array_arg(lua_State *L,int arg)
         int nd=0;if(infer_table_shape(L,arg,0,dims,&nd))return NULL;
         int hc=0,hf=0,hi=0,hb=0,hs=0;if(scan_dtype(L,arg,&hc,&hf,&hi,&hb,&hs))return NULL;if(hs){luaL_error(L,"numeric API does not accept string arrays here");return NULL;}
         const ln_dtype*dt=hc?ln_dtype_by_num(LN_CDOUBLE):(hf?ln_dtype_by_num(LN_DOUBLE):(hi?ln_dtype_by_name("int64"):ln_dtype_by_num(LN_BOOL)));
-        ln_error e={{0}};ln_array*a=ln_array_new(nd,dims,dt,0,0,&e);if(!a){fail(L,&e);return NULL;}
+        ln_error e={0};ln_array*a=ln_array_new(nd,dims,dt,0,0,&e);if(!a){fail(L,&e);return NULL;}
         push_array(L,a);ln_intp idx[LN_MAXDIMS]={0};if(fill_table(L,arg,a,0,idx))return NULL;
         return a;
     }
     lua_complex *zc=test_complex(L,arg);
     if(zc){
         const ln_dtype *dt=ln_dtype_by_num(LN_CDOUBLE);
-        ln_error e={{0}};ln_array*a=ln_array_new(0,NULL,dt,0,0,&e);if(!a){fail(L,&e);return NULL;}
+        ln_error e={0};ln_array*a=ln_array_new(0,NULL,dt,0,0,&e);if(!a){fail(L,&e);return NULL;}
         push_array(L,a);
         if(ln_array_pack_complex(a,NULL,zc->real,zc->imag,&e)<0){fail(L,&e);return NULL;}
         return a;
@@ -2725,7 +2726,7 @@ coerce_numeric_array_arg(lua_State *L,int arg)
         double d=0;int64_t iv=0;int isint=0;
         if(t==LUA_TBOOLEAN){dt=ln_dtype_by_num(LN_BOOL);iv=lua_toboolean(L,arg)?1:0;d=(double)iv;isint=1;}
         else {int ok=0;isint=lua_isinteger(L,arg);d=lua_tonumberx(L,arg,&ok);if(!ok){luaL_error(L,"value must be numeric");return NULL;}iv=isint?(int64_t)lua_tointegerx(L,arg,NULL):0;dt=isint?ln_dtype_by_name("int64"):ln_dtype_by_num(LN_DOUBLE);}
-        ln_error e={{0}};ln_array*a=ln_array_new(0,NULL,dt,0,0,&e);if(!a){fail(L,&e);return NULL;}
+        ln_error e={0};ln_array*a=ln_array_new(0,NULL,dt,0,0,&e);if(!a){fail(L,&e);return NULL;}
         push_array(L,a);
         if(ln_array_pack_number(a,NULL,d,iv,isint,&e)<0){fail(L,&e);return NULL;}
         return a;
@@ -2753,7 +2754,7 @@ parse_searchsort_sorter(lua_State *L,int arg,ln_intp n,ln_intp **out,ln_intp *no
     if(!v)return luaL_error(L,"out of memory parsing sorter");
     for(ln_intp i=0;i<count;++i){
         lua_Integer raw=0;
-        if(u){double d=0;int64_t iv=0;int isint=0;ln_intp q[1]={i};ln_error e={{0}};
+        if(u){double d=0;int64_t iv=0;int isint=0;ln_intp q[1]={i};ln_error e={0};
             if(ln_array_get_number(u->a,q,&d,&iv,&isint,&e)<0){free(v);return fail(L,&e);}
             if(!isint){free(v);return luaL_error(L,"sorter must only contain integers");}
             raw=(lua_Integer)iv;
@@ -2786,13 +2787,13 @@ np_searchsorted(lua_State *L)
     if(strcmp(side,"left")==0)right=0;else if(strcmp(side,"right")==0)right=1;else return luaL_error(L,"side must be 'left' or 'right'");
     ln_intp *sorter=NULL,nsorter=0;
     if(parse_searchsort_sorter(L,sorter_arg,a->a->nd==1?a->a->dimensions[0]:0,&sorter,&nsorter))return 0;
-    ln_error e={{0}};ln_array *r=ln_searchsorted(a->a,keys,right,sorter,nsorter,&e);free(sorter);
+    ln_error e={0};ln_array *r=ln_searchsorted(a->a,keys,right,sorter,nsorter,&e);free(sorter);
     if(!r)return fail(L,&e);
     if(r->nd==0){int ret=push_scalar_at(L,r,NULL);ln_array_free(r);return ret;}
     return push_array(L,r);
 }
 
-static int make_filled(lua_State*L,int one,int uninitialized){ln_intp dims[LN_MAXDIMS];int nd=0;if(parse_shape(L,1,dims,&nd))return 0;const ln_dtype*dt=dtype_arg(L,2,ln_dtype_by_num(LN_DOUBLE));if(!dt)return luaL_error(L,"unsupported dtype");ln_error e={{0}};ln_array*a=ln_array_new(nd,dims,dt,0,!uninitialized,&e);if(!a)return fail(L,&e);if(one){ln_intp total=ln_array_size(a),idx[LN_MAXDIMS]={0};for(ln_intp k=0;k<total;k++){if(ln_array_set_number(a,idx,0,1,1,&e)<0){ln_array_free(a);return fail(L,&e);}for(int d=nd-1;d>=0;d--){idx[d]++;if(idx[d]<dims[d])break;idx[d]=0;}}}return push_array(L,a);} 
+static int make_filled(lua_State*L,int one,int uninitialized){ln_intp dims[LN_MAXDIMS];int nd=0;if(parse_shape(L,1,dims,&nd))return 0;const ln_dtype*dt=dtype_arg(L,2,ln_dtype_by_num(LN_DOUBLE));if(!dt)return luaL_error(L,"unsupported dtype");ln_error e={0};ln_array*a=ln_array_new(nd,dims,dt,0,!uninitialized,&e);if(!a)return fail(L,&e);if(one){ln_intp total=ln_array_size(a),idx[LN_MAXDIMS]={0};for(ln_intp k=0;k<total;k++){if(ln_array_set_number(a,idx,0,1,1,&e)<0){ln_array_free(a);return fail(L,&e);}for(int d=nd-1;d>=0;d--){idx[d]++;if(idx[d]<dims[d])break;idx[d]=0;}}}return push_array(L,a);}
 static int np_zeros(lua_State*L){return make_filled(L,0,0);}static int np_empty(lua_State*L){return make_filled(L,0,1);}static int np_ones(lua_State*L){return make_filled(L,1,0);} 
 typedef struct reduction_call_options {
     uint8_t axis_flags[LN_MAXDIMS];
@@ -2987,7 +2988,7 @@ reduction_function(lua_State *L,ln_reduce_op op)
         int has_mean=lua_type(L,-1)!=LUA_TNIL;lua_pop(L,1);
         if(has_ddof||has_correction||has_mean)return luaL_error(L,"unsupported reduction option");
     }
-    ln_error e={{0}};
+    ln_error e={0};
     if(opts.out){
         if(ln_reduce_into_ex(u->a,opts.axis_flags,opts.keepdims,opts.dtype,
                 opts.out->a,opts.where,op,opts.has_initial,opts.initial_v,
@@ -3016,7 +3017,7 @@ static int nan_reduction_function(lua_State *L, ln_reduce_op op) {
             if(found)return luaL_error(L,"unsupported nan reduction option '%s'",unsupported[i]);
         }
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *where=ln_stats_nan_where(u->a,opts.where,&e);
     if(!where)return fail(L,&e);
     ln_array *r=NULL;
@@ -3053,7 +3054,7 @@ static int truth_reduction_function(lua_State *L,int kind) {
         }
     }
     if(kind==2&&(opts.where||opts.out))return luaL_error(L,"count_nonzero does not accept where or out");
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *r=ln_truth_reduce(u->a,opts.axis_flags,opts.keepdims,opts.where,kind,
         opts.out?opts.out->a:NULL,&e);
     if(!r)return fail(L,&e);
@@ -3121,7 +3122,7 @@ static int np_average(lua_State *L){
         }
         lua_pop(L,1);
     }
-    ln_error err={{0}};ln_array *sumw=NULL;
+    ln_error err={0};ln_array *sumw=NULL;
     ln_array *r=ln_average(u->a,weights,flags,keepdims,returned?&sumw:NULL,&err);
     if(!r)return fail(L,&err);
     int count=push_reduction_result(L,r);
@@ -3155,7 +3156,7 @@ static int stats_function(lua_State *L,int standard_deviation,int omit_nan) {
         }
         lua_pop(L,1);
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *nanwhere=omit_nan?ln_stats_nan_where(u->a,opts.where,&e):NULL;
     if(omit_nan && !nanwhere)return fail(L,&e);
     ln_array *r=ln_stats_var_std(u->a,opts.axis_flags,opts.keepdims,
@@ -3187,7 +3188,7 @@ static int extrema_function(lua_State *L,int maximum,int omit_nan) {
             if(present)return luaL_error(L,"unsupported min/max option '%s'",invalid[i]);
         }
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *r=(omit_nan?ln_stats_nan_extrema:ln_stats_extrema)(u->a,opts.axis_flags,opts.keepdims,opts.where,
        opts.has_initial,opts.initial_v,opts.initial_i,opts.initial_is_integer,
        maximum,opts.out?opts.out->a:NULL,&e);
@@ -3239,7 +3240,7 @@ static int argextrema_function(lua_State *L,int maximum,int omit_nan){
             if(present)return luaL_error(L,"unsupported argmin/argmax option '%s'",bad[i]);
         }
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *r=(omit_nan?ln_stats_nan_argextrema:ln_stats_argextrema)(u->a,axis,opts.keepdims,maximum,
          opts.out?opts.out->a:NULL,&e);
     if(!r)return fail(L,&e);
@@ -3263,7 +3264,7 @@ static int np_ptp(lua_State *L){
             if(present)return luaL_error(L,"unsupported ptp option '%s'",bad[i]);
         }
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *r=ln_stats_ptp(u->a,opts.axis_flags,opts.keepdims,
                    opts.out?opts.out->a:NULL,&e);
     if(!r)return fail(L,&e);
@@ -3316,7 +3317,7 @@ static int quantile_api(lua_State *L,int which,int omit_nan){
             integer_q=qarr->a->descr->kind=='i'||qarr->a->descr->kind=='u';
             q_dtype=qarr->a->descr;
             if(qarr->a->nd==0){
-                ln_error err={{0}};
+                ln_error err={0};
                 if(ln_cast_strided_numeric(qarr->a->data,0,qarr->a->descr,
                      (char*)&qsingle,0,ln_dtype_by_num(LN_DOUBLE),1,&err)<0)return fail(L,&err);
             }else{
@@ -3325,7 +3326,7 @@ static int quantile_api(lua_State *L,int which,int omit_nan){
                 qs=(double*)malloc((size_t)n*sizeof(double));
                 if(!qs)return luaL_error(L,"out of memory");
                 scalar_q=0;nq=n;
-                ln_error err={{0}};
+                ln_error err={0};
                 for(ln_intp i=0;i<n;i++){
                     if(ln_cast_strided_numeric(qarr->a->data+i*qarr->a->strides[0],0,qarr->a->descr,
                         (char*)&qs[i],0,ln_dtype_by_num(LN_DOUBLE),1,&err)<0){
@@ -3423,7 +3424,7 @@ static int quantile_api(lua_State *L,int which,int omit_nan){
             preferred=ln_dtype_by_num(rank<=2?LN_HALF:(rank<=4?LN_FLOAT:LN_DOUBLE));
         }
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *r=ln_quantile(u->a,flags,keepdims,q,nq,scalar_q,method,preferred,out?out->a:NULL,omit_nan,&e);
     free(qs);
     if(!r)return fail(L,&e);
@@ -3491,7 +3492,7 @@ accumulate_function(lua_State *L,ln_reduce_op op)
     if(u->a->nd==0)return luaL_error(L,"cannot accumulate on a scalar");
     accumulate_call_options opts;
     if(parse_accumulate_call(L,u->a->nd,&opts))return 0;
-    ln_error e={{0}};
+    ln_error e={0};
     if(opts.out){
         if(ln_accumulate_into_ex(u->a,opts.axis,opts.dtype,opts.out->a,op,&e)<0)return fail(L,&e);
         lua_getfield(L,opts.options_table_index,"out");return 1;
@@ -3506,7 +3507,7 @@ accumulate_function(lua_State *L,ln_reduce_op op)
  * LuaRay exposes axes from 1; negative axis positions remain supported. */
 static int cumulative_function(lua_State *L, ln_reduce_op op, int omit_nan) {
     lua_array *u=check_array(L,1);
-    ln_error e={{0}};
+    ln_error e={0};
     accumulate_call_options opts;
     memset(&opts,0,sizeof(opts));
     int flatten=1;
@@ -3687,7 +3688,7 @@ parse_reduceat_indices(lua_State *L,int arg,ln_intp axis_len,int axis,
        (idx->a->descr->kind!='i'&&idx->a->descr->kind!='u'))
         return luaL_error(L,"reduceat indices must have an integer dtype");
     ln_intp n=idx->a->dimensions[0];
-    ln_error e={{0}};
+    ln_error e={0};
     for(ln_intp i=0;i<n;i++){
         ln_intp pos[1]={i};double d=0;int64_t iv=0;int isint=0;
         if(ln_array_get_number(idx->a,pos,&d,&iv,&isint,&e)<0)return fail(L,&e);
@@ -3715,7 +3716,7 @@ reduceat_function(lua_State *L,ln_reduce_op op)
     ln_intp *indices=NULL,nindices=0;
     if(parse_reduceat_indices(L,2,u->a->dimensions[opts.axis],opts.axis,
                               &indices,&nindices))return 0;
-    ln_error e={{0}};
+    ln_error e={0};
     if(opts.out){
         int rc=ln_reduceat_into_ex(u->a,indices,nindices,opts.axis,opts.dtype,
                                    opts.out->a,op,&e);
@@ -3770,7 +3771,7 @@ static int np_matmul(lua_State *L){
         }
         else return luaL_error(L,"matmul third argument must be an output ndarray or {out=...}");
     }
-    ln_error e={{0}};
+    ln_error e={0};
     if(out){
         if(ln_matmul_into(a->a,b->a,out->a,&e)<0)return fail(L,&e);
         if(out_index==3&&lua_type(L,3)==LUA_TTABLE){lua_getfield(L,3,"out");return 1;}
@@ -3806,7 +3807,7 @@ static int parse_linalg_out(lua_State *L,int arg,lua_array **out,int *from_table
 static int np_dot(lua_State *L){
     lua_array *a=check_array(L,1),*b=check_array(L,2),*out=NULL;
     int from_table=0;if(parse_linalg_out(L,3,&out,&from_table))return 0;
-    ln_error e={{0}};
+    ln_error e={0};
     if(out){
         if(ln_dot_into(a->a,b->a,out->a,&e)<0)return fail(L,&e);
         if(out->a->nd==0)return push_scalar_at(L,out->a,NULL);
@@ -3819,28 +3820,28 @@ static int np_dot(lua_State *L){
 }
 
 static int np_linalg_solve(lua_State *L){
-    lua_array *a=check_array(L,1),*b=check_array(L,2);ln_error e={{0}};
+    lua_array *a=check_array(L,1),*b=check_array(L,2);ln_error e={0};
     ln_array *r=ln_linalg_solve(a->a,b->a,&e);if(!r)return fail(L,&e);
     if(r->nd==0){int ret=push_scalar_at(L,r,NULL);ln_array_free(r);return ret;}
     return push_array(L,r);
 }
 
 static int np_linalg_inv(lua_State *L){
-    lua_array *a=check_array(L,1);ln_error e={{0}};ln_array*r=ln_linalg_inv(a->a,&e);
+    lua_array *a=check_array(L,1);ln_error e={0};ln_array*r=ln_linalg_inv(a->a,&e);
     if(!r)return fail(L,&e);
     if(r->nd==0){int ret=push_scalar_at(L,r,NULL);ln_array_free(r);return ret;}
     return push_array(L,r);
 }
 
 static int np_linalg_det(lua_State *L){
-    lua_array *a=check_array(L,1);ln_error e={{0}};ln_array*r=ln_linalg_det(a->a,&e);
+    lua_array *a=check_array(L,1);ln_error e={0};ln_array*r=ln_linalg_det(a->a,&e);
     if(!r)return fail(L,&e);
     if(r->nd==0){int ret=push_scalar_at(L,r,NULL);ln_array_free(r);return ret;}
     return push_array(L,r);
 }
 
 static int np_linalg_slogdet(lua_State *L){
-    lua_array *a=check_array(L,1);ln_error e={{0}};ln_array*s=NULL,*v=NULL;
+    lua_array *a=check_array(L,1);ln_error e={0};ln_array*s=NULL,*v=NULL;
     if(ln_linalg_slogdet(a->a,&s,&v,&e)<0)return fail(L,&e);
     if(s->nd==0){push_scalar_at(L,s,NULL);push_scalar_at(L,v,NULL);ln_array_free(s);ln_array_free(v);return 2;}
     push_array(L,s);push_array(L,v);return 2;
@@ -3852,7 +3853,7 @@ static int np_linalg_cholesky(lua_State *L){
         if(lua_type(L,2)==LUA_TTABLE){lua_getfield(L,2,"upper");if(lua_type(L,-1)!=LUA_TNIL)upper=lua_toboolean(L,-1);lua_pop(L,1);}
         else upper=lua_toboolean(L,2);
     }
-    ln_error e={{0}};ln_array*r=ln_linalg_cholesky(a->a,upper,&e);if(!r)return fail(L,&e);return push_array(L,r);
+    ln_error e={0};ln_array*r=ln_linalg_cholesky(a->a,upper,&e);if(!r)return fail(L,&e);return push_array(L,r);
 }
 
 static int np_linalg_qr(lua_State *L){
@@ -3866,18 +3867,18 @@ static int np_linalg_qr(lua_State *L){
     else if(strcmp(mode,"raw")==0)qmode=LN_QR_RAW;
     else if(strcmp(mode,"economic")==0||strcmp(mode,"e")==0)qmode=LN_QR_ECONOMIC;
     else return luaL_error(L,"Unrecognized mode '%s'",mode);
-    ln_error e={{0}};ln_array *q=NULL,*r=NULL;
+    ln_error e={0};ln_array *q=NULL,*r=NULL;
     if(ln_linalg_qr(a->a,qmode,&q,&r,&e)<0)return fail(L,&e);
     if(qmode==LN_QR_R||qmode==LN_QR_ECONOMIC)return push_array(L,q);
     push_array(L,q);push_array(L,r);return 2;
 }
 
 static int np_linalg_eigvals(lua_State *L){
-    lua_array *a=check_array(L,1);ln_error e={{0}};ln_array*w=ln_linalg_eigvals(a->a,&e);if(!w)return fail(L,&e);return push_array(L,w);
+    lua_array *a=check_array(L,1);ln_error e={0};ln_array*w=ln_linalg_eigvals(a->a,&e);if(!w)return fail(L,&e);return push_array(L,w);
 }
 
 static int np_linalg_eig(lua_State *L){
-    lua_array *a=check_array(L,1);ln_error e={{0}};ln_array *w=NULL,*v=NULL;
+    lua_array *a=check_array(L,1);ln_error e={0};ln_array *w=NULL,*v=NULL;
     if(ln_linalg_eig(a->a,&w,&v,&e)<0)return fail(L,&e);
     push_array(L,w);
     push_array(L,v);
@@ -3900,12 +3901,12 @@ static int parse_uplo(lua_State *L,int arg,int *upper){
 }
 
 static int np_linalg_eigvalsh(lua_State *L){
-    lua_array*a=check_array(L,1);int upper=0;if(parse_uplo(L,2,&upper))return 0;ln_error e={{0}};
+    lua_array*a=check_array(L,1);int upper=0;if(parse_uplo(L,2,&upper))return 0;ln_error e={0};
     ln_array*w=ln_linalg_eigvalsh(a->a,upper,&e);if(!w)return fail(L,&e);return push_array(L,w);
 }
 
 static int np_linalg_eigh(lua_State *L){
-    lua_array*a=check_array(L,1);int upper=0;if(parse_uplo(L,2,&upper))return 0;ln_error e={{0}};ln_array*w=NULL,*v=NULL;
+    lua_array*a=check_array(L,1);int upper=0;if(parse_uplo(L,2,&upper))return 0;ln_error e={0};ln_array*w=NULL,*v=NULL;
     if(ln_linalg_eigh(a->a,upper,&w,&v,&e)<0)return fail(L,&e);
     push_array(L,w);
     push_array(L,v);
@@ -3925,14 +3926,14 @@ static int np_linalg_svd(lua_State *L){
             if(lua_gettop(L)>=4&&lua_type(L,4)!=LUA_TNIL)hermitian=lua_toboolean(L,4);
         }
     }
-    ln_error e={{0}};ln_array *u=NULL,*sv=NULL,*vh=NULL;
+    ln_error e={0};ln_array *u=NULL,*sv=NULL,*vh=NULL;
     if(ln_linalg_svd(a->a,full,compute,hermitian,&u,&sv,&vh,&e)<0)return fail(L,&e);
     if(!compute)return push_array(L,sv);
     push_array(L,u);push_array(L,sv);push_array(L,vh);return 3;
 }
 
 static int np_linalg_svdvals(lua_State *L){
-    lua_array*a=check_array(L,1);ln_error e={{0}};ln_array*s=ln_linalg_svdvals(a->a,&e);if(!s)return fail(L,&e);return push_array(L,s);
+    lua_array*a=check_array(L,1);ln_error e={0};ln_array*s=ln_linalg_svdvals(a->a,&e);if(!s)return fail(L,&e);return push_array(L,s);
 }
 
 static int np_linalg_lstsq(lua_State *L){
@@ -3941,7 +3942,7 @@ static int np_linalg_lstsq(lua_State *L){
         if(lua_type(L,3)==LUA_TTABLE){lua_getfield(L,3,"rcond");if(lua_type(L,-1)!=LUA_TNIL){rcond=luaL_checknumber(L,-1);use_default=0;}lua_pop(L,1);}
         else {rcond=luaL_checknumber(L,3);use_default=0;}
     }
-    ln_error e={{0}};ln_array*x=NULL,*res=NULL,*sv=NULL;ln_intp rank=0;
+    ln_error e={0};ln_array*x=NULL,*res=NULL,*sv=NULL;ln_intp rank=0;
     if(ln_linalg_lstsq(a->a,b->a,rcond,use_default,&x,&res,&rank,&sv,&e)<0)return fail(L,&e);
     push_array(L,x);push_array(L,res);lua_pushinteger(L,(lua_Integer)rank);push_array(L,sv);return 4;
 }
@@ -3978,7 +3979,7 @@ static int np_linalg_pinv(lua_State *L){
             lua_getfield(L,2,"hermitian");if(lua_type(L,-1)!=LUA_TNIL)hermitian=lua_toboolean(L,-1);lua_pop(L,1);
         }else if(parse_linalg_tolerance(L,2,&rcond,&rcond_array,"rcond"))return 0;
     }
-    ln_error e={{0}};ln_array*r=ln_linalg_pinv(a->a,rcond,rcond_array,hermitian,&e);if(!r)return fail(L,&e);return push_array(L,r);
+    ln_error e={0};ln_array*r=ln_linalg_pinv(a->a,rcond,rcond_array,hermitian,&e);if(!r)return fail(L,&e);return push_array(L,r);
 }
 
 static int np_linalg_matrix_rank(lua_State *L){
@@ -3993,7 +3994,7 @@ static int np_linalg_matrix_rank(lua_State *L){
         }else {has_tol=1;if(parse_linalg_tolerance(L,2,&tol,&tol_array,"tol"))return 0;}
     }
     if(lua_gettop(L)>=3&&lua_type(L,3)!=LUA_TNIL)hermitian=lua_toboolean(L,3);
-    ln_error e={{0}};ln_array*r=NULL;ln_intp sr=0;int scalar=0;
+    ln_error e={0};ln_array*r=NULL;ln_intp sr=0;int scalar=0;
     if(ln_linalg_matrix_rank(a->a,hermitian,has_tol,tol,tol_array,has_rtol,rtol,rtol_array,&r,&sr,&scalar,&e)<0)return fail(L,&e);
     if(scalar){lua_pushinteger(L,(lua_Integer)sr);return 1;}
     if(r->nd==0){int ret=push_scalar_at(L,r,NULL);ln_array_free(r);return ret;}
@@ -4036,7 +4037,7 @@ static int np_linalg_norm(lua_State *L){
             if(lua_gettop(L)>=4&&lua_type(L,4)!=LUA_TNIL)keepdims=lua_toboolean(L,4);
         }
     }
-    ln_error e={{0}};ln_array*r=ln_linalg_norm(a->a,kind,ord,axes,naxes,axis_none,keepdims,&e);if(!r)return fail(L,&e);
+    ln_error e={0};ln_array*r=ln_linalg_norm(a->a,kind,ord,axes,naxes,axis_none,keepdims,&e);if(!r)return fail(L,&e);
     if(r->nd==0){int ret=push_scalar_at(L,r,NULL);ln_array_free(r);return ret;}return push_array(L,r);
 }
 
@@ -4046,7 +4047,7 @@ static int np_linalg_cond(lua_State *L){
         if(lua_type(L,2)==LUA_TTABLE){lua_getfield(L,2,"p");if(parse_norm_ord(L,lua_gettop(L),&kind,&ord))return 0;lua_pop(L,1);}
         else if(parse_norm_ord(L,2,&kind,&ord))return 0;
     }
-    ln_error e={{0}};ln_array*r=ln_linalg_cond(a->a,kind,ord,&e);if(!r)return fail(L,&e);
+    ln_error e={0};ln_array*r=ln_linalg_cond(a->a,kind,ord,&e);if(!r)return fail(L,&e);
     if(r->nd==0){int ret=push_scalar_at(L,r,NULL);ln_array_free(r);return ret;}return push_array(L,r);
 }
 
@@ -4061,7 +4062,7 @@ static int np_linalg_matrix_power(lua_State *L){
     if(!lua_isinteger(L,2))return luaL_error(L,"exponent must be an integer");
     lua_Integer n=lua_tointegerx(L,2,NULL);
     if(n==1){lua_pushvalue(L,1);return 1;}
-    ln_error e={{0}};ln_array*r=ln_linalg_matrix_power(a->a,(int64_t)n,&e);if(!r)return fail(L,&e);
+    ln_error e={0};ln_array*r=ln_linalg_matrix_power(a->a,(int64_t)n,&e);if(!r)return fail(L,&e);
     return push_linalg_array_or_scalar(L,r);
 }
 
@@ -4071,7 +4072,7 @@ static int np_linalg_tensorinv(lua_State *L){
         if(lua_type(L,2)==LUA_TTABLE){lua_getfield(L,2,"ind");if(lua_type(L,-1)!=LUA_TNIL)ind=(int)luaL_checkinteger(L,-1);lua_pop(L,1);}
         else ind=(int)luaL_checkinteger(L,2);
     }
-    ln_error e={{0}};ln_array*r=ln_linalg_tensorinv(a->a,ind,&e);if(!r)return fail(L,&e);return push_array(L,r);
+    ln_error e={0};ln_array*r=ln_linalg_tensorinv(a->a,ind,&e);if(!r)return fail(L,&e);return push_array(L,r);
 }
 
 static int parse_axis_list(lua_State *L,int idx,int nd,int *axes,int *naxes,const char *name){
@@ -4097,7 +4098,7 @@ static int np_linalg_tensorsolve(lua_State *L){
         if(parse_axis_list(L,idx,a->a->nd,axes,&naxes,"axes")){if(idx!=3)lua_pop(L,1);return 0;}
         if(idx!=3)lua_pop(L,1);
     }
-    ln_error e={{0}};ln_array*r=ln_linalg_tensorsolve(a->a,b->a,axes,naxes,&e);if(!r)return fail(L,&e);
+    ln_error e={0};ln_array*r=ln_linalg_tensorsolve(a->a,b->a,axes,naxes,&e);if(!r)return fail(L,&e);
     return push_linalg_array_or_scalar(L,r);
 }
 
@@ -4129,7 +4130,7 @@ static int np_linalg_tensordot(lua_State *L){
         if(parse_tensordot_axes(L,idx,a->a,b->a,aa,bb,&naxes)){if(idx!=3)lua_pop(L,1);return 0;}
         if(idx!=3)lua_pop(L,1);
     }
-    ln_error e={{0}};ln_array*r=ln_linalg_tensordot(a->a,b->a,aa,bb,naxes,&e);if(!r)return fail(L,&e);
+    ln_error e={0};ln_array*r=ln_linalg_tensordot(a->a,b->a,aa,bb,naxes,&e);if(!r)return fail(L,&e);
     return push_linalg_array_or_scalar(L,r);
 }
 
@@ -4139,7 +4140,7 @@ static int np_linalg_multi_dot(lua_State *L){
     const ln_array **arr=(const ln_array**)calloc(n?n:1,sizeof(*arr));if(!arr)return luaL_error(L,"out of memory");
     for(size_t i=0;i<n;i++){lua_geti(L,1,(lua_Integer)i+1);lua_array*u=test_array(L,-1);if(!u){free(arr);return luaL_error(L,"multi_dot entries must be ndarrays");}arr[i]=u->a;lua_pop(L,1);}
     lua_array*out=NULL;int from_table=0;if(parse_linalg_out(L,2,&out,&from_table)){free(arr);return 0;}
-    ln_error e={{0}};ln_array*r=ln_linalg_multi_dot(arr,(int)n,&e);free(arr);if(!r)return fail(L,&e);
+    ln_error e={0};ln_array*r=ln_linalg_multi_dot(arr,(int)n,&e);free(arr);if(!r)return fail(L,&e);
     if(out){
         if(out->a->descr!=r->descr||out->a->nd!=r->nd){ln_array_free(r);return luaL_error(L,"output array has wrong dtype or dimensionality");}
         for(int d=0;d<r->nd;d++)if(out->a->dimensions[d]!=r->dimensions[d]){ln_array_free(r);return luaL_error(L,"output array has wrong shape");}
@@ -4152,7 +4153,7 @@ static int np_linalg_multi_dot(lua_State *L){
 
 static int np_linalg_outer(lua_State *L){
     lua_array*a=check_array(L,1),*b=check_array(L,2);if(lua_gettop(L)>2)return luaL_error(L,"linalg.outer accepts exactly two arguments");
-    ln_error e={{0}};ln_array*r=ln_linalg_outer(a->a,b->a,&e);if(!r)return fail(L,&e);return push_array(L,r);
+    ln_error e={0};ln_array*r=ln_linalg_outer(a->a,b->a,&e);if(!r)return fail(L,&e);return push_array(L,r);
 }
 
 static int np_linalg_diagonal(lua_State *L){
@@ -4161,7 +4162,7 @@ static int np_linalg_diagonal(lua_State *L){
         if(lua_type(L,2)==LUA_TTABLE){lua_getfield(L,2,"offset");if(lua_type(L,-1)!=LUA_TNIL)offset=(ln_intp)luaL_checkinteger(L,-1);lua_pop(L,1);}
         else offset=(ln_intp)luaL_checkinteger(L,2);
     }
-    ln_error e={{0}};ln_array*r=ln_linalg_diagonal(a->a,offset,&e);if(!r)return fail(L,&e);return push_array(L,r);
+    ln_error e={0};ln_array*r=ln_linalg_diagonal(a->a,offset,&e);if(!r)return fail(L,&e);return push_array(L,r);
 }
 
 static int np_linalg_trace(lua_State *L){
@@ -4173,12 +4174,12 @@ static int np_linalg_trace(lua_State *L){
         }else offset=(ln_intp)luaL_checkinteger(L,2);
     }
     if(lua_gettop(L)>=3&&lua_type(L,3)!=LUA_TNIL){const char*s=lua_tostring(L,3);dt=s?ln_dtype_by_name(s):NULL;if(!dt)return luaL_error(L,"unsupported dtype");}
-    ln_error e={{0}};ln_array*r=ln_linalg_trace(a->a,offset,dt,&e);if(!r)return fail(L,&e);return push_linalg_array_or_scalar(L,r);
+    ln_error e={0};ln_array*r=ln_linalg_trace(a->a,offset,dt,&e);if(!r)return fail(L,&e);return push_linalg_array_or_scalar(L,r);
 }
 
 static int np_linalg_matrix_transpose(lua_State *L){
     lua_array*a=check_array(L,1);if(lua_gettop(L)>1)return luaL_error(L,"matrix_transpose accepts exactly one argument");
-    ln_error e={{0}};ln_array*r=ln_linalg_matrix_transpose(a->a,&e);if(!r)return fail(L,&e);return push_array(L,r);
+    ln_error e={0};ln_array*r=ln_linalg_matrix_transpose(a->a,&e);if(!r)return fail(L,&e);return push_array(L,r);
 }
 
 static int np_linalg_cross(lua_State *L){
@@ -4189,12 +4190,12 @@ static int np_linalg_cross(lua_State *L){
     }
     int aa,bb,ao;if(normalize_lua_axis(L,raw,a->a->nd,&aa)||normalize_lua_axis(L,raw,b->a->nd,&bb))return 0;
     int ond=((a->a->nd-1)>(b->a->nd-1)?(a->a->nd-1):(b->a->nd-1))+1;if(normalize_lua_axis(L,raw,ond,&ao))return 0;
-    ln_error e={{0}};ln_array*r=ln_linalg_cross(a->a,aa,b->a,bb,ao,&e);if(!r)return fail(L,&e);return push_array(L,r);
+    ln_error e={0};ln_array*r=ln_linalg_cross(a->a,aa,b->a,bb,ao,&e);if(!r)return fail(L,&e);return push_array(L,r);
 }
 
 static int np_linalg_matmul(lua_State *L){
     lua_array*a=check_array(L,1),*b=check_array(L,2);if(lua_gettop(L)>2)return luaL_error(L,"linalg.matmul accepts exactly two arguments");
-    ln_error e={{0}};ln_array*r=ln_matmul(a->a,b->a,&e);if(!r)return fail(L,&e);return push_linalg_array_or_scalar(L,r);
+    ln_error e={0};ln_array*r=ln_matmul(a->a,b->a,&e);if(!r)return fail(L,&e);return push_linalg_array_or_scalar(L,r);
 }
 
 static int np_linalg_matrix_norm(lua_State *L){
@@ -4204,7 +4205,7 @@ static int np_linalg_matrix_norm(lua_State *L){
         if(lua_type(L,2)==LUA_TTABLE){lua_getfield(L,2,"ord");if(lua_type(L,-1)!=LUA_TNIL&&parse_norm_ord(L,lua_gettop(L),&kind,&ord)){lua_pop(L,1);return 0;}lua_pop(L,1);lua_getfield(L,2,"keepdims");if(lua_type(L,-1)!=LUA_TNIL)keepdims=lua_toboolean(L,-1);lua_pop(L,1);}
         else if(parse_norm_ord(L,2,&kind,&ord))return 0;
     }
-    int axes[2]={a->a->nd-2,a->a->nd-1};ln_error e={{0}};ln_array*r=ln_linalg_norm(a->a,kind,ord,axes,2,0,keepdims,&e);if(!r)return fail(L,&e);return push_linalg_array_or_scalar(L,r);
+    int axes[2]={a->a->nd-2,a->a->nd-1};ln_error e={0};ln_array*r=ln_linalg_norm(a->a,kind,ord,axes,2,0,keepdims,&e);if(!r)return fail(L,&e);return push_linalg_array_or_scalar(L,r);
 }
 
 static int np_linalg_vector_norm(lua_State *L){
@@ -4217,14 +4218,14 @@ static int np_linalg_vector_norm(lua_State *L){
         }else if(parse_norm_ord(L,2,&kind,&ord))return 0;
     }
     if(kind==LN_NORM_DEFAULT){kind=LN_NORM_NUMBER;ord=2.0;}
-    ln_error e={{0}};ln_array*r=ln_linalg_vector_norm(a->a,kind,ord,axes,naxes,axis_none,keepdims,&e);if(!r)return fail(L,&e);return push_linalg_array_or_scalar(L,r);
+    ln_error e={0};ln_array*r=ln_linalg_vector_norm(a->a,kind,ord,axes,naxes,axis_none,keepdims,&e);if(!r)return fail(L,&e);return push_linalg_array_or_scalar(L,r);
 }
 
 static int np_linalg_vecdot(lua_State *L){
     lua_array*a=check_array(L,1),*b=check_array(L,2);lua_Integer raw=-1;
     if(lua_gettop(L)>=3&&lua_type(L,3)!=LUA_TNIL){if(lua_type(L,3)==LUA_TTABLE){lua_getfield(L,3,"axis");if(lua_type(L,-1)!=LUA_TNIL)raw=luaL_checkinteger(L,-1);lua_pop(L,1);}else raw=luaL_checkinteger(L,3);}
     int aa,bb;if(normalize_lua_axis(L,raw,a->a->nd,&aa)||normalize_lua_axis(L,raw,b->a->nd,&bb))return 0;
-    ln_error e={{0}};ln_array*r=ln_linalg_vecdot(a->a,aa,b->a,bb,&e);if(!r)return fail(L,&e);return push_linalg_array_or_scalar(L,r);
+    ln_error e={0};ln_array*r=ln_linalg_vecdot(a->a,aa,b->a,bb,&e);if(!r)return fail(L,&e);return push_linalg_array_or_scalar(L,r);
 }
 
 static const luaL_Reg linalg_funcs[]={
@@ -4238,7 +4239,7 @@ static const luaL_Reg linalg_funcs[]={
 };
 
 static int np_inner(lua_State *L){
-    lua_array *a=check_array(L,1),*b=check_array(L,2);ln_error e={{0}};
+    lua_array *a=check_array(L,1),*b=check_array(L,2);ln_error e={0};
     ln_array *r=ln_inner(a->a,b->a,&e);if(!r)return fail(L,&e);
     if(r->nd==0){int ret=push_scalar_at(L,r,NULL);ln_array_free(r);return ret;}
     return push_array(L,r);
@@ -4247,7 +4248,7 @@ static int np_inner(lua_State *L){
 static int np_outer(lua_State *L){
     lua_array *a=check_array(L,1),*b=check_array(L,2),*out=NULL;
     int from_table=0;if(parse_linalg_out(L,3,&out,&from_table))return 0;
-    ln_error e={{0}};
+    ln_error e={0};
     if(out){
         if(ln_outer_into(a->a,b->a,out->a,&e)<0)return fail(L,&e);
         if(from_table){lua_getfield(L,3,"out");return 1;}
@@ -4355,7 +4356,7 @@ np_sort(lua_State *L)
 {
     lua_array *u=check_array(L,1); sort_call_options o;
     if (parse_sort_options(L,2,u->a->nd,0,&o)) return 0;
-    ln_error e={{0}}; ln_array *r=ln_sort_copy(u->a,o.axis,o.descending,&e);
+    ln_error e={0}; ln_array *r=ln_sort_copy(u->a,o.axis,o.descending,&e);
     if (!r) return fail(L,&e);
     return push_array(L,r);
 }
@@ -4365,7 +4366,7 @@ array_sort_inplace(lua_State *L)
 {
     lua_array *u=check_array(L,1); sort_call_options o;
     if (parse_sort_options(L,2,u->a->nd,0,&o)) return 0;
-    ln_error e={{0}}; if (ln_sort_inplace(u->a,o.axis,o.descending,&e)<0) return fail(L,&e);
+    ln_error e={0}; if (ln_sort_inplace(u->a,o.axis,o.descending,&e)<0) return fail(L,&e);
     return 0; /* ndarray.sort is in-place and returns None upstream. */
 }
 
@@ -4374,7 +4375,7 @@ np_argsort(lua_State *L)
 {
     lua_array *u=check_array(L,1); sort_call_options o;
     if (parse_sort_options(L,2,u->a->nd,0,&o)) return 0;
-    ln_error e={{0}}; ln_array *r=ln_argsort(u->a,o.axis,o.descending,&e);
+    ln_error e={0}; ln_array *r=ln_argsort(u->a,o.axis,o.descending,&e);
     if (!r) return fail(L,&e);
     return push_array(L,r);
 }
@@ -4388,14 +4389,14 @@ partition_common(lua_State *L, int argpartition, int inplace)
     if (parse_sort_options(L,3,u->a->nd,1,&o)) return 0;
     if (u->a->nd==0) {
         /* argsort-like PyArray_CheckAxis promotes 0-D to a one-element axis. */
-        ln_error e={{0}}; ln_intp dummy=0;
+        ln_error e={0}; ln_intp dummy=0;
         ln_array *r=ln_argpartition(u->a,&dummy,1,o.axis,o.descending,&e);
         if (!r) return fail(L,&e);
     return push_array(L,r);
     }
     ln_intp *kth=NULL,nkth=0;
     if (parse_partition_kth(L,2,u->a->dimensions[o.axis],o.axis,&kth,&nkth)) return 0;
-    ln_error e={{0}};
+    ln_error e={0};
     if (inplace) {
         int rc=ln_partition_inplace(u->a,kth,nkth,o.axis,o.descending,&e); free(kth);
         if (rc<0) return fail(L,&e);
@@ -4460,7 +4461,7 @@ static int np_transpose(lua_State *L) {
         if(count!=n)return luaL_error(L,"axes don't match array");
         unique_axes(L,order,count);
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *v=ln_axis_permute(u->a,order,&e);
     if(!v)return fail(L,&e);
     return push_array(L,v);
@@ -4472,7 +4473,7 @@ static int np_swapaxes(lua_State *L) {
     int b=axis_strict(L,lua_tointegerx(L,3,NULL),u->a->nd);
     int order[LN_MAXDIMS];for(int i=0;i<u->a->nd;i++)order[i]=i;
     order[a]=b;order[b]=a;
-    ln_error e={{0}};ln_array *v=ln_axis_permute(u->a,order,&e);
+    ln_error e={0};ln_array *v=ln_axis_permute(u->a,order,&e);
     if(!v)return fail(L,&e);
     return push_array(L,v);
 }
@@ -4492,7 +4493,7 @@ static int np_moveaxis(lua_State *L) {
             for(int j=pos;j>position;j--)order[j]=order[j-1];
             order[position]=source[i];pos++;
         }
-    ln_error e={{0}};ln_array *v=ln_axis_permute(u->a,order,&e);
+    ln_error e={0};ln_array *v=ln_axis_permute(u->a,order,&e);
     if(!v)return fail(L,&e);
     return push_array(L,v);
 }
@@ -4509,7 +4510,7 @@ static int np_expand_dims(lua_State *L) {
     unique_axes(L,ax,na);
     unsigned char positions[LN_MAXDIMS]={0};
     for(int i=0;i<na;i++)positions[ax[i]]=1;
-    ln_error e={{0}};ln_array *v=ln_axis_expand(u->a,positions,u->a->nd+count,&e);
+    ln_error e={0};ln_array *v=ln_axis_expand(u->a,positions,u->a->nd+count,&e);
     if(!v)return fail(L,&e);
     return push_array(L,v);
 }
@@ -4527,7 +4528,7 @@ static int np_squeeze(lua_State *L) {
         axis_list(L,2,n,axes,&count);unique_axes(L,axes,count);
         for(int i=0;i<count;i++)selected[axes[i]]=1;
     }
-    ln_error e={{0}};ln_array *v=ln_axis_squeeze(u->a,selected,&e);
+    ln_error e={0};ln_array *v=ln_axis_squeeze(u->a,selected,&e);
     if(!v)return fail(L,&e);
     return push_array(L,v);
 }
@@ -4543,7 +4544,7 @@ static int np_flip(lua_State *L) {
     }
     /* NumPy 2.5.3 numeric.flip indexes 0-D with (), yielding a scalar. */
     if(u->a->nd==0){ln_intp idx[1]={0};return push_scalar_at(L,u->a,idx);}
-    ln_error e={{0}};ln_array *v=ln_axis_reverse(u->a,selected,&e);
+    ln_error e={0};ln_array *v=ln_axis_reverse(u->a,selected,&e);
     if(!v)return fail(L,&e);
     return push_array(L,v);
 }
@@ -4551,7 +4552,7 @@ static int flip_direction(lua_State *L, int minimum_rank, int axis) {
     lua_array *u=check_array(L,1);
     if(u->a->nd<minimum_rank)return luaL_error(L,"input must be >= %d-d",minimum_rank);
     unsigned char selected[LN_MAXDIMS]={0};selected[axis]=1;
-    ln_error e={{0}};ln_array *v=ln_axis_reverse(u->a,selected,&e);
+    ln_error e={0};ln_array *v=ln_axis_reverse(u->a,selected,&e);
     if(!v)return fail(L,&e);
     return push_array(L,v);
 }
@@ -4572,7 +4573,7 @@ static int np_rot90(lua_State *L) {
         first=ax[0];second=ax[1];
     }
     int turns=(int)((k%4+4)%4);
-    ln_error e={{0}};ln_array *v=ln_axis_rot90(u->a,turns,first,second,&e);
+    ln_error e={0};ln_array *v=ln_axis_rot90(u->a,turns,first,second,&e);
     if(!v)return fail(L,&e);
     return push_array(L,v);
 }
@@ -4606,7 +4607,7 @@ static int np_broadcast_to(lua_State *L) {
     ln_array *a=broadcast_arg(L,1);
     ln_intp dims[LN_MAXDIMS];int nd=0;
     broadcast_shape_arg(L,2,dims,&nd);
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *v=ln_axis_broadcast_to(a,nd,dims,1,&e);
     if(!v)return fail(L,&e);
     return push_array(L,v);
@@ -4617,7 +4618,7 @@ static int np_broadcast_arrays(lua_State *L) {
     const ln_array *arrs[64];
     for(int i=0;i<nargs;i++)arrs[i]=broadcast_arg(L,i+1);
     ln_intp dims[LN_MAXDIMS]={0};int nd=0;
-    ln_error e={{0}};
+    ln_error e={0};
     if(ln_broadcast_shape(nargs,arrs,&nd,dims,&e)<0)return fail(L,&e);
     lua_createtable(L,nargs,0);
     int result=lua_gettop(L);
@@ -4639,7 +4640,7 @@ static int np_broadcast_shapes(lua_State *L) {
         a.nd=nd;a.dimensions=accumulated;
         b.nd=n;b.dimensions=dims;
         const ln_array *arrs[2]={&a,&b};
-        ln_error e={{0}};int out_nd=0;
+        ln_error e={0};int out_nd=0;
         if(ln_broadcast_shape(2,arrs,&out_nd,next,&e)<0)return fail(L,&e);
         nd=out_nd;
         memcpy(accumulated,next,(size_t)nd*sizeof(ln_intp));
@@ -4660,7 +4661,7 @@ static int atleast_function(lua_State *L, int minimum_nd) {
     if (n == 0) { lua_createtable(L, 0, 0); return 1; }
     if (n == 1) {
         ln_array *a = broadcast_arg(L, 1);
-        ln_error e = {{0}};
+        ln_error e = {0};
         ln_array *result = ln_axis_atleast(a, minimum_nd, &e);
         if (!result) return fail(L, &e);
         return push_array(L, result);
@@ -4671,7 +4672,7 @@ static int atleast_function(lua_State *L, int minimum_nd) {
     int result_index = lua_gettop(L);
     for (int i = 1; i <= n; ++i) {
         ln_array *a = broadcast_arg(L, i);
-        ln_error e = {{0}};
+        ln_error e = {0};
         ln_array *result = ln_axis_atleast(a, minimum_nd, &e);
         if (!result) return fail(L, &e);
         push_array(L, result);
@@ -4731,7 +4732,7 @@ static void read_counts(lua_State *L,int idx,ln_intp *counts,size_t *n,int allow
     for(size_t i=0;i<count;i++) {
         ln_intp coords[1]={(ln_intp)i};
         double v=0;int64_t iv=0;int is_integer=0;
-        ln_error e={{0}};
+        ln_error e={0};
         if(ln_array_get_number(a,coords,&v,&iv,&is_integer,&e)<0)fail(L,&e);
         if(iv<0)luaL_error(L,"repetition counts cannot be negative or exceed intp");
         counts[i]=(ln_intp)iv;
@@ -4747,7 +4748,7 @@ static int np_tile(lua_State *L) {
     if(count>LN_MAXDIMS)return luaL_error(L,"tile repetitions exceed maximum rank");
     ln_intp reps[LN_MAXDIMS]={0};size_t n=0;
     read_counts(L,idx,reps,&n,0);
-    ln_error e={{0}};ln_array *out=ln_tile(a,(int)n,reps,&e);
+    ln_error e={0};ln_array *out=ln_tile(a,(int)n,reps,&e);
     if(!out)return fail(L,&e);
     return push_array(L,out);
 }
@@ -4765,7 +4766,7 @@ static int np_repeat_elements(lua_State *L) {
     if(count>SIZE_MAX/sizeof(ln_intp))return luaL_error(L,"repetition counts too large");
     ln_intp *reps=(ln_intp*)lua_newuserdatauv(L,(count?count:1)*sizeof(ln_intp),0);
     size_t n=0;read_counts(L,2,reps,&n,1);
-    ln_error e={{0}};ln_array *out=ln_repeat(a,axis,n,reps,&e);
+    ln_error e={0};ln_array *out=ln_repeat(a,axis,n,reps,&e);
     if(!out)return fail(L,&e);
     return push_array(L,out);
 }
@@ -4821,7 +4822,7 @@ static int roll_shifts(lua_State *L, int index, lua_Integer *out, int *number) {
     for(size_t i=0;i<n;i++){
         ln_intp coord[1]={(ln_intp)i};
         double v=0;int64_t iv=0;int integer=0;
-        ln_error e={{0}};
+        ln_error e={0};
         if(ln_array_get_number(a,coord,&v,&iv,&integer,&e)<0)return fail(L,&e);
         /* i/u/b use their exact integer slot, floats mimic int() truncation. */
         if(a->descr->kind=='f') {
@@ -4869,7 +4870,7 @@ static int np_roll(lua_State *L) {
             if(length>0)offsets[axis]=(offsets[axis]>=length-v)?offsets[axis]-(length-v):offsets[axis]+v;
         }
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *r=ln_roll(a,flatten,offsets,&e);
     if(!r)return fail(L,&e);
     return push_array(L,r);
@@ -4891,7 +4892,7 @@ static int np_rollaxis(lua_State *L) {
     for(int i=0;i<nd;i++)if(i!=axis)order[n++]=i;
     for(int i=nd-1;i>start;i--)order[i]=order[i-1];
     order[start]=axis;
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *r=ln_axis_permute(u->a,order,&e);
     if(!r)return fail(L,&e);
     return push_array(L,r);
@@ -4899,7 +4900,7 @@ static int np_rollaxis(lua_State *L) {
 
 static int np_reshape(lua_State*L){return array_reshape(L);} 
 
-static int np_arange(lua_State*L){lua_Integer stop=luaL_checkinteger(L,1);if(stop<0)stop=0;ln_intp sh[]={stop};const ln_dtype*dt=dtype_arg(L,2,ln_dtype_by_name("int64"));if(!dt)return luaL_error(L,"unsupported dtype");ln_error e={{0}};ln_array*a=ln_array_new(1,sh,dt,0,0,&e);if(!a)return fail(L,&e);for(lua_Integer i=0;i<stop;i++){ln_intp q[]={i};if(ln_array_set_number(a,q,(double)i,(int64_t)i,1,&e)<0){ln_array_free(a);return fail(L,&e);}}return push_array(L,a);} 
+static int np_arange(lua_State*L){lua_Integer stop=luaL_checkinteger(L,1);if(stop<0)stop=0;ln_intp sh[]={stop};const ln_dtype*dt=dtype_arg(L,2,ln_dtype_by_name("int64"));if(!dt)return luaL_error(L,"unsupported dtype");ln_error e={0};ln_array*a=ln_array_new(1,sh,dt,0,0,&e);if(!a)return fail(L,&e);for(lua_Integer i=0;i<stop;i++){ln_intp q[]={i};if(ln_array_set_number(a,q,(double)i,(int64_t)i,1,&e)<0){ln_array_free(a);return fail(L,&e);}}return push_array(L,a);}
 
 
 static int np_datetime_as_string(lua_State *L){
@@ -4916,11 +4917,11 @@ static int np_datetime_as_string(lua_State *L){
             lua_getfield(L,2,"casting");if(lua_type(L,-1)!=LUA_TNIL){const char*c=luaL_checklstring(L,-1,NULL);if(strcmp(c,"safe")==0)casting=LN_DT_CAST_SAFE;else if(strcmp(c,"same_kind")==0)casting=LN_DT_CAST_SAME_KIND;else if(strcmp(c,"unsafe")==0)casting=LN_DT_CAST_UNSAFE;else if(strcmp(c,"same_value")==0)casting=LN_DT_CAST_SAME_VALUE;else{lua_pop(L,1);return luaL_error(L,"unsupported datetime string casting rule");}}lua_pop(L,1);
         }else return luaL_error(L,"datetime_as_string options must be a unit string or table");
     }
-    if(x){char out[192];ln_error e={{0}};if(ln_datetime_format_iso8601(x->value,m,unit,auto_unit,tz,tzoff,casting,out,sizeof(out),&e)<0)return fail(L,&e);lua_pushstring(L,out);return 1;}
+    if(x){char out[192];ln_error e={0};if(ln_datetime_format_iso8601(x->value,m,unit,auto_unit,tz,tzoff,casting,out,sizeof(out),&e)<0)return fail(L,&e);lua_pushstring(L,out);return 1;}
 
     int local=(tz==LN_DT_TZ_LOCAL||tz==LN_DT_TZ_OFFSET);
     int strsize=ln_datetime_iso8601_strlen(local,auto_unit?LN_FR_ERROR:unit);
-    ln_error e={{0}};const ln_dtype_descr *udt=ln_string_make_dtype(1,(size_t)strsize,'=',&e);if(!udt)return fail(L,&e);
+    ln_error e={0};const ln_dtype_descr *udt=ln_string_make_dtype(1,(size_t)strsize,'=',&e);if(!udt)return fail(L,&e);
     int fortran=(xa->a->flags&LN_ARRAY_F_CONTIGUOUS)&&!(xa->a->flags&LN_ARRAY_C_CONTIGUOUS);
     ln_array *outa=ln_array_new(xa->a->nd,xa->a->dimensions,udt,fortran,1,&e);if(!outa)return fail(L,&e);
     ln_intp total=ln_array_size(xa->a);if(total<0){ln_array_free(outa);return luaL_error(L,"array is too large");}
@@ -5045,7 +5046,7 @@ static int lua_generator_random(lua_State *L)
     }
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,2,dims,&nd,&has_size))return 0;
-    ln_array *out=NULL;ln_error e={{0}};
+    ln_array *out=NULL;ln_error e={0};
     if(provided){
         out=provided->a;
         if(out->descr->type_num!=(is32?LN_FLOAT:LN_DOUBLE))
@@ -5170,7 +5171,7 @@ static double lua_random_bget(lua_State *L,const lua_random_bparam *p,int nd,
     const ln_array *a=p->array;
     ln_intp index[LN_MAXDIMS]={0};
     for(int j=0;j<a->nd;j++)index[j]=a->dimensions[j]==1?0:output_idx[nd-a->nd+j];
-    double v=0;int64_t iv=0;int isint=0;ln_error e={{0}};
+    double v=0;int64_t iv=0;int isint=0;ln_error e={0};
     if(ln_array_get_number(a,index,&v,&iv,&isint,&e)<0)luaL_error(L,"random parameter dtype: %s",e.message);
     return isint?(double)iv:v;
 }
@@ -5237,7 +5238,7 @@ static int lua_generator_broadcast_sample(lua_State *L,ln_pcg64 *rng,
         if(invalid)return luaL_error(L,"invalid random broadcast parameter");
         for(int j=vnd-1;j>=0;j--){if(++ix[j]<vdims[j])break;ix[j]=0;}
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,((kind>=16&&kind<=20)||kind==23)?ln_dtype_by_name("int64"):
                                ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
@@ -5299,7 +5300,7 @@ static int lua_generator_uniform(lua_State *L)
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,4,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushnumber(L,low+span*ln_pcg64_next_double(rng));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -5332,7 +5333,7 @@ static int lua_generator_standard_normal(lua_State *L)
     }
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,2,dims,&nd,&has_size))return 0;
-    ln_array *out=NULL;ln_error e={{0}};
+    ln_array *out=NULL;ln_error e={0};
     if(provided){
         out=provided->a;
         if(has_size){
@@ -5369,7 +5370,7 @@ static int lua_generator_normal(lua_State *L)
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,4,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushnumber(L,loc+scale*ln_pcg64_standard_normal(rng));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -5406,7 +5407,7 @@ static int lua_generator_standard_exponential(lua_State *L)
     }
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,2,dims,&nd,&has_size))return 0;
-    ln_array *out=NULL;ln_error e={{0}};
+    ln_array *out=NULL;ln_error e={0};
     if(provided){
         out=provided->a;
         if(has_size){
@@ -5442,7 +5443,7 @@ static int lua_generator_exponential(lua_State *L)
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,3,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushnumber(L,scale*ln_pcg64_standard_exponential(rng));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -5476,7 +5477,7 @@ static int lua_generator_two_params(lua_State *L, const char *label,
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,4,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushnumber(L,sample(rng,a,b));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -5513,7 +5514,7 @@ static int lua_generator_one_param(lua_State *L,const char *label,
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,3,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushnumber(L,sample(rng,a));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -5541,7 +5542,7 @@ static int lua_generator_positive_param(lua_State *L, const char *label,
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,3,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushnumber(L,sample(rng,a));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -5581,7 +5582,7 @@ static int lua_generator_triangular(lua_State *L)
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,5,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushnumber(L,ln_pcg64_triangular(rng,left,mode,right));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -5664,7 +5665,7 @@ static int lua_generator_standard_gamma(lua_State *L)
         return 1;
     }
     ln_array *out=provided?provided->a:NULL;
-    ln_error e={{0}};
+    ln_error e={0};
     if(!out){
         out=ln_array_new(nd,dims,ln_dtype_by_num(f32?LN_FLOAT:LN_DOUBLE),0,0,&e);
         if(!out)return fail(L,&e);
@@ -5704,7 +5705,7 @@ static int lua_generator_gamma_beta(lua_State *L,const char *label,int beta)
     if(lua_random_shape(L,4,dims,&nd,&has_size))return 0;
     double (*draw)(ln_pcg64*,double,double)=beta?generator_one_beta:generator_one_gamma;
     if(!has_size){lua_pushnumber(L,draw(rng,a,b));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -5729,7 +5730,7 @@ static int lua_generator_chisquare(lua_State *L)
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,3,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushnumber(L,ln_pcg64_chisquare(rng,df));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -5752,7 +5753,7 @@ static int lua_generator_f(lua_State *L)
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,4,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushnumber(L,ln_pcg64_f(rng,dfnum,dfden));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -5825,7 +5826,7 @@ static int lua_generator_triangular_broadcast(lua_State *L,ln_pcg64 *rng)
             return luaL_error(L,"invalid triangular parameter");
         for(int j=vnd-1;j>=0;j--){if(++ix[j]<vdims[j])break;ix[j]=0;}
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -5874,7 +5875,7 @@ static int lua_generator_noncentral_broadcast(lua_State *L,ln_pcg64 *rng,int fis
             return luaL_error(L,"noncentrality must be finite and between 0 and 1e12");
         for(int j=vnd-1;j>=0;j--){if(++ix[j]<vdims[j])break;ix[j]=0;}
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -5919,7 +5920,7 @@ static int lua_generator_noncentral(lua_State *L,int fisher)
         lua_pushnumber(L,fisher?ln_pcg64_noncentral_f(rng,df1,df2,nonc):ln_pcg64_noncentral_chisquare(rng,df1,nonc));
         return 1;
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -5946,7 +5947,7 @@ static int lua_generator_standard_t(lua_State *L)
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,3,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushnumber(L,ln_pcg64_standard_t(rng,df));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp count=ln_array_size(out);
@@ -5975,7 +5976,7 @@ static int lua_generator_vonmises(lua_State *L)
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,4,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushnumber(L,ln_pcg64_vonmises(rng,mu,kappa));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp count=ln_array_size(out);
@@ -6002,7 +6003,7 @@ static int lua_generator_wald(lua_State *L)
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,4,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushnumber(L,ln_pcg64_wald(rng,mean,scale));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp count=ln_array_size(out);
@@ -6025,7 +6026,7 @@ static int lua_generator_logseries(lua_State *L)
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,3,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushinteger(L,(lua_Integer)ln_pcg64_logseries(rng,p));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_name("int64"),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp count=ln_array_size(out);
@@ -6068,7 +6069,7 @@ static int lua_generator_binomial(lua_State *L)
         lua_pushinteger(L,(lua_Integer)ln_pcg64_binomial(rng,(int64_t)count,p));
         return 1;
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_name("int64"),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp total=ln_array_size(out);
@@ -6103,7 +6104,7 @@ static int lua_generator_negative_binomial(lua_State *L)
         lua_pushinteger(L,(lua_Integer)ln_pcg64_negative_binomial(rng,n,prob));
         return 1;
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_name("int64"),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp count=ln_array_size(out);
@@ -6129,7 +6130,7 @@ static int lua_generator_geometric(lua_State *L)
         lua_pushinteger(L,(lua_Integer)ln_pcg64_geometric(rng,prob));
         return 1;
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_name("int64"),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp total=ln_array_size(out);
@@ -6152,7 +6153,7 @@ static int lua_generator_zipf(lua_State *L)
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,3,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushinteger(L,(lua_Integer)ln_pcg64_zipf(rng,a));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_name("int64"),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp total=ln_array_size(out);
@@ -6204,7 +6205,7 @@ static int lua_generator_hypergeometric_broadcast(lua_State *L,ln_pcg64 *rng)
         if(is>ig+ib)return luaL_error(L,"hypergeometric ngood + nbad < nsample");
         for(int j=vnd-1;j>=0;j--){if(++ix[j]<vdims[j])break;ix[j]=0;}
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_name("int64"),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -6240,7 +6241,7 @@ static int lua_generator_hypergeometric(lua_State *L)
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,5,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushinteger(L,(lua_Integer)ln_pcg64_hypergeometric(rng,good,bad,sample));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_name("int64"),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp count=ln_array_size(out);
@@ -6319,7 +6320,7 @@ static int lua_generator_multivariate_hypergeometric(lua_State *L)
     /* Keep memory use under control: count requires one size_t per item. */
     if(count_method&&total>2000000LL){free(colors);return luaL_error(L,"count currently supports sum(colors) <= 2000000");}
     if((int64_t)nsample>total){free(colors);return luaL_error(L,"nsample > sum(colors)");}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_name("int64"),0,0,&e);
     if(!out){free(colors);return fail(L,&e);}
     ln_intp len=ln_array_size(out);
@@ -6368,7 +6369,7 @@ static int lua_generator_multinomial(lua_State *L)
         double value=0.0;
         if(pa) {
             ln_intp idx[1]={(ln_intp)i};
-            int64_t iv=0;int isint=0;ln_error e={{0}};
+            int64_t iv=0;int isint=0;ln_error e={0};
             if(ln_array_get_number(pa->a,idx,&value,&iv,&isint,&e)<0){
                 free(prob);return luaL_error(L,"cannot read pvals array");
             }
@@ -6392,7 +6393,7 @@ static int lua_generator_multinomial(lua_State *L)
         }
     }
     if(sum>1.0+1e-12){free(prob);return luaL_error(L,"multinomial sum(pvals[:-1]) exceeds 1");}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_name("int64"),0,0,&e);
     if(!out){free(prob);return fail(L,&e);}
     ln_intp length=ln_array_size(out);
@@ -6432,7 +6433,7 @@ static int lua_generator_dirichlet(lua_State *L)
     for(size_t i=0;i<k;i++){
         double value=0.0;
         if(pa){
-            ln_intp idx[1]={(ln_intp)i};int64_t iv=0;int isint=0;ln_error e={{0}};
+            ln_intp idx[1]={(ln_intp)i};int64_t iv=0;int isint=0;ln_error e={0};
             if(ln_array_get_number(pa->a,idx,&value,&iv,&isint,&e)<0){
                 free(alpha);return luaL_error(L,"cannot read dirichlet alpha array");
             }
@@ -6449,7 +6450,7 @@ static int lua_generator_dirichlet(lua_State *L)
         }
         alpha[i]=value;
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_name("float64"),0,0,&e);
     if(!out){free(alpha);return fail(L,&e);}
     ln_intp count=ln_array_size(out);
@@ -6481,7 +6482,7 @@ static int lua_generator_poisson(lua_State *L)
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,3,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushinteger(L,(lua_Integer)ln_pcg64_poisson(rng,lam));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_name("int64"),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -6498,7 +6499,7 @@ static int lua_generator_standard_cauchy(lua_State *L)
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,2,dims,&nd,&has_size))return 0;
     if(!has_size){lua_pushnumber(L,ln_pcg64_standard_cauchy(rng));return 1;}
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,ln_dtype_by_num(LN_DOUBLE),0,0,&e);
     if(!out)return fail(L,&e);
     ln_intp n=ln_array_size(out);
@@ -6582,7 +6583,7 @@ static int64_t lua_integer_bget(lua_State *L,const lua_integer_bparam *p,int nd,
     }
     ln_intp local[LN_MAXDIMS]={0};
     for(int j=0;j<a->nd;j++)local[j]=a->dimensions[j]==1?0:index[nd-a->nd+j];
-    double fv=0;int64_t iv=0;int isint=0;ln_error e={{0}};
+    double fv=0;int64_t iv=0;int isint=0;ln_error e={0};
     if(ln_array_get_number(a,local,&fv,&iv,&isint,&e)<0)
         luaL_error(L,"integers bound dtype: %s",e.message);
     if(isint)return iv;
@@ -6623,7 +6624,7 @@ static int lua_generator_integers_broadcast(lua_State *L,ln_pcg64 *rng,
             return luaL_error(L,"invalid integers bounds");
         for(int j=nd-1;j>=0;j--){if(++coords[j]<dims[j])break;coords[j]=0;}
     }
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(nd,dims,dt,0,0,&e);
     if(!out)return fail(L,&e);
     memset(coords,0,sizeof(coords));
@@ -6692,7 +6693,7 @@ static int lua_generator_integers(lua_State *L)
     uint64_t range=(uint64_t)(upper-lower-(endpoint?0:1));
     ln_intp dims[LN_MAXDIMS];int nd,has_size;
     if(lua_random_shape(L,4,dims,&nd,&has_size))return 0;
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=NULL;
     ln_intp total=1;
     if(has_size){
@@ -6808,7 +6809,7 @@ static int lua_generator_shuffle(lua_State *L)
 
 static ln_array *generator_array_copy(lua_State *L,const ln_array *a)
 {
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(a->nd,a->dimensions,a->descr,0,0,&e);
     if(!out){fail(L,&e);return NULL;}
     ln_intp total=ln_array_size(a),coords[LN_MAXDIMS]={0};
@@ -6837,7 +6838,7 @@ static int lua_generator_permutation(lua_State *L)
     if(lua_isinteger(L,2)){
         lua_Integer count=lua_tointegerx(L,2,NULL);
         ln_intp dims[1]={count>0?(ln_intp)count:0};
-        ln_error e={{0}};
+        ln_error e={0};
         out=ln_array_new(1,dims,ln_dtype_by_name("int64"),0,0,&e);
         if(!out)return fail(L,&e);
         for(ln_intp i=0;i<dims[0];i++)memcpy(out->data+(size_t)i*sizeof(int64_t),&i,sizeof(int64_t));
@@ -6902,7 +6903,7 @@ static int generator_copy_into(lua_State *L,const ln_array *src,ln_array *dst)
             memset(dp,0,dst->descr->elsize);
             memcpy(dp,sp,snapshot->descr->elsize);
         }else{
-            ln_error e={{0}};
+            ln_error e={0};
             if(ln_cast_strided_numeric(sp,0,snapshot->descr,dp,0,dst->descr,1,&e)<0){
                 ln_array_free(snapshot);
                 return luaL_error(L,"permuted out cast failed: %s",e.message);
@@ -6921,7 +6922,7 @@ static ln_array *generator_array_copy_k(lua_State *L,const ln_array *src)
 {
     int fortran=((src->flags & LN_ARRAY_F_CONTIGUOUS) &&
                  !(src->flags & LN_ARRAY_C_CONTIGUOUS));
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *dst=ln_array_new(src->nd,src->dimensions,src->descr,fortran,0,&e);
     if(!dst){fail(L,&e);return NULL;}
     generator_copy_into(L,src,dst);
@@ -7075,7 +7076,7 @@ static int generator_choice(lua_State *L)
         }
         population=u->a;
         if(population->nd==0){
-            double val=0;int64_t iv=0;int isint=0;ln_error e={{0}};
+            double val=0;int64_t iv=0;int isint=0;ln_error e={0};
             if((population->descr->kind!='i'&&population->descr->kind!='u'&&population->descr->type_num!=LN_BOOL)
                || ln_array_get_number(population,NULL,&val,&iv,&isint,&e)<0 || !isint || iv<0)
                 return luaL_error(L,"a must be a non-negative integer or sequence");
@@ -7103,7 +7104,7 @@ static int generator_choice(lua_State *L)
         if(prob){
             if(prob->a->nd!=1||(ln_intp)prob->a->dimensions[0]!=pop_size){free(p);free(cdf);return luaL_error(L,"a and p must have same 1-dimensional size");}
             for(ln_intp j=0;j<pop_size;j++){
-                ln_intp at[1]={j};double val=0;int64_t iv=0;int isint=0;ln_error e={{0}};
+                ln_intp at[1]={j};double val=0;int64_t iv=0;int isint=0;ln_error e={0};
                 if(ln_array_get_number(prob->a,at,&val,&iv,&isint,&e)<0){free(p);free(cdf);return fail(L,&e);}
                 p[j]=isint?(double)iv:val;
             }
@@ -7213,7 +7214,7 @@ static int generator_choice(lua_State *L)
         for(int d=axis+1;d<population->nd;d++)outdims[d-1+(has_size?nd:0)]=population->dimensions[d];
     }else for(int d=0;d<(has_size?nd:0);d++)outdims[d]=shape[d];
     const ln_dtype *dtype=population?population->descr:ln_dtype_by_name("int64");
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *out=ln_array_new(outnd,outdims,dtype,0,0,&e);
     if(!out){free(indices);return fail(L,&e);}
     if(population){
@@ -7279,7 +7280,7 @@ static int lua_generator_multivariate_normal(lua_State *L)
     double *factor=malloc(n*n*sizeof(double));
     double *scratch=malloc(n*sizeof(double));
     if(!m||!c||!factor||!scratch){free(m);free(c);free(factor);free(scratch);return luaL_error(L,"out of memory allocating multivariate normal workspace");}
-    ln_error err={{0}};
+    ln_error err={0};
     for(size_t i=0;i<n;i++){
         ln_intp ix[1]={(ln_intp)i};int64_t iv=0;int isint=0;
         if(ln_array_get_number(mean,ix,&m[i],&iv,&isint,&err)<0){
@@ -7437,7 +7438,7 @@ static int np_copyto(lua_State *L) {
     int scalar_where=1;
     if(read_casting_arg(L,3,casting,&casting))return 0;
     const ln_array *src=broadcast_arg(L,2);
-    ln_error e={{0}};
+    ln_error e={0};
     int weak_number=lua_type(L,2)==LUA_TNUMBER;
     lua_complex *complex=test_complex(L,2);
     if(weak_number || complex) {
@@ -7483,11 +7484,11 @@ static void write98_fill(lua_State *L,int arg,ln_array *a,int depth,ln_intp *ind
         }
     }
     else if(a->descr->kind=='b' && test_complex(L,arg)) {
-        lua_complex *z=test_complex(L,arg);ln_error err={{0}};
+        lua_complex *z=test_complex(L,arg);ln_error err={0};
         if(ln_array_pack_number(a,indices,0,z->real!=0 || z->imag!=0,1,&err)<0)fail(L,&err);
     }
     else if(lua_type(L,arg)==LUA_TSTRING && !ln_string_is_dtype(a->descr) && a->descr->kind!='M') {
-        size_t n=0;const char *s=lua_tolstring(L,arg,&n);ln_error err={{0}};
+        size_t n=0;const char *s=lua_tolstring(L,arg,&n);ln_error err={0};
         if(a->descr->kind=='b') {
             if(ln_array_pack_number(a,indices,0,n!=0,1,&err)<0)fail(L,&err);
         }
@@ -7507,7 +7508,7 @@ static ln_array *write98_arg(lua_State *L,int arg,const ln_dtype *dtype,ln_casti
     lua_array *u=test_array(L,arg);
     if(u) {
         if(u->a->descr==dtype && (u->a->flags&LN_ARRAY_C_CONTIGUOUS))return u->a;
-        ln_error err={{0}};ln_array *a=array_cast_new(u->a,dtype,casting,'C',&err);
+        ln_error err={0};ln_array *a=array_cast_new(u->a,dtype,casting,'C',&err);
         if(!a){fail(L,&err);return NULL;}
         push_array(L,a);return a;
     }
@@ -7515,7 +7516,7 @@ static ln_array *write98_arg(lua_State *L,int arg,const ln_dtype *dtype,ln_casti
     ln_intp dims[LN_MAXDIMS],indices[LN_MAXDIMS]={0};int nd=0;
     for(int d=0;d<LN_MAXDIMS;++d)dims[d]=-1;
     infer_table_shape(L,arg,0,dims,&nd);
-    ln_error err={{0}};ln_array *a=ln_array_new(nd,dims,dtype,0,0,&err);
+    ln_error err={0};ln_array *a=ln_array_new(nd,dims,dtype,0,0,&err);
     if(!a){fail(L,&err);return NULL;}
     push_array(L,a);write98_fill(L,arg,a,0,indices);return a;
 }
@@ -7533,7 +7534,7 @@ static int np_put(lua_State *L) {
     ln_array *indices=write98_arg(L,2,ln_dtype_by_name(sizeof(ln_intp)==8?"int64":"int32"),LN_SAFE_CASTING);
     if(ln_array_size(indices)>0 && !ln_array_size(dst))return luaL_error(L,"cannot replace elements of an empty array");
     ln_array *values=write98_arg(L,3,dst->descr,LN_UNSAFE_CASTING);
-    ln_error err={{0}};
+    ln_error err={0};
     return ln_array_put(dst,indices,values,mode,&err)<0?fail(L,&err):0;
 }
 static int np_place(lua_State *L) {
@@ -7543,7 +7544,7 @@ static int np_place(lua_State *L) {
     ln_array *mask=write98_arg(L,2,ln_dtype_by_num(LN_BOOL),LN_UNSAFE_CASTING);
     if(ln_array_size(mask)!=ln_array_size(dst))return luaL_error(L,"place mask and data must be the same size");
     ln_array *values=write98_arg(L,3,dst->descr,LN_SAFE_CASTING);
-    ln_error err={{0}};
+    ln_error err={0};
     return ln_array_place(dst,mask,values,&err)<0?fail(L,&err):0;
 }
 static int np_take(lua_State *L) {
@@ -7577,7 +7578,7 @@ static int np_take(lua_State *L) {
         }
     }
     ln_array *indices=write98_arg(L,2,ln_dtype_by_name(sizeof(ln_intp)==8?"int64":"int32"),LN_SAME_KIND_CASTING);
-    ln_error err={{0}};ln_array *result=ln_array_take(input,indices,axis,mode,out?out->a:NULL,&err);
+    ln_error err={0};ln_array *result=ln_array_take(input,indices,axis,mode,out?out->a:NULL,&err);
     if(!result)return fail(L,&err);
     if(out){lua_getfield(L,3,"out");return 1;}
     if(result->nd==0) {
@@ -7602,7 +7603,7 @@ static int np_take_along_axis(lua_State *L) {
     const ln_array *input=broadcast_arg(L,1);
     int axis=along_axis_arg(L,3,nargs,input->nd,1);
     const ln_array *indices=broadcast_arg(L,2);
-    ln_error err={{0}};ln_array *result=ln_array_take_along_axis(input,indices,axis,&err);
+    ln_error err={0};ln_array *result=ln_array_take_along_axis(input,indices,axis,&err);
     if(!result)return fail(L,&err);
     return push_array(L,result);
 }
@@ -7614,7 +7615,7 @@ static int np_put_along_axis(lua_State *L) {
     const ln_array *indices=broadcast_arg(L,2);
     lua_array *typed_values=test_array(L,3);
     const ln_array *values=typed_values?typed_values->a:write98_arg(L,3,input->descr,LN_UNSAFE_CASTING);
-    ln_error err={{0}};
+    ln_error err={0};
     return ln_array_put_along_axis(input,indices,values,axis,&err)<0?fail(L,&err):0;
 }
 /* Shared NEP50 common-dtype preparation for selection operations. Preserve
@@ -7715,7 +7716,7 @@ static int sampling_function(lua_State *L,int kind) {
     }
     if(ndim>=LN_MAXDIMS)return luaL_error(L,"sampling result exceeds maximum rank");
     int axis=0;normalize_lua_axis(L,raw_axis,ndim+1,&axis);
-    ln_error err={{0}};ln_array *result=NULL,*step=NULL;
+    ln_error err={0};ln_array *result=NULL,*step=NULL;
     if(kind==0)result=ln_sampling_linspace(start,stop,count,endpoint,axis,compute_dtype,output_dtype,retstep?&step:NULL,&err);
     else if(kind==1)result=ln_sampling_logspace(start,stop,&base,count,endpoint,axis,compute_dtype,output_dtype,&err);
     else result=ln_sampling_geomspace(start,stop,count,endpoint,axis,compute_dtype,output_dtype,&err);
@@ -7766,7 +7767,7 @@ static int np_choose(lua_State *L) {
     const ln_array *choices[63];
     for(size_t j=0;j<n;++j) {
         if(outer) {
-            ln_error err={{0}};ln_array *view=selection_array_item(outer->a,j,&err);
+            ln_error err={0};ln_array *view=selection_array_item(outer->a,j,&err);
             if(!view)return fail(L,&err);
             push_array(L,view);
         }
@@ -7777,7 +7778,7 @@ static int np_choose(lua_State *L) {
     for(size_t j=0;j<n;++j) {
         if(lua_type(L,positions[j])==LUA_TNUMBER || test_complex(L,positions[j])) {
             const ln_array *scalar=broadcast_arg(L,positions[j]);
-            ln_error err={{0}};
+            ln_error err={0};
             ln_array *converted=array_cast_new(scalar,dtype,LN_UNSAFE_CASTING,'C',&err);
             if(!converted)return fail(L,&err);
             push_array(L,converted);choices[j]=converted;
@@ -7785,13 +7786,13 @@ static int np_choose(lua_State *L) {
         else choices[j]=write98_arg(L,positions[j],dtype,LN_SAFE_CASTING);
         int flags=LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_ALIGNED|LN_ARRAY_WRITEABLE;
         if((choices[j]->flags&flags)!=flags) {
-            ln_error err={{0}};ln_array *copy=ln_array_copy_c(choices[j],&err);
+            ln_error err={0};ln_array *copy=ln_array_copy_c(choices[j],&err);
             if(!copy)return fail(L,&err);
             push_array(L,copy);choices[j]=copy;
         }
     }
     const ln_array *raw=broadcast_arg(L,1);
-    ln_error err={{0}};
+    ln_error err={0};
     const ln_dtype *intp=ln_dtype_by_name(sizeof(ln_intp)==8?"int64":"int32");
     ln_array *indices=(ln_array *)raw;
     if(raw->descr!=intp) {
@@ -7808,7 +7809,7 @@ static int np_choose(lua_State *L) {
 static int nonzero_function(lua_State *L,int flatten) {
     if(lua_gettop(L)!=1)return luaL_error(L,"nonzero expects one input");
     const ln_array *input=broadcast_arg(L,1);
-    ln_array *coordinates[LN_MAXDIMS];int count=0;ln_error err={{0}};
+    ln_array *coordinates[LN_MAXDIMS];int count=0;ln_error err={0};
     if(ln_array_condition_nonzero(input,flatten,coordinates,&count,&err)<0)return fail(L,&err);
     if(flatten)return push_array(L,coordinates[0]);
     lua_createtable(L,count,0);
@@ -7837,7 +7838,7 @@ static int compress_function(lua_State *L,int method) {
     lua_array *typed_condition=test_array(L,condition_arg);
     const ln_array *condition=typed_condition?typed_condition->a:
         write98_arg(L,condition_arg,ln_dtype_by_num(LN_BOOL),LN_UNSAFE_CASTING);
-    ln_error err={{0}};
+    ln_error err={0};
     ln_array *result=ln_array_compress_condition(input,condition,1,axis,out?out->a:NULL,&err);
     if(!result)return fail(L,&err);
     if(out){lua_getfield(L,3,"out");return 1;}
@@ -7848,7 +7849,7 @@ static int array_compress(lua_State *L){return compress_function(L,1);}
 static int np_extract(lua_State *L) {
     if(lua_gettop(L)!=2)return luaL_error(L,"extract expects condition and input");
     const ln_array *condition=broadcast_arg(L,1),*input=broadcast_arg(L,2);
-    ln_error err={{0}};ln_array *result=ln_array_compress_condition(input,condition,0,-1,NULL,&err);
+    ln_error err={0};ln_array *result=ln_array_compress_condition(input,condition,0,-1,NULL,&err);
     if(!result)return fail(L,&err);
     return push_array(L,result);
 }
@@ -7865,7 +7866,7 @@ static int np_where(lua_State *L) {
             values[j]=write98_arg(L,positions[j],dtype,LN_UNSAFE_CASTING);
         else values[j]=broadcast_arg(L,positions[j]);
     }
-    ln_error err={{0}};ln_array *result=ln_array_where(condition,values[0],values[1],dtype,&err);
+    ln_error err={0};ln_array *result=ln_array_where(condition,values[0],values[1],dtype,&err);
     if(!result)return fail(L,&err);
     return push_array(L,result);
 }
@@ -7880,7 +7881,7 @@ static size_t selection_sequence_length(lua_State *L,int arg) {
 static int selection_sequence_item(lua_State *L,int arg,size_t j) {
     lua_array *outer=test_array(L,arg);
     if(outer) {
-        ln_error err={{0}};ln_array *view=selection_array_item(outer->a,j,&err);
+        ln_error err={0};ln_array *view=selection_array_item(outer->a,j,&err);
         if(!view)return fail(L,&err);
         push_array(L,view);
     }
@@ -7907,7 +7908,7 @@ static int np_select(lua_State *L) {
     const ln_dtype *dtype=selection_common_dtype(L,positions,n+1);
     for(size_t j=0;j<n;++j)choices[j]=broadcast_arg(L,positions[j]);
     const ln_array *default_value=broadcast_arg(L,positions[n]);
-    ln_error err={{0}};ln_array *result=ln_array_select(conditions,choices,(int)n,default_value,dtype,&err);
+    ln_error err={0};ln_array *result=ln_array_select(conditions,choices,(int)n,default_value,dtype,&err);
     if(!result)return fail(L,&err);
     return push_array(L,result);
 }
@@ -7919,7 +7920,7 @@ static int np_putmask(lua_State *L) {
     ln_array *mask=write98_arg(L,2,ln_dtype_by_num(LN_BOOL),LN_UNSAFE_CASTING);
     if(ln_array_size(mask)!=ln_array_size(dst))return luaL_error(L,"putmask mask and data must be the same size");
     ln_array *values=write98_arg(L,3,dst->descr,LN_SAFE_CASTING);
-    ln_error err={{0}};
+    ln_error err={0};
     return ln_array_putmask(dst,mask,values,&err)<0?fail(L,&err):0;
 }
 /* Internal array binding API shared with independently compiled modules. */
@@ -7960,7 +7961,7 @@ void ln_lua_copyto_unsafe(lua_State *L,int destination,int source){
     if(lua_pcall(L,3,0,0)!=LUA_OK)luaL_error(L,"array fill: %s",lua_tostring(L,-1));
 }
 
-static const luaL_Reg module_funcs[]={{"complex",complex_ctor},{"datetime64",np_datetime64},{"timedelta64",np_timedelta64},{"datetime_as_string",np_datetime_as_string},{"array",np_array},{"append",np_append},{"delete",np_delete},{"insert",np_insert},{"concatenate",np_concatenate},{"stack",np_stack},{"hstack",np_hstack},{"vstack",np_vstack},{"row_stack",np_vstack},{"dstack",np_dstack},{"column_stack",np_column_stack},{"split",np_split},{"array_split",np_array_split},{"hsplit",np_hsplit},{"vsplit",np_vsplit},{"dsplit",np_dsplit},{"astype",np_astype},{"shares_memory",np_shares_memory},{"may_share_memory",np_may_share_memory},{"copyto",np_copyto},{"putmask",np_putmask},{"put",np_put},{"take",np_take},{"choose",np_choose},{"nonzero",np_nonzero},{"flatnonzero",np_flatnonzero},{"compress",np_compress},{"extract",np_extract},{"where",np_where},{"select",np_select},{"take_along_axis",np_take_along_axis},{"put_along_axis",np_put_along_axis},{"place",np_place},{"can_cast",np_can_cast},{"promote_types",np_promote_types},{"result_type",np_result_type},{"min_scalar_type",np_min_scalar_type},{"issubdtype",np_issubdtype},{"zeros",np_zeros},{"ones",np_ones},{"empty",np_empty},{"arange",np_arange},{"linspace",np_linspace},{"logspace",np_logspace},{"geomspace",np_geomspace},{"mean",np_mean},{"average",np_average},{"var",np_var},{"std",np_std},{"cumsum",np_cumsum},{"cumprod",np_cumprod},{"nancumsum",np_nancumsum},{"nancumprod",np_nancumprod},{"nansum",np_nansum},{"nanprod",np_nanprod},{"nanmean",np_nanmean},{"nanvar",np_nanvar},{"nanstd",np_nanstd},{"min",np_amin},{"amin",np_amin},{"max",np_amax},{"amax",np_amax},{"argmin",np_argmin},{"argmax",np_argmax},{"nanmin",np_nanmin},{"nanmax",np_nanmax},{"nanargmin",np_nanargmin},{"nanargmax",np_nanargmax},{"ptp",np_ptp},{"median",np_median},{"quantile",np_quantile},{"percentile",np_percentile},{"nanmedian",np_nanmedian},{"nanquantile",np_nanquantile},{"nanpercentile",np_nanpercentile},{"sum",np_sum},{"prod",np_prod},{"any",np_any},{"all",np_all},{"count_nonzero",np_count_nonzero},{"add",np_add},{"subtract",np_subtract},{"multiply",np_multiply},{"true_divide",np_true_divide},{"divide",np_true_divide},{"equal",np_equal},{"not_equal",np_not_equal},{"less",np_less},{"less_equal",np_less_equal},{"greater",np_greater},{"greater_equal",np_greater_equal},{"logical_and",np_logical_and},{"logical_or",np_logical_or},{"logical_xor",np_logical_xor},{"maximum",np_maximum},{"minimum",np_minimum},{"floor_divide",np_floor_divide},{"remainder",np_remainder},{"mod",np_remainder},{"power",np_power},{"fmod",np_fmod},{"float_power",np_float_power},{"bitwise_and",np_bitwise_and},{"bitwise_or",np_bitwise_or},{"bitwise_xor",np_bitwise_xor},{"fmax",np_fmax},{"fmin",np_fmin},{"copysign",np_copysign},{"negative",np_negative},{"absolute",np_absolute},{"abs",np_absolute},{"positive",np_positive},{"sign",np_sign},{"logical_not",np_logical_not},{"isnan",np_isnan},{"isinf",np_isinf},{"isfinite",np_isfinite},{"isnat",np_isnat},{"signbit",np_signbit},{"sqrt",np_sqrt},{"exp",np_exp},{"log",np_log},{"sin",np_sin},{"floor",np_floor},{"ceil",np_ceil},{"trunc",np_trunc},{"rint",np_rint},{"fabs",np_fabs},{"conjugate",np_conjugate},{"square",np_square},{"reciprocal",np_reciprocal},{"degrees",np_degrees},{"radians",np_radians},{"conj",np_conj},{"rad2deg",np_rad2deg},{"deg2rad",np_deg2rad},{"cos",np_cos},{"tan",np_tan},{"sinh",np_sinh},{"cosh",np_cosh},{"tanh",np_tanh},{"exp2",np_exp2},{"log2",np_log2},{"log10",np_log10},{"expm1",np_expm1},{"log1p",np_log1p},{"cbrt",np_cbrt},{"arcsin",np_arcsin},{"asin",np_arcsin},{"arccos",np_arccos},{"acos",np_arccos},{"arctan",np_arctan},{"atan",np_arctan},{"arcsinh",np_arcsinh},{"asinh",np_arcsinh},{"arccosh",np_arccosh},{"acosh",np_arccosh},{"arctanh",np_arctanh},{"atanh",np_arctanh},{"arctan2",np_arctan2},{"atan2",np_arctan2},{"hypot",np_hypot},{"frexp",np_frexp},{"modf",np_modf},{"divmod",np_divmod},{"ldexp",np_ldexp},{"matmul",np_matmul},{"dot",np_dot},{"inner",np_inner},{"outer",np_outer},{"sort",np_sort},{"argsort",np_argsort},{"partition",np_partition},{"argpartition",np_argpartition},{"searchsorted",np_searchsorted},{"add_accumulate",np_add_accumulate},{"multiply_accumulate",np_multiply_accumulate},{"add_reduceat",np_add_reduceat},{"multiply_reduceat",np_multiply_reduceat},{"isreal",ln_lua_isreal},{"iscomplex",ln_lua_iscomplex},{"isrealobj",ln_lua_isrealobj},{"iscomplexobj",ln_lua_iscomplexobj},{"real_if_close",ln_lua_real_if_close},{"real",ln_lua_real},{"imag",ln_lua_imag},{"ravel",ln_lua_layout_ravel},{"reshape",np_reshape},{"transpose",np_transpose},{"swapaxes",np_swapaxes},{"moveaxis",np_moveaxis},{"expand_dims",np_expand_dims},{"squeeze",np_squeeze},{"flip",np_flip},{"flipud",np_flipud},{"fliplr",np_fliplr},{"rot90",np_rot90},{"atleast_1d",np_atleast_1d},{"atleast_2d",np_atleast_2d},{"atleast_3d",np_atleast_3d},{"broadcast_to",np_broadcast_to},{"broadcast_arrays",np_broadcast_arrays},{"broadcast_shapes",np_broadcast_shapes},{"tile",np_tile},{"roll",np_roll},{"rollaxis",np_rollaxis},{"repeat",np_repeat_elements},{"repeat_elements",np_repeat_elements},{"slice",np_slice},{"s",np_slice},{NULL,NULL}};
+static const luaL_Reg module_funcs[]={{"complex",complex_ctor},{"datetime64",np_datetime64},{"timedelta64",np_timedelta64},{"datetime_as_string",np_datetime_as_string},{"array",np_array},{"append",np_append},{"delete",np_delete},{"insert",np_insert},{"concatenate",np_concatenate},{"stack",np_stack},{"hstack",np_hstack},{"vstack",np_vstack},{"row_stack",np_vstack},{"dstack",np_dstack},{"column_stack",np_column_stack},{"split",np_split},{"array_split",np_array_split},{"hsplit",np_hsplit},{"vsplit",np_vsplit},{"dsplit",np_dsplit},{"astype",np_astype},{"shares_memory",np_shares_memory},{"may_share_memory",np_may_share_memory},{"copyto",np_copyto},{"putmask",np_putmask},{"put",np_put},{"take",np_take},{"choose",np_choose},{"nonzero",np_nonzero},{"flatnonzero",np_flatnonzero},{"compress",np_compress},{"extract",np_extract},{"where",np_where},{"select",np_select},{"take_along_axis",np_take_along_axis},{"put_along_axis",np_put_along_axis},{"place",np_place},{"can_cast",np_can_cast},{"promote_types",np_promote_types},{"result_type",np_result_type},{"min_scalar_type",np_min_scalar_type},{"issubdtype",np_issubdtype},{"zeros",np_zeros},{"ones",np_ones},{"empty",np_empty},{"arange",np_arange},{"linspace",np_linspace},{"logspace",np_logspace},{"geomspace",np_geomspace},{"mean",np_mean},{"average",np_average},{"var",np_var},{"std",np_std},{"cumsum",np_cumsum},{"cumprod",np_cumprod},{"nancumsum",np_nancumsum},{"nancumprod",np_nancumprod},{"nansum",np_nansum},{"nanprod",np_nanprod},{"nanmean",np_nanmean},{"nanvar",np_nanvar},{"nanstd",np_nanstd},{"min",np_amin},{"amin",np_amin},{"max",np_amax},{"amax",np_amax},{"argmin",np_argmin},{"argmax",np_argmax},{"nanmin",np_nanmin},{"nanmax",np_nanmax},{"nanargmin",np_nanargmin},{"nanargmax",np_nanargmax},{"ptp",np_ptp},{"median",np_median},{"quantile",np_quantile},{"percentile",np_percentile},{"nanmedian",np_nanmedian},{"nanquantile",np_nanquantile},{"nanpercentile",np_nanpercentile},{"sum",np_sum},{"prod",np_prod},{"any",np_any},{"all",np_all},{"count_nonzero",np_count_nonzero},{"add",np_add},{"subtract",np_subtract},{"multiply",np_multiply},{"true_divide",np_true_divide},{"divide",np_true_divide},{"equal",np_equal},{"not_equal",np_not_equal},{"less",np_less},{"less_equal",np_less_equal},{"greater",np_greater},{"greater_equal",np_greater_equal},{"logical_and",np_logical_and},{"logical_or",np_logical_or},{"logical_xor",np_logical_xor},{"maximum",np_maximum},{"minimum",np_minimum},{"floor_divide",np_floor_divide},{"remainder",np_remainder},{"mod",np_remainder},{"power",np_power},{"fmod",np_fmod},{"float_power",np_float_power},{"bitwise_and",np_bitwise_and},{"bitwise_or",np_bitwise_or},{"bitwise_xor",np_bitwise_xor},{"fmax",np_fmax},{"fmin",np_fmin},{"copysign",np_copysign},{"negative",np_negative},{"absolute",np_absolute},{"abs",np_absolute},{"positive",np_positive},{"sign",np_sign},{"logical_not",np_logical_not},{"isnan",np_isnan},{"isinf",np_isinf},{"isfinite",np_isfinite},{"isnat",np_isnat},{"signbit",np_signbit},{"sqrt",np_sqrt},{"exp",np_exp},{"log",np_log},{"sin",np_sin},{"floor",np_floor},{"ceil",np_ceil},{"trunc",np_trunc},{"rint",np_rint},{"fabs",np_fabs},{"conjugate",np_conjugate},{"square",np_square},{"reciprocal",np_reciprocal},{"degrees",np_degrees},{"radians",np_radians},{"conj",np_conj},{"rad2deg",np_rad2deg},{"deg2rad",np_deg2rad},{"cos",np_cos},{"tan",np_tan},{"sinh",np_sinh},{"cosh",np_cosh},{"tanh",np_tanh},{"exp2",np_exp2},{"log2",np_log2},{"log10",np_log10},{"expm1",np_expm1},{"log1p",np_log1p},{"cbrt",np_cbrt},{"arcsin",np_arcsin},{"asin",np_arcsin},{"arccos",np_arccos},{"acos",np_arccos},{"arctan",np_arctan},{"atan",np_arctan},{"arcsinh",np_arcsinh},{"asinh",np_arcsinh},{"arccosh",np_arccosh},{"acosh",np_arccosh},{"arctanh",np_arctanh},{"atanh",np_arctanh},{"arctan2",np_arctan2},{"atan2",np_arctan2},{"hypot",np_hypot},{"frexp",np_frexp},{"modf",np_modf},{"divmod",np_divmod},{"ldexp",np_ldexp},{"matmul",np_matmul},{"dot",np_dot},{"inner",np_inner},{"outer",np_outer},{"sort",np_sort},{"argsort",np_argsort},{"partition",np_partition},{"argpartition",np_argpartition},{"searchsorted",np_searchsorted},{"add_accumulate",np_add_accumulate},{"multiply_accumulate",np_multiply_accumulate},{"add_reduceat",np_add_reduceat},{"multiply_reduceat",np_multiply_reduceat},{"isreal",ln_lua_isreal},{"iscomplex",ln_lua_iscomplex},{"isrealobj",ln_lua_isrealobj},{"iscomplexobj",ln_lua_iscomplexobj},{"real_if_close",ln_lua_real_if_close},{"round",ln_lua_round},{"around",ln_lua_round},{"real",ln_lua_real},{"imag",ln_lua_imag},{"ravel",ln_lua_layout_ravel},{"reshape",np_reshape},{"transpose",np_transpose},{"swapaxes",np_swapaxes},{"moveaxis",np_moveaxis},{"expand_dims",np_expand_dims},{"squeeze",np_squeeze},{"flip",np_flip},{"flipud",np_flipud},{"fliplr",np_fliplr},{"rot90",np_rot90},{"atleast_1d",np_atleast_1d},{"atleast_2d",np_atleast_2d},{"atleast_3d",np_atleast_3d},{"broadcast_to",np_broadcast_to},{"broadcast_arrays",np_broadcast_arrays},{"broadcast_shapes",np_broadcast_shapes},{"tile",np_tile},{"roll",np_roll},{"rollaxis",np_rollaxis},{"repeat",np_repeat_elements},{"repeat_elements",np_repeat_elements},{"slice",np_slice},{"s",np_slice},{NULL,NULL}};
 
 int luaopen_luaray_core(lua_State*L){
     if(luaL_newmetatable(L,GENERATOR_MT)){
@@ -8011,7 +8012,7 @@ int luaopen_luaray_core(lua_State*L){
     for(int i=0;names[i];i++){lua_pushstring(L,names[i]);lua_setfield(L,-2,names[i]);}
     push_index_token(L,LN_INDEX_NEWAXIS);lua_setfield(L,-2,"newaxis");
     push_index_token(L,LN_INDEX_ELLIPSIS);lua_setfield(L,-2,"ellipsis");
-    lua_pushstring(L,"0.112.0-dev");lua_setfield(L,-2,"_version");
+    lua_pushstring(L,"0.113.0-dev");lua_setfield(L,-2,"_version");
     lua_pushstring(L,"286e698f1dcf601648b165f48485ceaeec9c6231");lua_setfield(L,-2,"_numpy_upstream_commit");
     return 1;
 }

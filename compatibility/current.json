@@ -1,14 +1,14 @@
 {
-  "version": "0.112.0-dev",
+  "version": "0.113.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "reality_predicates": 2652,
-    "real_if_close": 4170,
-    "complex_text": 612
+    "rounding": 2780,
+    "round_outputs": 2346,
+    "floating_timedelta_scale": 3100
   },
-  "new_numeric_checks": 478716,
-  "new_lua_regression_checks": 53,
+  "new_numeric_checks": 481492,
+  "new_lua_regression_checks": 42,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -16,26 +16,25 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.isreal": "implemented_partial",
-    "numpy.iscomplex": "implemented_partial",
-    "numpy.isrealobj": "implemented_partial",
-    "numpy.iscomplexobj": "implemented_partial",
-    "numpy.real_if_close": "implemented_partial",
-    "numpy.ndarray.astype": "implemented_partial"
+    "numpy.round": "implemented_partial",
+    "numpy.around": "implemented_partial",
+    "numpy.ndarray.round": "implemented_partial",
+    "numpy.multiply": "implemented_partial",
+    "numpy.true_divide": "implemented_partial"
   },
   "evidence": [
-    "tests/predicates112_differential_generated.lua",
-    "tests/close112_differential_generated.lua",
-    "tests/complex_text112_differential_generated.lua",
-    "tests/predicates112_regression.lua",
-    "tests/test_predicates112_core.c",
+    "tests/round113_differential_generated.lua",
+    "tests/round_out113_differential_generated.lua",
+    "tests/time_scale113_differential_generated.lua",
+    "tests/round113_regression.lua",
+    "tests/test_round113_core.c",
     "compatibility/api_inventory.json",
     "tools/inventory_api.py"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 343,
-    "missing_bindings": 331,
+    "available_callables": 346,
+    "missing_bindings": 328,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -76,7 +75,12 @@
     "Real_if_close supports weak Lua numeric/integer/boolean tolerances; nil means default100; ndarray-valued tolerances and complete Python argument protocols remain unsupported",
     "Real_if_close casts tolerance at component precision, scales tol>1 by epsilon and compares strictly; exact x87 boundary references are built via real native ldexp/stack/component writes",
     "Legacy Lua astype string conversions follow ndarray.astype rather than NumPy root Array API numeric-only signature; complex strings round through two doubles even for clongdouble",
-    "Complex text parsing now accepts valid overflow/underflow and rejects malformed underscores, C hexadecimal/nan-payload syntax and embedded NUL in nonboolean numeric strings; full Unicode decimal/space grammar and locale-independent parsing remain pending"
+    "Complex text parsing now accepts valid overflow/underflow and rejects malformed underscores, C hexadecimal/nan-payload syntax and embedded NUL in nonboolean numeric strings; full Unicode decimal/space grammar and locale-independent parsing remain pending",
+    "Round preserves typed composition, complex component assignment and root TypeError retry; Lua errors remain ordinary Lua errors rather than Python exception objects",
+    "Internal ln_error gained a category field; development-version C consumers must rebuild all native objects; full error-class coverage is not certified",
+    "Power-of-ten uses source multiplication order through308 and stabilized infinity from309; INT_MIN/MAX native bounds tested without executing upstream billion-step loops",
+    "Floating timedelta multiply/divide uses the source double loop including longdouble coefficients and x86 NaT overflow results; integer scaling, timedelta ratios and complete temporal arithmetic remain unimplemented",
+    "Round Lua options/typed scalar return adaptation and constructor limits remain; every subclass/device/foreign protocol, FP status/rounding mode and host ABI is not certified"
   ],
-  "sanitizers": "Directed audit: twenty-eight C units plus C++ ln_fft, including component kernels/bindings and dtype transfer; sixteen native and sixty-three Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops use -fwrapv; unary math uses explicit eligible FMA"
+  "sanitizers": "Directed audit: thirty-one C units plus C++ ln_fft, including round kernels/bindings, floating temporal scaling, shared dtype/ufunc/iterator and error category changes; seventeen native and sixty-seven Lua suites; other dependencies uninstrumented; leaks disabled; integer ufunc loops use -fwrapv; unary math uses explicit eligible FMA"
 }

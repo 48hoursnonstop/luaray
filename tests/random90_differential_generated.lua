@@ -1,6 +1,6 @@
 -- Executed NumPy oracle for transposed/Fortran order and 64-bit integer ranges.
 local np=require('luaray_core')
-assert(np._version=='0.112.0-dev')
+assert(np._version=='0.113.0-dev')
 local passed=0
 local failures=0
 local function eq(a,b)

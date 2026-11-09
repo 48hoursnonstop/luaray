@@ -9,7 +9,7 @@ static double from_f64(const ln_array *a,size_t i){
     double result; memcpy(&result,a->data+i*8,8);return result;
 }
 int main(void){
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *a=ln_array_new(2,(ln_intp[]){2,3},ln_dtype_by_name("uint64"),0,0,&e);
     assert(a);
     /* These values are not representable by Lua's double numeric type. */

@@ -7,7 +7,7 @@
 
 int main(void)
 {
-    ln_error err={{0}};ln_intp dims[]={3,2},two=2;
+    ln_error err={0};ln_intp dims[]={3,2},two=2;
     const ln_dtype *dtype=ln_dtype_by_name("int64");
     ln_array *a=ln_array_new(2,dims,dtype,0,0,&err);
     ln_array *indices=ln_array_new(1,&two,dtype,0,0,&err);

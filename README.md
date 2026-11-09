@@ -1,3 +1,18 @@
+## LuaRay 0.113.0-dev — typed decimal rounding
+
+Native round/around and ndarray:round preserve NumPy's typed composition,
+output precision and partial writes, including root TypeError retry. New floating
+timedelta scaling supplies the required arithmetic. Ufunc output casting now
+uses the central descriptor-aware casting engine. All native objects were rebuilt
+for the internal error-category field added to the development C interface.
+
+Read the [English rounding reference](docs/en/rounding.md) or
+[referencia en español](docs/es/rounding.md). **8,226 NumPy2.5.3 cases /481,492
+exact checks**,42 Lua checks and native tests passed; full regression153 fixture
+files. ASan/UBSan32units,17native/67Lua passed with documented instrumentation
+scope. [Inventory](docs/en/api_inventory.md):346/675 scoped names, all partial.
+Runtime remains Lua/C/C++, without Python.
+
 ## LuaRay 0.112.0-dev — reality predicates and strict closeness
 
 Native isreal/iscomplex distinguish component values; isrealobj/iscomplexobj

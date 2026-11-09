@@ -6,7 +6,7 @@
 
 int main(void)
 {
-    ln_error err={{0}};ln_intp n=5;
+    ln_error err={0};ln_intp n=5;
     ln_array *a=ln_array_new(1,&n,ln_dtype_by_name("int32"),0,0,&err);
     ln_array *b=ln_array_new(1,&n,ln_dtype_by_name("int32"),0,0,&err);
     ln_array *mask=ln_array_new(1,&n,ln_dtype_by_num(LN_BOOL),0,0,&err);

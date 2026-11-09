@@ -1,3 +1,24 @@
+## 0.113.0-dev verification (executed)
+
+- Full native/Lua regression passed **153/153 frozen fixture files**.
+- NumPy2.5.3 rounding **2,780 cases /141,112 checks**; outputs **2,346 /
+  189,964**; floating time scaling **3,100 /150,416**. Combined **8,226 /
+  481,492 exact checks**, including signed zero and actual post-error states.
+- Native C tests and **42 Lua checks** passed. Root retry versus method execution,
+  output precision, ownership, readonly self-copy and partial complex/temporal
+  writes are checked. Native INT_MIN/MAX decimal counts are tested separately;
+  huge upstream factor loops were not executed.
+- Directed ASan/UBSan passed **31C+1Cpp units,17 native /67 Lua suites**.
+  Other dependencies uninstrumented; leaks disabled. All normal native objects
+  were rebuilt for the internal C error-category field; initializers updated.
+- Runtime inventory observed **346/675** scoped names,328 missing,1N/A,0complete.
+  Exact three-fixture/inventory regeneration is a separate gate. Final source
+  extraction/manifest/build/full suite/sixteen public examples and archive SHA
+  are independently recorded in release JSON/log; remote CI is separate.
+- Integer temporal scaling/ratios, complete exception/warning/FP/protocol behavior
+  and every host ABI remain incomplete. Old numerical assertions were not weakened;
+  the intended true_divide signature increase7 to8 is explicitly tested.
+
 ## 0.112.0-dev verification (executed)
 
 - Full native/Lua regression passed **150/150 frozen fixture files**.

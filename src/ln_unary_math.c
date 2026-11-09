@@ -146,8 +146,8 @@ static int resolve(const ln_ufunc *u,const ln_array *const *inputs,
             *method=&u->loops[i];return 0;
         }
     }
-    if(err)snprintf(err->message,sizeof err->message,
-                   "ufunc '%s' has no safely castable numeric signature",u->name);
+    if(err){snprintf(err->message,sizeof err->message,
+                   "ufunc '%s' has no safely castable numeric signature",u->name);err->kind=LN_ERROR_TYPE;}
     return -1;
 }
 

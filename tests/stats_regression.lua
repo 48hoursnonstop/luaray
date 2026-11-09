@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.112.0-dev')
+assert(np._version=='0.113.0-dev')
 local function near(a,b,tol)
   tol=tol or 1e-10
   if a~=a and b~=b then return true end

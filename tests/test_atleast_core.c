@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 int main(void) {
-    ln_error e={{0}};
+    ln_error e={0};
     const ln_dtype *d=ln_dtype_by_name("int32");
     ln_array *scalar=ln_array_new(0,NULL,d,0,0,&e);
     assert(scalar);

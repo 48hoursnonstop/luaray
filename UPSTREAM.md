@@ -1,3 +1,28 @@
+## 0.113 — NumPy2.5.3 typed round, wrapper retry and floating time scaling
+
+Nine hashes in NUMPY_2_5_3_ROUND113_FILE_HASHES.sha256 pin calculation.c
+PyArray_Round/power_of_ten, method/root wrappers, loops.c.src floating timedelta
+loops, UF resolution, component assignment and source tests. Native ln_round
+reuses typed ufuncs, creation and component assignment. Integer copy, float64
+negative-integer work/castback, component precision and provided-output stages
+follow actual source rather than scalar round approximations. Exponents>=309
+stabilize at source infinity; billion-step upstream calls were not executed.
+
+Original references exposed floating timedelta arithmetic and _wrapfunc retries.
+New md/dm/m-d signatures preserve double computation, units, NaT and masks;
+integer scaling and timedelta ratios remain explicitly unimplemented. Internal
+error categories preserve TypeError retry in roots while ndarray methods execute
+once. This changes the development C ln_error layout; all native objects were
+cleanly rebuilt and zero initializers updated. It is not a complete public Python
+exception API. Existing numerical assertions remain; true_divide signature count
+changed7 to8 with an explicit temporal-signature assertion.
+
+The generalized iterator now delegates same_kind to the central casting engine,
+preventing invalid timedelta/datetime/numeric output promotions. Full153-fixture
+regression passed, as did source post-error state and signed-zero checks. Existing
+NumPy BSD attribution remains. CPU/FP/foreign protocols and full temporal math
+remain partial and are described in English/Spanish references.
+
 ## 0.112 — NumPy2.5.3 reality, strict tolerance and complex text
 
 Six source/test hashes in NUMPY_2_5_3_PREDICATES112_FILE_HASHES.sha256 pin

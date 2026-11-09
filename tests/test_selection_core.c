@@ -10,7 +10,7 @@ static int64_t at(const ln_array *a,ln_intp i){
     int64_t v=0;memcpy(&v,a->data+i*a->strides[0],sizeof(v));return v;
 }
 int main(void){
-    ln_error e={{0}};
+    ln_error e={0};
     ln_array *a=ln_array_new(2,(ln_intp[]){2,3},ln_dtype_by_num(LN_LONGLONG),0,0,&e);
     assert(a);
     int64_t v[]={3,1,9,-2,5,4};memcpy(a->data,v,sizeof(v));

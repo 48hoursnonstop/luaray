@@ -7,12 +7,12 @@
 
 static int64_t at(const ln_array *a, ln_intp i, ln_intp j) {
     double v=0;int64_t integer=0;int is_integer=0;
-    ln_intp index[2]={i,j};ln_error err={{0}};
+    ln_intp index[2]={i,j};ln_error err={0};
     assert(ln_array_get_number(a,index,&v,&integer,&is_integer,&err)==0);
     return integer;
 }
 int main(void) {
-    ln_error e={{0}};
+    ln_error e={0};
     ln_intp shape[2]={2,3};
     ln_array *a=ln_array_new(2,shape,ln_dtype_by_name("int32"),0,0,&e);
     assert(a);

@@ -6,7 +6,7 @@
 
 int main(void)
 {
-    ln_error err={{0}};
+    ln_error err={0};
     ln_array *a=ln_array_new(2,(ln_intp[]){2,3},ln_dtype_by_name("int64"),0,0,&err);assert(a);
     for(int64_t i=0;i<6;++i)memcpy(a->data+i*8,&i,8);
     ln_array *f=ln_layout_flatten(a,'F',&err);assert(f&&f->owner!=a->owner);

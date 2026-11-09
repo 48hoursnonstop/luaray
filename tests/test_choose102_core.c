@@ -6,7 +6,7 @@
 
 int main(void)
 {
-    ln_error err={{0}};ln_intp three=3;
+    ln_error err={0};ln_intp three=3;
     const ln_dtype *dtype=ln_dtype_by_name(sizeof(ln_intp)==8?"int64":"int32");
     ln_array *indices=ln_array_new(1,&three,dtype,0,0,&err);
     ln_array *a=ln_array_new(0,NULL,dtype,0,0,&err),*b=ln_array_new(0,NULL,dtype,0,0,&err);

@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 int main(void){
-    ln_error e={{0}};
+    ln_error e={0};
     ln_intp dims[]={3};
     ln_array *a=ln_array_new(1,dims,ln_dtype_by_num(LN_ULONGLONG),0,0,&e);
     assert(a);

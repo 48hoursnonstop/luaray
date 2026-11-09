@@ -7,7 +7,7 @@ static int part(lua_State *L,int imaginary)
     int index=1;ln_array *a=ln_lua_test_array(L,1);
     if(!a){a=ln_lua_legacy_array(L,1,NULL);index=lua_gettop(L);}
     if(!imaginary&&a->descr->kind!='c'){lua_pushvalue(L,index);return 1;}
-    ln_error err={{0}};ln_array *result=ln_component_part(a,imaginary,&err);
+    ln_error err={0};ln_array *result=ln_component_part(a,imaginary,&err);
     return result?ln_lua_push_array(L,result):ln_lua_fail(L,&err);
 }
 int ln_lua_real(lua_State *L){return part(L,0);}
@@ -24,7 +24,7 @@ static int reality(lua_State *L,int real,int object)
 {
     int index;ln_array *a=coerce(L,&index);(void)index;
     if(object){lua_pushboolean(L,real?(a->descr->kind!='c'):(a->descr->kind=='c'));return 1;}
-    ln_error err={{0}};ln_array *out=ln_component_reality(a,real,&err);
+    ln_error err={0};ln_array *out=ln_component_reality(a,real,&err);
     return out?ln_lua_push_array(L,out):ln_lua_fail(L,&err);
 }
 int ln_lua_isreal(lua_State *L){return reality(L,1,0);}
@@ -44,7 +44,7 @@ int ln_lua_real_if_close(lua_State *L)
         if(lua_isinteger(L,2))tol=(long double)lua_tointegerx(L,2,NULL);
         else{int ok=0;tol=(long double)lua_tonumberx(L,2,&ok);if(!ok)return luaL_error(L,"invalid tolerance");}
     }
-    ln_error err={{0}};int identity=0;
+    ln_error err={0};int identity=0;
     ln_array *out=ln_component_close(a,tol,&identity,&err);
     if(!out)return ln_lua_fail(L,&err);
     if(identity){ln_array_free(out);lua_pushvalue(L,index);return 1;}

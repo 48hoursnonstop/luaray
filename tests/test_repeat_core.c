@@ -8,13 +8,13 @@
 #include <limits.h>
 
 static int64_t number(const ln_array *a,ln_intp i,ln_intp j) {
-    ln_error e={{0}};double v=0;int64_t n=0;int exact=0;
+    ln_error e={0};double v=0;int64_t n=0;int exact=0;
     ln_intp coord[2]={i,j};
     assert(ln_array_get_number(a,coord,&v,&n,&exact,&e)==0);
     return n;
 }
 int main(void) {
-    ln_error e={{0}};ln_intp shape[2]={2,3};
+    ln_error e={0};ln_intp shape[2]={2,3};
     const ln_dtype_descr *dtype=ln_dtype_by_name("int32");
     ln_array *a=ln_array_new(2,shape,dtype,0,0,&e);assert(a);
     for(ln_intp i=0;i<2;i++)for(ln_intp j=0;j<3;j++){

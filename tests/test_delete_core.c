@@ -7,12 +7,12 @@
 #include <stdint.h>
 
 static int64_t num(const ln_array *a, ln_intp i, ln_intp j) {
-    ln_intp idx[2]={i,j};double v=0;int64_t vi=0;int exact=0;ln_error e={{0}};
+    ln_intp idx[2]={i,j};double v=0;int64_t vi=0;int exact=0;ln_error e={0};
     assert(ln_array_get_number(a,idx,&v,&vi,&exact,&e)==0);
     return vi;
 }
 int main(void) {
-    ln_error e={{0}};
+    ln_error e={0};
     const ln_dtype_descr *d=ln_dtype_by_name("int32");
     ln_intp shape[2]={2,3};
     ln_array *a=ln_array_new(2,shape,d,0,0,&e);assert(a);

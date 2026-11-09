@@ -9,4 +9,6 @@ int ln_lua_tri(lua_State *L);
 int ln_lua_tril(lua_State *L);
 int ln_lua_triu(lua_State *L);
 int ln_lua_vander(lua_State *L);
+int ln_lua_eye(lua_State *L);
+int ln_lua_identity(lua_State *L);
 #endif

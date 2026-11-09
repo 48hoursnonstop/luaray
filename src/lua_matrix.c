@@ -163,3 +163,45 @@ int ln_lua_vander(lua_State *L)
     ln_error err={0};ln_array *result=ln_matrix_vander(x,(ln_intp)columns,increasing,&err);
     return result?ln_lua_push_array(L,result):ln_lua_fail(L,&err);
 }
+
+static int matrix_order(lua_State *L,int index)
+{
+    if(lua_type(L,index)==LUA_TNIL||lua_type(L,index)==LUA_TNONE)return 0;
+    size_t n=0;const char *text=lua_type(L,index)==LUA_TSTRING?lua_tolstring(L,index,&n):NULL;
+    if(!text||n!=1||(text[0]!='C'&&text[0]!='F'&&text[0]!='c'&&text[0]!='f'))luaL_error(L,"eye order must be C or F");
+    return text[0]=='F'||text[0]=='f';
+}
+static int eye(lua_State *L,int identity)
+{
+    int top=lua_gettop(L),fortran=0;lua_Integer rows=0,columns=0,k=0;const ln_dtype *target=NULL;
+    if(top<1||top>(identity?2:5))return luaL_error(L,"invalid eye/identity argument count");
+    rows=integer(L,1);columns=rows;
+    if(lua_type(L,2)==LUA_TTABLE){
+        if(top!=2)return luaL_error(L,"matrix options cannot be combined with positional options");
+        lua_pushnil(L);
+        while(lua_next(L,2)){
+            size_t n=0;const char *key=lua_type(L,-2)==LUA_TSTRING?lua_tolstring(L,-2,&n):NULL;
+            int valid=key&&((n==5&&!memcmp(key,"dtype",5))||(!identity&&
+                ((n==1&&(*key=='m'||*key=='k'))||(n==5&&!memcmp(key,"order",5))||(n==6&&!memcmp(key,"device",6)))));
+            if(!valid)return luaL_error(L,"unknown eye/identity option");
+            lua_pop(L,1);
+        }
+        if(!identity){
+            columns=field(L,2,"m",rows);k=field(L,2,"k",0);
+            lua_getfield(L,2,"order");fortran=matrix_order(L,-1);lua_pop(L,1);
+            lua_getfield(L,2,"device");
+            if(lua_type(L,-1)!=LUA_TNIL){size_t n=0;const char *device=lua_type(L,-1)==LUA_TSTRING?lua_tolstring(L,-1,&n):NULL;if(!device||n!=3||memcmp(device,"cpu",3))return luaL_error(L,"eye device must be cpu");}lua_pop(L,1);
+        }
+        lua_getfield(L,2,"dtype");target=dtype(L,-1);lua_pop(L,1);
+    }else if(identity){if(top>=2)target=dtype(L,2);}
+    else{
+        if(top>=2&&lua_type(L,2)!=LUA_TNIL)columns=integer(L,2);
+        if(top>=3&&lua_type(L,3)!=LUA_TNIL)k=integer(L,3);
+        if(top>=4)target=dtype(L,4);
+        if(top>=5)fortran=matrix_order(L,5);
+    }
+    ln_error err={0};ln_array *result=ln_matrix_eye((ln_intp)rows,(ln_intp)columns,(ln_intp)k,target,fortran,&err);
+    return result?ln_lua_push_array(L,result):ln_lua_fail(L,&err);
+}
+int ln_lua_eye(lua_State *L){return eye(L,0);}
+int ln_lua_identity(lua_State *L){return eye(L,1);}

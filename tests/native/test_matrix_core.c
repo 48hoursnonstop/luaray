@@ -57,5 +57,10 @@ int main(void)
     assert(powers->owner!=a->owner);ln_array_free(powers);
     powers=ln_matrix_vander(a,0,0,&err);assert(powers&&ln_array_size(powers)==0);ln_array_free(powers);
     assert(ln_matrix_vander(a,-1,0,&err)==NULL);ln_array_free(a);
+    ln_array *unit=ln_matrix_eye(2,3,1,ln_dtype_by_name("int16"),1,&err);assert(unit);
+    assert(unit->strides[0]==2&&unit->strides[1]==4);
+    ln_intp position[]={1,2};assert(ln_array_get_number(unit,position,&numeric,&iv,&is_integer,&err)==0&&iv==1);
+    ln_array_free(unit);assert(ln_matrix_eye(-1,3,0,NULL,0,&err)==NULL);
+    unit=ln_matrix_eye(2,3,INTPTR_MIN,NULL,0,&err);assert(unit&&((double*)unit->data)[0]==0);ln_array_free(unit);
     puts("matrix native: diagonal layout, shared lifetime, readonly, construction, overflow and staged trace passed");
 }

@@ -234,3 +234,31 @@ ln_array *ln_matrix_vander(const ln_array *x,ln_intp columns,int increasing,ln_e
 failed:
     ln_array_free(first);ln_array_free(tail);ln_array_free(column);ln_array_free(out);return NULL;
 }
+
+ln_array *ln_matrix_eye(ln_intp rows,ln_intp columns,ln_intp k,const ln_dtype *dtype,int fortran,ln_error *err)
+{
+    if(!dtype)dtype=ln_dtype_by_num(LN_DOUBLE);
+    if(ln_string_is_dtype(dtype)&&ln_string_nchars(dtype)==0){
+        dtype=ln_string_make_dtype(dtype->type_num==LN_UNICODE,1,dtype->byteorder,err);
+        if(!dtype)return NULL;
+    }
+    ln_intp shape[]={rows,columns};
+    ln_array *out=ln_array_new(2,shape,dtype,fortran!=0,1,err);if(!out)return NULL;
+    if(k>=columns)return out;
+    /* Upstream packs the scalar even for an empty flat assignment. */
+    if(dtype->kind=='M'&&ln_datetime_metadata(dtype)->base==LN_FR_GENERIC){
+        ln_array_free(out);return failure(err,"eye datetime dtype requires a concrete unit for scalar one");
+    }
+    ln_intp length=0,row=0,column=0;
+    if(k>=0){column=k;ln_intp available=columns-k;length=rows<available?rows:available;}
+    else if(k!=INTPTR_MIN&&-k<rows){row=-k;ln_intp available=rows-row;length=available<columns?available:columns;}
+    char *data=out->data;if(length>0)data+=row*out->strides[0]+column*out->strides[1];
+    if(out->strides[0]>INTPTR_MAX-out->strides[1]){ln_array_free(out);return failure(err,"eye diagonal stride overflow");}
+    ln_intp stride=out->strides[0]+out->strides[1];
+    ln_array *diagonal=ln_array_view(out,1,&length,&stride,data,err);
+    if(!diagonal){ln_array_free(out);return NULL;}
+    int64_t value=1;ln_array one={.data=(char *)&value,.nd=0,.descr=ln_dtype_by_name("int64"),
+        .flags=LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS|LN_ARRAY_ALIGNED};
+    int status=ln_array_copyto(diagonal,&one,NULL,1,LN_UNSAFE_CASTING,err);
+    ln_array_free(diagonal);if(status<0){ln_array_free(out);return NULL;}return out;
+}

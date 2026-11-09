@@ -12,6 +12,12 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.121.0-dev
+
+Added native `eye` and `identity` with rectangular shapes, offset diagonals,
+C/Fortran order, typed zero/one construction, CPU device validation and pinned
+NumPy temporal-unit/empty-assignment behavior. Added EN/ES identity guides.
+
 ## 0.120.0-dev
 
 Added native `vander` with source-ordered multiply accumulation, native-int dtype

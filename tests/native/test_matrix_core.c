@@ -1,6 +1,8 @@
 #include "ln_matrix.h"
 #include "ln_datetime.h"
 #include "ln_linalg.h"
+#include "ln_join.h"
+#include "ln_ufunc.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -104,5 +106,20 @@ int main(void)
     assert(ln_linalg_tensordot(high_rank,high_rank,NULL,NULL,0,&err)==NULL);
     assert(ln_linalg_tensordot(high_rank,high_rank,NULL,NULL,1,&err)==NULL);
     ln_array_free(high_rank);
+    ln_intp fortran_dims[]={2,3},prefix_dims[]={2,1};
+    ln_array *fortran=ln_array_new(2,fortran_dims,ln_dtype_by_name("int64"),1,0,&err);
+    ln_array *prefix=ln_array_new(2,prefix_dims,ln_dtype_by_name("int64"),0,0,&err);
+    for(int i=0;i<6;++i)((int64_t*)fortran->data)[i]=i;
+    ((int64_t*)prefix->data)[0]=((int64_t*)prefix->data)[1]=7;
+    const ln_array *join_inputs[]={prefix,fortran};
+    ln_array *joined=ln_join_arrays(join_inputs,2,1,0,NULL,LN_SAME_KIND_CASTING,NULL,&err);assert(joined);
+    assert(joined->strides[0]==8&&joined->strides[1]==16&&((int64_t*)joined->data)[7]==5);
+    ln_array_free(joined);ln_array_free(prefix);ln_array_free(fortran);
+    ln_intp singleton_dims[]={2,3,1};
+    ln_array *boolean_storage=ln_array_new(3,singleton_dims,ln_dtype_by_name("bool"),1,1,&err);assert(boolean_storage);
+    const ln_array *equal_inputs[]={boolean_storage,boolean_storage};ln_array *compared=NULL;
+    assert(ln_ufunc_execute(ln_ufunc_by_name("not_equal"),equal_inputs,&compared,NULL,&err)==0);
+    assert(compared->strides[0]==1&&compared->strides[1]==2&&compared->strides[2]==6);
+    ln_array_free(compared);ln_array_free(boolean_storage);
     puts("matrix native: diagonal layout, shared lifetime, readonly, construction, overflow and staged trace passed");
 }

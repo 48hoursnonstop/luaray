@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.127.0-dev')
+assert(np._version=='0.128.0-dev')
 local checked=0
 local function same(a,b)
  if type(a)~='userdata' or type(b)~='userdata' then return a==b end

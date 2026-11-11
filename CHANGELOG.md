@@ -12,6 +12,14 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.128.0-dev
+
+Added Lua-native `diff` and `ediff1d` with repeated differences, one-based axes,
+source dtype rules, boundary values, stable-empty termination and temporal/Boolean
+behavior. Fixed shared multi-input trivial ufunc result allocation and
+concatenate/stack stride ordering, including F/singleton/empty layouts. Added
+executable EN/ES finite-difference guides and differential layout regressions.
+
 ## 0.127.0-dev
 
 Added Lua-composed `mask_indices` over native creation, comparison and nonzero

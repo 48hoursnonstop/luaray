@@ -40,13 +40,13 @@ retain their original NumPy 2.3.5 attribution.
 
 `compatibility/current.json` records the release-specific behavioral evidence.
 `compatibility/api_inventory.json` records runtime availability. The latter
-reports 374 of 675 scoped names as available and classifies all available APIs
+reports 376 of 675 scoped names as available and classifies all available APIs
 as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.127.0-dev** passed **55 native suites**, **97 Lua suites**, seven public
-examples and 94 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
+LuaRay **0.128.0-dev** passed **55 native suites**, **98 Lua suites**, seven public
+examples and 102 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
 passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
 metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
@@ -72,9 +72,11 @@ Tensordot executed **22,615 cases / 2,304,132 checks**: **22,461 parity-eligible
 
 Callback-mask references passed **2,551 cases / 152,065 exact checks**, covering real callback inputs, parameter forwarding, numeric/text/temporal masks, view layouts, one-based coordinates, actual indexed writes and the explicit Lua-sequence adaptation. The API inventory now probes the public Lua entry point, including Lua-composed functions.
 
-The directed ASan/UBSan run instrumented `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`,
+Finite differences and join layouts passed **56,404 cases / 2,620,156 exact checks**:34,210 diff/ediff1d cases and22,194 concatenate/stack cases. Scope includes padding, identity, real writable/backing states, Boolean/unsigned/time dtypes, NaT/nonfinite values, empty dimensions and C/F/strided layouts. The maximum Lua order was executed locally; the matching enormous NumPy loop was not run.
+
+The directed ASan/UBSan run instrumented `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`,
 `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi` and `ln_datetime`, plus the native matrix test and Lua runner. All maintained tests
-and all twelve cumulative matrix corpora passed. Other native dependencies were not fully
+and all fourteen cumulative matrix corpora passed. Other native dependencies were not fully
 instrumented; leak detection was disabled. This is a directed audit, not an
 all-dependency memory-safety certification.
 

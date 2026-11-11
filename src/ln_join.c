@@ -26,6 +26,48 @@ static void join_advance(int nd, const ln_intp *shape, ln_intp *indices)
     }
 }
 
+static uintptr_t stride_magnitude(ln_intp stride)
+{return stride<0?(uintptr_t)0-(uintptr_t)stride:(uintptr_t)stride;}
+
+/* shape.c:PyArray_CreateMultiSortedStridePerm. Stack compares virtual
+ * expanded inputs; the inserted singleton axis is always ambiguous. */
+static int join_strides(ln_array *out,const ln_array *const *arrays,size_t count,
+        int axis,int stack,ln_error *err)
+{
+    if(ln_array_size(out)==0)return 0;
+    int permutation[LN_MAXDIMS];
+    for(int d=0;d<out->nd;++d)permutation[d]=d;
+    for(int i=1;i<out->nd;++i){
+        int selected=permutation[i],position=i;
+        for(int j=i-1;j>=0;--j){
+            int previous=permutation[j],ambiguous=1,swap=0;
+            for(size_t k=0;k<count;++k){
+                if(stack&&(selected==axis||previous==axis))continue;
+                int d0=selected-(stack&&selected>axis),d1=previous-(stack&&previous>axis);
+                const ln_array *a=arrays[k];
+                if(a->dimensions[d0]!=1&&a->dimensions[d1]!=1){
+                    if(stride_magnitude(a->strides[d0])<=stride_magnitude(a->strides[d1]))swap=0;
+                    else if(ambiguous)swap=1;
+                    ambiguous=0;
+                }
+            }
+            if(!ambiguous){if(swap)position=j;else break;}
+        }
+        if(position!=i){
+            for(int j=i;j>position;--j)permutation[j]=permutation[j-1];
+            permutation[position]=selected;
+        }
+    }
+    ln_intp stride=(ln_intp)out->descr->elsize;
+    for(int i=out->nd-1;i>=0;--i){
+        int d=permutation[i];out->strides[d]=stride;
+        if(ln_mul_sizes_with_overflow(&stride,stride,out->dimensions[d])){
+            join_error(err,"concatenated strides overflow the native index range");return -1;
+        }
+    }
+    ln_update_contiguous_flags(out);return 0;
+}
+
 ln_array *ln_join_arrays(const ln_array *const *arrays, size_t count,
                          int axis, int stack, const ln_dtype_descr *dtype,
                          ln_casting casting, ln_array *out, ln_error *err)
@@ -129,6 +171,7 @@ ln_array *ln_join_arrays(const ln_array *const *arrays, size_t count,
         if (arrays[j]->owner == out->owner) overlap = 1;
     ln_array *dst = overlap || !out ? ln_array_new(nd, shape, resolved, 0, 0, err) : out;
     if (!dst) return NULL;
+    if(!out&&!flat&&join_strides(dst,arrays,count,axis,stack,err)<0){ln_array_free(dst);return NULL;}
     ln_intp offset = 0;
     for (size_t j = 0; j < count; ++j) {
         const ln_array *a = arrays[j];

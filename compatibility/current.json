@@ -1,9 +1,10 @@
 {
-  "version": "0.127.0-dev",
+  "version": "0.128.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "callback_masks": 2551
+    "finite_differences": 34210,
+    "join_layouts": 22194
   },
   "new_lua_regression_checks": 35,
   "blocked_original_states": 40,
@@ -13,22 +14,24 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.mask_indices": "implemented_partial"
+    "numpy.diff": "implemented_partial",
+    "numpy.ediff1d": "implemented_partial",
+    "numpy.concatenate": "implemented_partial",
+    "numpy.stack": "implemented_partial"
   },
   "evidence": [
     "tests/native/test_matrix_core.c",
     "tests/lua/matrix_regression.lua",
     "tests/lua/trace_regression.lua",
     "compatibility/numpy-source.sha256",
-    "lua/luaray.lua",
-    "lua/luaray/masking.lua",
-    "tests/lua/mask_indices_regression.lua",
-    "docs/mask_indices.md"
+    "lua/luaray/calculus.lua",
+    "tests/lua/differences_regression.lua",
+    "docs/differences.md"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 374,
-    "missing_bindings": 300,
+    "available_callables": 376,
+    "missing_bindings": 298,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -101,12 +104,16 @@
     "General random contraction tolerances are absolute+relative3e-6 for float32/complex64 and2e-12 for wider float/complex types; exact ordinary nonzero values and metadata are separate.",
     "Legacy timedelta dot uses raw int64 wrapping after common-unit conversion and treats NaT as raw bits, matching arraytypes.c.src rather than ordinary duration multiplication.",
     "Mask_indices is a Lua composition over native kernels. It accepts ordinary sequence callback results through asarray and ignores extra callback returns. Numeric one-based coordinates and Lua nil/callable conventions are explicit adaptations.",
-    "Mask_indices preserves the source ndarray rich-comparison behavior for strings and datetime rather than incorrectly substituting their boolean cast. Callback scalar results remain invalid; full object and foreign dispatch protocols are unavailable."
+    "Mask_indices preserves the source ndarray rich-comparison behavior for strings and datetime rather than incorrectly substituting their boolean cast. Callback scalar results remain invalid; full object and foreign dispatch protocols are unavailable.",
+    "Diff and ediff1d use Lua options and strict one-based axes. Diff n=0 returns the original Lua input without coercion; native-max order is locally executed using stable-empty termination, not run through the enormous upstream loop.",
+    "Ediff1d uses an options table for padding and retains the source dtype with same_kind validation; Boolean and padded datetime subtraction follow pinned rejection rules. Complete Python argument/subclass/foreign protocols remain unsupported.",
+    "Native concatenate/stack selects strides with the source multi-input ordering and empty-allocation rules. The trivial ufunc allocation path now accepts equally shaped contiguous multiple inputs, preserving canonical C/F singleton strides."
   ],
   "sanitizers": {
-    "version": "0.127.0-dev",
+    "version": "0.128.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
+      "ln_join",
       "ln_condition",
       "ln_dot",
       "ln_matrix",
@@ -126,8 +133,8 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.127.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.128.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact coordinate values after one-based adaptation, original nonzero strides/dtype, callback input/parameter state, actual advanced reads/writes and unchanged callback source arrays.",
-  "new_reference_checks": 152065
+  "new_check_semantics": "Exact finite-difference values including tested signed zeros/nonfinite states, dtype, shape, strides, identity, actual writeability/backing states and concatenate/stack order across views.",
+  "new_reference_checks": 2620156
 }

@@ -841,20 +841,28 @@ ln_ufunc_execute_operands(const ln_ufunc *u,const ln_ufunc_operand *operands,
         if(method->resolve_loop_data(method,resolution.descrs,&loop_data,err)<0){for(int j=0;j<LN_UFUNC_MAXARGS;++j)free(dynamic_storage[j]);return -1;}
     }
     /* NumPy's trivial single-output loop allocates a canonical C/F array
-     * for an exact contiguous input and optional scalar. Singleton strides
+     * for exact equally shaped contiguous inputs and optional scalars. Singleton strides
      * follow NewLikeArray, rather than general iterator permutation strides. */
     ln_array *trivial_output=NULL;
     if(!where&&u->nout==1&&!outputs[0]&&(u->nin>=1&&u->nin<=3)) {
         int candidate=-1,eligible=1;
+        unsigned common_order=LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS;
         for(int j=0;j<u->nin;++j)if(inputs[j]->nd) {
-            if(candidate>=0){eligible=0;break;}
-            candidate=j;
+            const ln_array *input=inputs[j];
+            if(input->descr!=resolution.descrs[j]){eligible=0;break;}
+            common_order&=input->flags;
+            if(candidate>=0){
+                const ln_array *first=inputs[candidate];
+                if(first->nd!=input->nd){eligible=0;break;}
+                for(int d=0;d<input->nd;++d)if(first->dimensions[d]!=input->dimensions[d]){eligible=0;break;}
+                if(!eligible)break;
+            }else candidate=j;
         }
-        if(eligible&&candidate>=0) {
+        if(eligible&&candidate>=0&&common_order) {
             const ln_array *input=inputs[candidate];
             if(input->descr==resolution.descrs[candidate]&&
                     (input->flags&(LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS))) {
-                int fortran=!(input->flags&LN_ARRAY_C_CONTIGUOUS);
+                int fortran=!(common_order&LN_ARRAY_C_CONTIGUOUS);
                 trivial_output=ln_array_new(input->nd,input->dimensions,
                         resolution.descrs[u->nin],fortran,0,err);
                 if(!trivial_output){

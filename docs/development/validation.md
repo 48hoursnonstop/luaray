@@ -40,13 +40,13 @@ retain their original NumPy 2.3.5 attribution.
 
 `compatibility/current.json` records the release-specific behavioral evidence.
 `compatibility/api_inventory.json` records runtime availability. The latter
-reports 379 of 675 scoped names as available and classifies all available APIs
+reports 380 of 675 scoped names as available and classifies all available APIs
 as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.131.0-dev** passed **55 native suites**, **101 Lua suites**, seven public
-examples and 126 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
+LuaRay **0.132.0-dev** passed **55 native suites**, **102 Lua suites**, seven public
+examples and 132 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
 passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
 metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
@@ -80,9 +80,11 @@ Trapezoidal integration passed **7,341 cases /260,004 checks** and31 permanent L
 
 Phase unwrapping passed **5,462 cases /291,583 checks**, with28 permanent Lua checks. Scope includes even/odd/zero/negative periods, weak/typed promotion, thresholds and broadcasting, views, NaN and int64 extremes. Results are checked for independent writable storage. Absolute+relative budgets are5e-3 for half,5e-6 for float32 and2e-12 for wider types; observed errors were zero.
 
+Phase angles passed **3,212 cases /307,602 checks**, with22 permanent Lua checks. Scope includes signed complex zeros, degrees/radians, real/complex promotion, views and nonfinite values. Relative budgets are2e-3 for half,3e-6 for float32 and2e-12 for wider types. Observed maxima were absolute1.52587890625e-05 and relative1.4020190897517e-07. Signed zeros, metadata and input/backing states compare exactly.
+
 The directed ASan/UBSan run instrumented `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`,
 `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi` and `ln_datetime`, plus the native matrix test and Lua runner. All maintained tests
-and all eighteen cumulative matrix corpora passed. Other native dependencies were not fully
+and all nineteen cumulative matrix corpora passed. Other native dependencies were not fully
 instrumented; leak detection was disabled. This is a directed audit, not an
 all-dependency memory-safety certification.
 

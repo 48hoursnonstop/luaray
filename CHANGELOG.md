@@ -12,6 +12,13 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.132.0-dev
+
+Added Lua-native `angle` using typed real/imaginary views, native arctan2 and
+optional degree scaling. Preserves complex signed-zero conventions and result
+dtypes, with independent writable outputs. Extended the English/Spanish phase
+guide with executable complex-phase and unwrap examples.
+
 ## 0.131.0-dev
 
 Added Lua-native `unwrap` for phase continuity with selectable axes, periods,

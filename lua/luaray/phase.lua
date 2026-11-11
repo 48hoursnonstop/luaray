@@ -1,4 +1,4 @@
--- NumPy2.5.3 _function_base_impl.py:unwrap, using native array kernels.
+-- NumPy2.5.3 _function_base_impl.py:angle and unwrap, using native array kernels.
 return function(lr)
   local function number(v)if type(v)=='boolean' then return v and 1 or 0 end;return v end
   local function divide(a,b)
@@ -9,6 +9,21 @@ return function(lr)
     if type(v)=='number' or type(v)=='boolean' then return -number(v) end
     return lr.negative(v)
   end
+  function lr.angle(input,...)
+    if select('#',...)>1 then error('angle accepts input and one options table',2) end
+    local options=(...);if options==nil then options={} end
+    if type(options)~='table' then error('angle options must be a table',2) end
+    for key in pairs(options)do if key~='deg' then error('unknown angle option',2) end end
+    local degrees=options.deg
+    if degrees~=nil and type(degrees)~='boolean' then error('angle deg must be Boolean',2) end
+    local z=lr.asanyarray(input);local imaginary,real
+    if lr.issubdtype(z.dtype,'complexfloating') then imaginary,real=lr.imag(z),lr.real(z)
+    else imaginary,real=0,z end
+    local result=lr.arctan2(imaginary,real)
+    if degrees then lr.multiply(result,180/math.pi,{out=result}) end
+    return result
+  end
+
   function lr.unwrap(input,...)
     if select('#',...)>1 then error('unwrap accepts input and one options table',2) end
     local options=(...);if options==nil then options={} end

@@ -1,11 +1,11 @@
 {
-  "version": "0.131.0-dev",
+  "version": "0.132.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "phase_unwrapping": 5462
+    "complex_phase_angles": 3212
   },
-  "new_lua_regression_checks": 28,
+  "new_lua_regression_checks": 22,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -13,18 +13,18 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.unwrap": "implemented_partial"
+    "numpy.angle": "implemented_partial"
   },
   "evidence": [
     "lua/luaray/phase.lua",
-    "tests/lua/phase_regression.lua",
+    "tests/lua/angle_regression.lua",
     "docs/phase.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 379,
-    "missing_bindings": 295,
+    "available_callables": 380,
+    "missing_bindings": 294,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -106,10 +106,12 @@
     "Integer duration true division truncates toward zero with int64 divisors, NaT/zero handling and checked output-unit conversions. Duration ratios cast to a common unit then compute float64; incompatible calendar/fixed units reject. Complete temporal arithmetic remains partial.",
     "Trapezoid uses a Lua options table and typed rank-zero results. Computation order preserves integer wrap and temporal tick truncation. Full foreign/subclass/scalar/warning protocols are not reproduced.",
     "Trapezoid general numeric budgets are absolute+relative5e-3 half,5e-6 float32/complex64,2e-12 wider. Observed new max absolute8.8817841970013e-16 and relative2.6737044432591e-16.",
-    "Unwrap uses a Lua options table and strict integer axes. Integer periods preserve source half-interval parity and native modular differences; scalar boundary truth errors and floating broadcasting are tested. Complete foreign/subclass/scalar/warning protocols remain unsupported."
+    "Unwrap uses a Lua options table and strict integer axes. Integer periods preserve source half-interval parity and native modular differences; scalar boundary truth errors and floating broadcasting are tested. Complete foreign/subclass/scalar/warning protocols remain unsupported.",
+    "Angle composes real/imaginary views with native arctan2 and optional in-place degree scaling. Lua deg requires a Boolean; scalar results are typed rank-zero arrays. Full foreign/subclass/scalar/warning protocols remain unsupported.",
+    "Angle relative budgets are half2e-3,float32 3e-6,wider2e-12. Observed max absolute1.52587890625e-05 and relative1.4020190897517e-07; exact signed zeros are separate."
   ],
   "sanitizers": {
-    "version": "0.131.0-dev",
+    "version": "0.132.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_join",
@@ -132,8 +134,8 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.131.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.132.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Floating result abs+rel tolerances half5e-3,float32 5e-6,wider2e-12; observed errors zero. Dtype, shape, strides, writable independence and input/backing states exact.",
-  "new_reference_checks": 291583
+  "new_check_semantics": "Relative numeric budgets half2e-3,float32 3e-6,wider2e-12; observed max absolute1.52587890625e-05 and relative1.4020190897517e-07. Signed zeros, dtype, shape, strides, writable independence and input/backing states exact.",
+  "new_reference_checks": 307602
 }

@@ -1,7 +1,7 @@
 ---
 docs_examples: true
 ---
-# Unwrap phases and angles
+# Complex phases and angles
 
 `lr.unwrap(values, options)` removes jumps caused by wrapping a phase into a fixed
 interval. It adds multiples of the period so consecutive samples stay close,
@@ -64,6 +64,45 @@ Typed periods retain their dtype and broadcasting rules. Floating period vectors
 can broadcast against adjacent differences. A multi-element integer period array
 raises because the source's boundary-ambiguity decision requires a scalar truth
 value. Typed/ordinary scalar promotion is handled by `result_type`.
+
+## Extract the phase of complex values
+
+```lua
+local lr = require("luaray")
+local complex = lr.array({lr.complex(1, 0), lr.complex(0, 1), lr.complex(1, 1)}, "complex128")
+local degrees = lr.angle(complex, {deg=true})
+assert(degrees[1] == 0 and degrees[2] == 90 and degrees[3] == 45)
+local radians = lr.angle(complex)
+assert(math.abs(radians[3] - math.pi/4) < 1e-12)
+```
+
+`lr.angle(z, {deg=false})` computes `arctan2(imag(z), real(z))`. It returns radians
+between minus pi and pi; `deg=true` converts to degrees. The option requires a Lua
+Boolean. Real inputs use positive zero for their imaginary part. Complex zeros
+retain both component signs when choosing the angle.
+
+```lua
+local negative_real = lr.angle(-1)
+assert(negative_real.ndim == 0 and negative_real:tolist() == math.pi)
+local single = lr.angle(lr.array({lr.complex(1, 1)}, "complex64"))
+assert(single.dtype == "float32")
+```
+
+`angle` produces independent writable arrays; scalar input returns a rank-zero
+ndarray. Complex64 produces float32, complex128 produces float64 and clongdouble
+produces longdouble. Real input follows the promotion rules of `arctan2`.
+Noncontiguous and read-only views are accepted.
+
+```lua
+local wrapped = lr.angle(lr.array({lr.complex(1, 0), lr.complex(-1, 0), lr.complex(0, -1)}, "complex128"))
+local continuous = lr.unwrap(wrapped)
+assert(math.abs(continuous[3] - 1.5*math.pi) < 1e-12)
+```
+
+Available since **0.132.0-dev**. References check values and signed zeros, dtype,
+shape, strides, independent writable storage and unchanged input state. Relative
+budgets are2e-3 for half,3e-6 for float32 and2e-12 for wider types. The protocol
+and dtype limitations below still apply.
 
 ## Compatibility
 

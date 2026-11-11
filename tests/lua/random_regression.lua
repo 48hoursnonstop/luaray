@@ -1,5 +1,5 @@
 local np = require('luaray_core')
-assert(np._version=='0.131.0-dev')
+assert(np._version=='0.132.0-dev')
 local rng = np.random.default_rng(42)
 local raws = {
  'c621fbcd16d92688','705a5661a791ffc1','dbcd12c26eda1624',

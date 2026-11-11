@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.130.0-dev')
+assert(np._version=='0.131.0-dev')
 local checks=0
 local function rejected_without_draw(fn)
  local r=np.random.default_rng(820082)

@@ -1,11 +1,11 @@
 {
-  "version": "0.130.0-dev",
+  "version": "0.131.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "trapezoidal_integration": 7341
+    "phase_unwrapping": 5462
   },
-  "new_lua_regression_checks": 31,
+  "new_lua_regression_checks": 28,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -13,18 +13,18 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.trapezoid": "implemented_partial"
+    "numpy.unwrap": "implemented_partial"
   },
   "evidence": [
-    "lua/luaray/integration.lua",
-    "tests/lua/integration_regression.lua",
-    "docs/integration.md",
+    "lua/luaray/phase.lua",
+    "tests/lua/phase_regression.lua",
+    "docs/phase.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 378,
-    "missing_bindings": 296,
+    "available_callables": 379,
+    "missing_bindings": 295,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -105,10 +105,11 @@
     "Gradient floating result budgets are absolute+relative5e-3 for half,5e-6 for float32/complex64 and2e-12 for wider types. Observed new numerical errors were zero.",
     "Integer duration true division truncates toward zero with int64 divisors, NaT/zero handling and checked output-unit conversions. Duration ratios cast to a common unit then compute float64; incompatible calendar/fixed units reject. Complete temporal arithmetic remains partial.",
     "Trapezoid uses a Lua options table and typed rank-zero results. Computation order preserves integer wrap and temporal tick truncation. Full foreign/subclass/scalar/warning protocols are not reproduced.",
-    "Trapezoid general numeric budgets are absolute+relative5e-3 half,5e-6 float32/complex64,2e-12 wider. Observed new max absolute8.8817841970013e-16 and relative2.6737044432591e-16."
+    "Trapezoid general numeric budgets are absolute+relative5e-3 half,5e-6 float32/complex64,2e-12 wider. Observed new max absolute8.8817841970013e-16 and relative2.6737044432591e-16.",
+    "Unwrap uses a Lua options table and strict integer axes. Integer periods preserve source half-interval parity and native modular differences; scalar boundary truth errors and floating broadcasting are tested. Complete foreign/subclass/scalar/warning protocols remain unsupported."
   ],
   "sanitizers": {
-    "version": "0.130.0-dev",
+    "version": "0.131.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_join",
@@ -131,8 +132,8 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.130.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.131.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Floating result abs+rel tolerances half5e-3,float32/complex64 5e-6,wider2e-12; observed max absolute8.8817841970013e-16 and relative2.6737044432591e-16. Metadata, temporal ticks and input/backing states exact.",
-  "new_reference_checks": 260004
+  "new_check_semantics": "Floating result abs+rel tolerances half5e-3,float32 5e-6,wider2e-12; observed errors zero. Dtype, shape, strides, writable independence and input/backing states exact.",
+  "new_reference_checks": 291583
 }

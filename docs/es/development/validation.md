@@ -16,6 +16,8 @@ Gradientes y división de duraciones aprobaron **31 024 casos /1 250 944 comprob
 
 La integración trapezoidal aprobó **7 341 casos /260 004 comprobaciones** y31 comprobaciones Lua permanentes. Incluye coordenadas regulares/irregulares/decrecientes, ejes y broadcasting, vistas, vacíos, desbordamiento entero, NaT y unidades temporales. Las tolerancias absolutas más relativas son5e-3 para half,5e-6 para float32/complex64 y2e-12 para tipos más amplios. Máximos observados: absoluto8.8817841970013e-16 y relativo2.6737044432591e-16. Metadatos y estados de entrada/memoria son exactos.
 
+El desenvolvimiento de fases aprobó **5 462 casos /291 583 comprobaciones**, con28 comprobaciones Lua permanentes. Incluye periodos pares/impares/cero/negativos, promoción débil/tipada, umbrales y broadcasting, vistas, NaN y extremos int64. Se verifican salidas independientes y escribibles. Tolerancias absolutas más relativas:5e-3 para half,5e-6 para float32 y2e-12 para tipos más amplios; error observado cero.
+
 La auditoría dirigida ASan/UBSan aprobó con **38 unidades C y una C++**, 20 suites
 nativas y 78 suites Lua. Las otras dependencias no estaban completamente
 instrumentadas y la detección de fugas estaba desactivada. No certifica todos
@@ -41,14 +43,14 @@ Los generadores recientes usan NumPy 2.5.3; los anteriores conservan su atribuci
 NumPy 2.3.5.
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 378 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 379 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.130.0-dev** aprobó **55 suites nativas**, **100 suites Lua**, siete ejemplos
-y 120 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.131.0-dev** aprobó **55 suites nativas**, **101 suites Lua**, siete ejemplos
+y 126 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -80,6 +82,8 @@ Las diferencias finitas y las disposiciones de unión aprobaron **56,404 casos /
 Gradientes y división de duraciones aprobaron **31 024 casos /1 250 944 comprobaciones**:25 750 casos de gradient y5 274 de división. Las tolerancias absolutas más relativas son5e-3 para half,5e-6 para float32/complex64 y2e-12 para tipos más amplios; el error numérico observado fue cero. Se comprueban metadatos exactos, entradas intactas, salidas independientes/escribibles, unidades comunes, NaT, máscaras y vistas de salida compartidas. Las42 comprobaciones Lua permanentes incluyen la API y errores de argumentos.
 
 La integración trapezoidal aprobó **7 341 casos /260 004 comprobaciones** y31 comprobaciones Lua permanentes. Incluye coordenadas regulares/irregulares/decrecientes, ejes y broadcasting, vistas, vacíos, desbordamiento entero, NaT y unidades temporales. Las tolerancias absolutas más relativas son5e-3 para half,5e-6 para float32/complex64 y2e-12 para tipos más amplios. Máximos observados: absoluto8.8817841970013e-16 y relativo2.6737044432591e-16. Metadatos y estados de entrada/memoria son exactos.
+
+El desenvolvimiento de fases aprobó **5 462 casos /291 583 comprobaciones**, con28 comprobaciones Lua permanentes. Incluye periodos pares/impares/cero/negativos, promoción débil/tipada, umbrales y broadcasting, vistas, NaN y extremos int64. Se verifican salidas independientes y escribibles. Tolerancias absolutas más relativas:5e-3 para half,5e-6 para float32 y2e-12 para tipos más amplios; error observado cero.
 
 La auditoría dirigida ASan/UBSan instrumentó `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`
 `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi` y `ln_datetime`, además de la prueba nativa de matrices y el runner Lua. Aprobaron

@@ -12,6 +12,13 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.131.0-dev
+
+Added Lua-native `unwrap` for phase continuity with selectable axes, periods,
+discontinuity thresholds, source integer half-interval parity, typed promotion,
+broadcasting and cumulative corrections. Added writable-copy and extreme-value
+regressions plus executable English/Spanish phase guides.
+
 ## 0.130.0-dev
 
 Added Lua-native `trapezoid` over native typed differences, arithmetic and

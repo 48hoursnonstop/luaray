@@ -12,6 +12,15 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.133.0-dev
+
+Added Lua-native `interp` with real/complex samples, guess-assisted searching,
+optional slope caching, boundary fills, periodic normalization and source-derived
+nonfinite fallbacks. Preserves safe/nonperiodic versus explicit/periodic dtype
+conversion and typed rank-zero results. Added executable EN/ES guides. Periodic
+sorting follows portable NumPy quicksort; differences from CPU-specific unstable
+tie ordering remain documented and measured separately.
+
 ## 0.132.0-dev
 
 Added Lua-native `angle` using typed real/imaginary views, native arctan2 and

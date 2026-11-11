@@ -1,5 +1,5 @@
 local np = require('luaray_core')
-assert(np._version == '0.132.0-dev')
+assert(np._version == '0.133.0-dev')
 local rng=np.random.default_rng(42)
 local a=rng:pareto(2, {2,3})
 local b=rng:power(2, {2,3})

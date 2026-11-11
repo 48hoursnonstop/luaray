@@ -5,4 +5,5 @@ require("luaray.calculus")(lr)
 require("luaray.gradient")(lr)
 require("luaray.integration")(lr)
 require("luaray.phase")(lr)
+require("luaray.interpolation")(lr)
 return lr

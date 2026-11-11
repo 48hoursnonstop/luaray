@@ -12,6 +12,14 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.127.0-dev
+
+Added Lua-composed `mask_indices` over native creation, comparison and nonzero
+kernels. Supports real writable callback inputs, unchanged parameter forwarding,
+callable tables, sequence-return adaptation, reference text/time comparison and
+one-based coordinate views. Added EN/ES guides; API inventory probes the public
+Lua entry point rather than only the private native module.
+
 ## 0.126.0-dev
 
 Added root `tensordot` with one-based arbitrary axis pairs, ordinary Lua inputs,

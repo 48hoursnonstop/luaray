@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.126.0-dev')
+assert(np._version=='0.127.0-dev')
 local known={0,7,6,4,4,8,0,6,2,0,5,9}
 local r=np.random.default_rng(42)
 local a=r:integers(0,10,12)

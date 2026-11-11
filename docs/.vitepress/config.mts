@@ -35,6 +35,7 @@ const pages = [
     ['Vandermonde matrices', 'Matrices de Vandermonde', 'vander'],
     ['Identity matrices', 'Matrices identidad', 'eye'],
     ['Diagonal indices', 'Índices diagonales', 'diag_indices'],
+    ['Callback masks', 'Máscaras con callbacks', 'mask_indices'],
     ['Fill a diagonal', 'Rellenar una diagonal', 'fill_diagonal'],
     ['Kronecker product', 'Producto de Kronecker', 'kron'],
     ['Tensor contractions', 'Contracciones tensoriales', 'tensordot'],
@@ -81,7 +82,7 @@ export default defineConfig({
         nav: [
           { text: 'Guide', link: '/getting-started' },
           { text: 'Reference', link: '/creation' },
-          { text: '0.126.0-dev', link: `${repo}/releases/tag/v0.126.0-dev` },
+          { text: '0.127.0-dev', link: `${repo}/releases/tag/v0.127.0-dev` },
         ],
         sidebar: sidebar(),
       },
@@ -92,7 +93,7 @@ export default defineConfig({
         nav: [
           { text: 'Guía', link: '/es/getting-started' },
           { text: 'Referencia', link: '/es/creation' },
-          { text: '0.126.0-dev', link: `${repo}/releases/tag/v0.126.0-dev` },
+          { text: '0.127.0-dev', link: `${repo}/releases/tag/v0.127.0-dev` },
         ],
         sidebar: sidebar(true),
         outline: { label: 'En esta página', level: [2, 3] },

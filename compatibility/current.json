@@ -1,11 +1,11 @@
 {
-  "version": "0.126.0-dev",
+  "version": "0.127.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "tensordot_parity_eligible": 22461
+    "callback_masks": 2551
   },
-  "new_lua_regression_checks": 34,
+  "new_lua_regression_checks": 35,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -13,21 +13,22 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.tensordot": "implemented_partial",
-    "numpy.dot": "implemented_partial"
+    "numpy.mask_indices": "implemented_partial"
   },
   "evidence": [
     "tests/native/test_matrix_core.c",
     "tests/lua/matrix_regression.lua",
     "tests/lua/trace_regression.lua",
     "compatibility/numpy-source.sha256",
-    "tests/lua/tensordot_regression.lua",
-    "docs/tensordot.md"
+    "lua/luaray.lua",
+    "lua/luaray/masking.lua",
+    "tests/lua/mask_indices_regression.lua",
+    "docs/mask_indices.md"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 373,
-    "missing_bindings": 301,
+    "available_callables": 374,
+    "missing_bindings": 300,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -98,12 +99,15 @@
     "Tensordot adapts positive axes to one-based Lua integers and returns typed rank-zero arrays. Negative count means no contraction. Python iterable/subclass protocols remain unsupported.",
     "Tensordot has154 executed object-result cases explicitly blocked, excluded from parity-eligible counts. BLAS result zero signs are not certified across vendors:44 observed sign differences; input zero signs and non-BLAS result zeros remain exact.",
     "General random contraction tolerances are absolute+relative3e-6 for float32/complex64 and2e-12 for wider float/complex types; exact ordinary nonzero values and metadata are separate.",
-    "Legacy timedelta dot uses raw int64 wrapping after common-unit conversion and treats NaT as raw bits, matching arraytypes.c.src rather than ordinary duration multiplication."
+    "Legacy timedelta dot uses raw int64 wrapping after common-unit conversion and treats NaT as raw bits, matching arraytypes.c.src rather than ordinary duration multiplication.",
+    "Mask_indices is a Lua composition over native kernels. It accepts ordinary sequence callback results through asarray and ignores extra callback returns. Numeric one-based coordinates and Lua nil/callable conventions are explicit adaptations.",
+    "Mask_indices preserves the source ndarray rich-comparison behavior for strings and datetime rather than incorrectly substituting their boolean cast. Callback scalar results remain invalid; full object and foreign dispatch protocols are unavailable."
   ],
   "sanitizers": {
-    "version": "0.126.0-dev",
+    "version": "0.127.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
+      "ln_condition",
       "ln_dot",
       "ln_matrix",
       "ln_linalg",
@@ -122,16 +126,8 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.126.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.127.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact tested input states, metadata, ownership and ordinary nonzero results; bounded general floating contraction errors and counted BLAS zero-sign differences.154 object-result cases are blocked, not compatible.",
-  "new_reference_checks": 2304132,
-  "new_executed_cases": 22615,
-  "new_blocked_cases": {
-    "object_result_dtype": 154
-  },
-  "new_reference_checks_scope": "Includes explicit blocked-result checks and exact input-state checks; blocked cases are not counted as compatible.",
-  "observed_blas_zero_sign_differences": 44,
-  "observed_max_absolute_error": 1.9073486328125e-06,
-  "observed_max_relative_error": 1.3520483676605e-05
+  "new_check_semantics": "Exact coordinate values after one-based adaptation, original nonzero strides/dtype, callback input/parameter state, actual advanced reads/writes and unchanged callback source arrays.",
+  "new_reference_checks": 152065
 }

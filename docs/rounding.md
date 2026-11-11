@@ -76,8 +76,8 @@ numbers. Native m*d, d*m and m/d signatures now compute in double, preserve
 temporal units, truncate finite ticks, propagate NaT and preserve masks/output
 conversions. Float16/32/64/longdouble coefficients follow the source double loop.
 Integer multiplication is supported since0.125 with a separate int64 signature.
-Integer division, timedelta ratios and complete temporal arithmetic remain
-unimplemented. See [duration scaling](temporal_scaling.md) for overflow and output behavior.
+Integer division and timedelta ratios are available since0.129. Full temporal
+arithmetic remains partially implemented. See [duration scaling](temporal_scaling.md) for overflow and output behavior.
 Out-of-range double-to-tick NaT results were audited on x86; other ABIs need
 separate certification.
 

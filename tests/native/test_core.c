@@ -208,6 +208,25 @@ int main(void){
         q[0]=1;ln_array_get_number(div,q,&dv,&iv,&isint,&e);chk(!isint&&fabs(dv-0.5)<1e-12,"true_divide value");
         ln_array_free(div);ln_array_free(sub);ln_array_free(y);ln_array_free(x);
 
+        x=ln_array_new(1,two,ln_dtype_by_name("timedelta64[h]"),0,0,&e);
+        y=ln_array_new(1,two,ln_dtype_by_name("int64"),0,0,&e);
+        ((int64_t*)x->data)[0]=INT64_MAX;((int64_t*)x->data)[1]=-7;
+        ((int64_t*)y->data)[0]=1;((int64_t*)y->data)[1]=2;
+        div=NULL;
+        const ln_array *duration_inputs[]={x,y};
+        chk(ln_ufunc_execute(ln_ufunc_by_name("true_divide"),duration_inputs,&div,NULL,&e)==0,e.message);
+        chk(div&&div->descr==x->descr,"integer duration division descriptor");
+        chk(((int64_t*)div->data)[0]==INT64_MAX&&((int64_t*)div->data)[1]==-3,"exact duration quotient and negative truncation");
+        ln_array_free(div);ln_array_free(y);
+        y=ln_array_new(1,two,ln_dtype_by_name("timedelta64[D]"),0,0,&e);
+        ((int64_t*)y->data)[0]=1;((int64_t*)y->data)[1]=0;
+        ((int64_t*)x->data)[0]=48;((int64_t*)x->data)[1]=LN_DATETIME_NAT;
+        div=NULL;duration_inputs[0]=x;duration_inputs[1]=y;
+        chk(ln_ufunc_execute(ln_ufunc_by_name("true_divide"),duration_inputs,&div,NULL,&e)==0,e.message);
+        chk(div&&div->descr->type_num==LN_DOUBLE,"duration ratio dtype");
+        chk(((double*)div->data)[0]==2&&isnan(((double*)div->data)[1]),"duration common units and NaT ratio");
+        ln_array_free(div);ln_array_free(y);ln_array_free(x);
+
         const ln_dtype *bt=ln_dtype_by_name("bool");
         x=ln_array_new(1,two,bt,0,1,&e);y=ln_array_new(1,two,bt,0,1,&e);
         e.message[0]='\0';
@@ -442,7 +461,7 @@ int main(void){
         u=ln_ufunc_by_name("add");
         chk(u&&u->nin==2&&u->nout==1&&u->nloops>=18,"add migrated registry signatures");
         u=ln_ufunc_by_name("true_divide");
-        chk(u&&u->nin==2&&u->nout==1&&u->nloops==8,"true_divide numeric and floating-timedelta signatures");
+        chk(u&&u->nin==2&&u->nout==1&&u->nloops==10,"true_divide numeric, duration scaling and ratio signatures");
         chk(u->loops[7].classes[0]->legacy_type_num==LN_TIMEDELTA && u->loops[7].classes[1]->legacy_type_num==LN_DOUBLE,"timedelta division signature preserves temporal operand class");
         u=ln_ufunc_by_name("equal");
         chk(u&&u->nin==2&&u->nout==1&&u->nloops>=20,"comparison mixed-64 registry signatures");

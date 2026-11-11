@@ -12,6 +12,14 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.129.0-dev
+
+Added Lua-native `gradient` with uniform and uneven coordinates, selectable axes,
+first/second-order endpoints, typed stencils, independent outputs and temporal
+inputs. Added exact int64 duration division and common-unit float64 duration
+ratios to native ufunc dispatch, including masks, NaT and aliased outputs.
+Added executable English/Spanish gradient guides and expanded duration reference.
+
 ## 0.128.0-dev
 
 Added Lua-native `diff` and `ediff1d` with repeated differences, one-based axes,

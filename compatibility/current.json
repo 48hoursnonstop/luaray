@@ -1,12 +1,12 @@
 {
-  "version": "0.128.0-dev",
+  "version": "0.129.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "finite_differences": 34210,
-    "join_layouts": 22194
+    "gradient": 25750,
+    "duration_division": 5274
   },
-  "new_lua_regression_checks": 35,
+  "new_lua_regression_checks": 42,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -14,24 +14,23 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.diff": "implemented_partial",
-    "numpy.ediff1d": "implemented_partial",
-    "numpy.concatenate": "implemented_partial",
-    "numpy.stack": "implemented_partial"
+    "numpy.gradient": "implemented_partial",
+    "numpy.true_divide": "implemented_partial",
+    "numpy.divide": "implemented_partial"
   },
   "evidence": [
-    "tests/native/test_matrix_core.c",
-    "tests/lua/matrix_regression.lua",
-    "tests/lua/trace_regression.lua",
-    "compatibility/numpy-source.sha256",
-    "lua/luaray/calculus.lua",
-    "tests/lua/differences_regression.lua",
-    "docs/differences.md"
+    "lua/luaray/gradient.lua",
+    "src/ln_time_scale.c",
+    "tests/native/test_core.c",
+    "tests/lua/gradient_regression.lua",
+    "docs/gradient.md",
+    "docs/temporal_scaling.md",
+    "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 376,
-    "missing_bindings": 298,
+    "available_callables": 377,
+    "missing_bindings": 297,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -107,10 +106,13 @@
     "Mask_indices preserves the source ndarray rich-comparison behavior for strings and datetime rather than incorrectly substituting their boolean cast. Callback scalar results remain invalid; full object and foreign dispatch protocols are unavailable.",
     "Diff and ediff1d use Lua options and strict one-based axes. Diff n=0 returns the original Lua input without coercion; native-max order is locally executed using stable-empty termination, not run through the enormous upstream loop.",
     "Ediff1d uses an options table for padding and retains the source dtype with same_kind validation; Boolean and padded datetime subtraction follow pinned rejection rules. Complete Python argument/subclass/foreign protocols remain unsupported.",
-    "Native concatenate/stack selects strides with the source multi-input ordering and empty-allocation rules. The trivial ufunc allocation path now accepts equally shaped contiguous multiple inputs, preserving canonical C/F singleton strides."
+    "Native concatenate/stack selects strides with the source multi-input ordering and empty-allocation rules. The trivial ufunc allocation path now accepts equally shaped contiguous multiple inputs, preserving canonical C/F singleton strides.",
+    "Gradient uses a Lua options table with one-based axes and per-axis spacings. Python variadic arguments, foreign/subclass protocols and complete warning/scalar classes remain unsupported.",
+    "Gradient floating result budgets are absolute+relative5e-3 for half,5e-6 for float32/complex64 and2e-12 for wider types. Observed new numerical errors were zero.",
+    "Integer duration true division truncates toward zero with int64 divisors, NaT/zero handling and checked output-unit conversions. Duration ratios cast to a common unit then compute float64; incompatible calendar/fixed units reject. Complete temporal arithmetic remains partial."
   ],
   "sanitizers": {
-    "version": "0.128.0-dev",
+    "version": "0.129.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_join",
@@ -133,8 +135,8 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.128.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.129.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact finite-difference values including tested signed zeros/nonfinite states, dtype, shape, strides, identity, actual writeability/backing states and concatenate/stack order across views.",
-  "new_reference_checks": 2620156
+  "new_check_semantics": "Gradient result abs+rel tolerances half5e-3, float32/complex64 5e-6, wider2e-12; observed numeric error zero. Input values, dtype, shape, strides, actual writeability and duration division state compare exactly.",
+  "new_reference_checks": 1250944
 }

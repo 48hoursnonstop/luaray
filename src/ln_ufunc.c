@@ -602,7 +602,8 @@ init_registry(void)
         }
         if(i==2){ln_time_scale_method(&arithmetic_loops[i][n++],0,0);ln_time_scale_method(&arithmetic_loops[i][n++],1,0);
             ln_time_integer_multiply_method(&arithmetic_loops[i][n++],0);ln_time_integer_multiply_method(&arithmetic_loops[i][n++],1);}
-        if(i==3)ln_time_scale_method(&arithmetic_loops[i][n++],0,1);
+        if(i==3){ln_time_scale_method(&arithmetic_loops[i][n++],0,1);
+            ln_time_integer_divide_method(&arithmetic_loops[i][n++]);ln_time_ratio_method(&arithmetic_loops[i][n++]);}
         append_ufunc(anames[i],2,1,arithmetic_loops[i],n,ares[i]);
     }
 
@@ -710,7 +711,9 @@ materialize_weak_operand(const ln_ufunc *u,const ln_ufunc_operand *operand,
      * resolved, rather than overflowing or rounding in the strong input dtype. */
     if(op==LN_OP_LOGICAL_AND||op==LN_OP_LOGICAL_OR||op==LN_OP_LOGICAL_XOR){
         dt=ln_dtype_by_num(LN_BOOL);
-    }else if(strong->descr->kind=='m'&&op==LN_OP_MULTIPLY&&
+    }else if(strong->descr->kind=='m'&&op==LN_OP_TRUE_DIVIDE&&operand->kind==LN_UFUNC_WEAK_BOOL){
+        dt=ln_dtype_by_num(LN_BOOL);
+    }else if(strong->descr->kind=='m'&&(op==LN_OP_MULTIPLY||op==LN_OP_TRUE_DIVIDE)&&
             (operand->kind==LN_UFUNC_WEAK_INT||operand->kind==LN_UFUNC_WEAK_BOOL)){
         dt=ln_dtype_by_name("int64");
     }else if(float_power){

@@ -7,7 +7,8 @@
 /* Source: NumPy2.5.3 loops.c.src TIMEDELTA_md_m_{multiply,divide} and
  * TIMEDELTA_dm_m_multiply. Floating scaling is a required round dependency.
  * Integer multiplication uses its separate int64 signature and overflow rules.
- * Timedelta ratios remain separate. NumPy BSD attribution is retained. */
+ * Integer division and duration ratios use their own loops below.
+ * NumPy BSD attribution is retained. */
 typedef struct {int temporal,divide;} operation;
 static operation operations[]={{0,0},{1,0},{0,1}};
 static void scale_loop(char **args,const ln_intp *dims,const ln_intp *strides,void *data)
@@ -93,12 +94,18 @@ void ln_time_integer_multiply_method(ln_ufunc_loop *method,int ti)
 int ln_time_scale_resolve(const ln_ufunc *u,const ln_array *const *inputs,
                           const ln_ufunc_loop **method,ln_error *err)
 {
+    if(!strcmp(u->name,"true_divide")&&inputs[0]->descr->kind=='m'&&inputs[1]->descr->kind=='m'){
+        for(size_t i=0;i<u->nloops;++i)if(u->loops[i].classes[0]==inputs[0]->descr->cls&&
+                u->loops[i].classes[1]==inputs[1]->descr->cls&&u->loops[i].classes[2]==ln_dtype_class_by_num(LN_DOUBLE)){
+            *method=&u->loops[i];return 0;
+        }
+    }
     int ti=inputs[0]->descr->kind=='m'?0:inputs[1]->descr->kind=='m'?1:-1;
     if(ti>=0&&!(ti==1&&strcmp(u->name,"true_divide")==0)){
         const ln_dtype *number=inputs[1-ti]->descr;
         const ln_dtype_class *coefficient=NULL;
         if(number->kind=='f')coefficient=ln_dtype_class_by_num(LN_DOUBLE);
-        else if(!strcmp(u->name,"multiply")&&(number->kind=='b'||number->kind=='i'||number->kind=='u'))
+        else if((number->kind=='i'||number->kind=='u'||(number->kind=='b'&&!strcmp(u->name,"multiply"))))
             coefficient=ln_dtype_by_name("int64")->cls;
         if(coefficient){
             for(size_t i=0;i<u->nloops;++i)if(u->loops[i].classes[ti]==inputs[ti]->descr->cls&&
@@ -109,4 +116,55 @@ int ln_time_scale_resolve(const ln_ufunc *u,const ln_array *const *inputs,
     }
     if(err){snprintf(err->message,sizeof err->message,"no matching temporal scaling signature");err->kind=LN_ERROR_TYPE;}
     return -1;
+}
+
+/* loops.c.src:TIMEDELTA_mq_m_divide: exact signed integer quotient,
+ * truncating toward zero. The only int64 division overflow uses NaT ticks,
+ * which are handled before division. */
+static void integer_divide_loop(char **args,const ln_intp *dims,const ln_intp *strides,void *data)
+{
+    (void)data;
+    for(ln_intp i=0;i<dims[0];++i){
+        int64_t ticks,factor,result;
+        memcpy(&ticks,args[0]+i*strides[0],8);memcpy(&factor,args[1]+i*strides[1],8);
+        result=ticks==LN_DATETIME_NAT||factor==0?LN_DATETIME_NAT:ticks/factor;
+        memcpy(args[2]+i*strides[2],&result,8);
+    }
+}
+static int preserve_completed_casts(char **args,const ln_intp *dims,const ln_intp *strides,
+        const uint8_t *mask,ln_intp mask_step,void *data,ln_error *err)
+{
+    (void)args;(void)dims;(void)strides;(void)mask;(void)mask_step;(void)data;(void)err;
+    return 1;
+}
+void ln_time_integer_divide_method(ln_ufunc_loop *method)
+{
+    method->classes[0]=method->classes[2]=ln_datetime_dtype_class(1);
+    method->classes[1]=ln_dtype_by_name("int64")->cls;
+    method->data=&integer_axes[0];method->loop=integer_divide_loop;
+    method->validate=preserve_completed_casts;method->resolve_descrs=integer_descriptors;
+}
+static void ratio_loop(char **args,const ln_intp *dims,const ln_intp *strides,void *data)
+{
+    (void)data;
+    for(ln_intp i=0;i<dims[0];++i){
+        int64_t numerator,denominator;double value;
+        memcpy(&numerator,args[0]+i*strides[0],8);memcpy(&denominator,args[1]+i*strides[1],8);
+        value=numerator==LN_DATETIME_NAT||denominator==LN_DATETIME_NAT?NAN:(double)numerator/(double)denominator;
+        memcpy(args[2]+i*strides[2],&value,8);
+    }
+}
+static int ratio_descriptors(const ln_ufunc *u,const ln_ufunc_loop *method,
+        const ln_array *const *inputs,const ln_dtype_descr **descrs,ln_error *err)
+{
+    (void)u;(void)method;
+    const ln_dtype *common=ln_common_dtype_descr(inputs[0]->descr,inputs[1]->descr);
+    if(!common){if(err){snprintf(err->message,sizeof err->message,"duration ratio units are incompatible");err->kind=LN_ERROR_TYPE;}return -1;}
+    descrs[0]=descrs[1]=common;descrs[2]=ln_dtype_by_num(LN_DOUBLE);return 0;
+}
+void ln_time_ratio_method(ln_ufunc_loop *method)
+{
+    method->classes[0]=method->classes[1]=ln_datetime_dtype_class(1);
+    method->classes[2]=ln_dtype_class_by_num(LN_DOUBLE);
+    method->loop=ratio_loop;method->resolve_descrs=ratio_descriptors;
 }

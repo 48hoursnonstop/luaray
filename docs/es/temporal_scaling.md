@@ -36,8 +36,30 @@ assert(lr.astype(divided, "int64")[2] == 1)
 Los coeficientes float16/32/64/longdouble usan el bucle double de referencia. Un
 resultado flotante no finito o fuera de rango se convierte en NaT en la plataforma
 x86 auditada. La multiplicación entera, en cambio, falla si desborda o si el producto
-coincide con el centinela NaT. Siguen pendientes la división entera, las razones entre
-duraciones y la aritmética temporal completa.
+coincide con el centinela NaT. La aritmética temporal completa sigue siendo parcial.
+
+## División entera y razones entre duraciones
+
+```lua
+local ticks = lr.array({7, -7}, "timedelta64[h]")
+local quotient = lr.true_divide(ticks, 2)
+assert(lr.astype(quotient, "int64")[1] == 3)
+assert(lr.astype(quotient, "int64")[2] == -3)
+local ratio = lr.true_divide(lr.array({1, 2}, "timedelta64[D]"),
+  lr.array({12, 24}, "timedelta64[h]"))
+assert(ratio.dtype == "float64" and ratio[1] == 2 and ratio[2] == 2)
+```
+
+Desde **0.129.0-dev**, los divisores enteros usan división int64 exacta y truncan
+hacia cero sin convertir los ticks a double. Una entrada NaT o un divisor entero
+cero produce NaT. Los divisores booleanos y complejos se rechazan. Los enteros sin
+signo siguen las reglas de conversión int64 de la referencia.
+
+Al dividir dos duraciones se convierten ambas a una unidad común y se calcula una
+razón float64. NaT produce NaN; los denominadores cero dan infinito o NaN IEEE.
+Las unidades de calendario/fijas incompatibles producen un error. Se admiten
+broadcasting, máscaras y vistas float64 de salida que comparten la entrada. Las
+conversiones de unidad conservan sus comprobaciones de rango.
 
 ## Máscaras y destinos
 

@@ -36,8 +36,29 @@ assert(lr.astype(divided, "int64")[2] == 1)
 Float16/32/64/longdouble coefficients use the upstream double loop. An out-of-range
 or nonfinite floating result becomes NaT on the audited x86 platform. This differs
 from integer multiplication, which raises on overflow or a product equal to the
-NaT sentinel. Integer division, duration ratios and complete temporal arithmetic
-remain unsupported.
+NaT sentinel. Complete temporal arithmetic remains partially implemented.
+
+## Integer division and duration ratios
+
+```lua
+local ticks = lr.array({7, -7}, "timedelta64[h]")
+local quotient = lr.true_divide(ticks, 2)
+assert(lr.astype(quotient, "int64")[1] == 3)
+assert(lr.astype(quotient, "int64")[2] == -3)
+local ratio = lr.true_divide(lr.array({1, 2}, "timedelta64[D]"),
+  lr.array({12, 24}, "timedelta64[h]"))
+assert(ratio.dtype == "float64" and ratio[1] == 2 and ratio[2] == 2)
+```
+
+Since **0.129.0-dev**, integer divisors use exact int64 division, truncating toward
+zero without converting ticks to double. NaT input or a zero integer divisor
+produces NaT. Boolean and complex divisors are rejected. Unsigned divisors follow
+the reference's int64 conversion rules.
+
+Dividing two durations first converts both to a common unit, then computes a
+float64 ratio. NaT produces NaN; zero denominators give IEEE infinity or NaN.
+Incompatible calendar/fixed units raise. Broadcasting, output masks and aliased
+float64 output views are supported. Unit conversions retain their checked bounds.
 
 ## Masks and outputs
 

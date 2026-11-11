@@ -140,7 +140,7 @@ ensure_dtype(const ln_array *src, const ln_dtype *dt, ln_array **owned,
              ln_error *err)
 {
     *owned = NULL;
-    if (src->descr->type_num == dt->type_num) return src;
+    if (src->descr == dt) return src;
     ln_array *r = cast_keeporder(src, dt, err);
     if (!r) return NULL;
     *owned = r;
@@ -161,6 +161,15 @@ static int
 scalar_dot(const char *ap, ln_intp as, const char *bp, ln_intp bs,
            char *op, ln_intp n, const ln_dtype *dt, ln_error *err)
 {
+    if(dt->type_num==LN_TIMEDELTA){
+        /* arraytypes.c.src:TIMEDELTA_dot treats ticks as raw int64, including
+         * NaT bits. Define the source's native-width wrapping without C UB. */
+        uint64_t sum=0;
+        for(ln_intp i=0;i<n;++i,ap+=as,bp+=bs){
+            uint64_t a,b;memcpy(&a,ap,8);memcpy(&b,bp,8);sum+=a*b;
+        }
+        memcpy(op,&sum,8);return 0;
+    }
     if (dt->type_num == LN_FLOAT) {
         int ia = 0, ib = 0;
         if (blas_stride(as, sizeof(float), &ia) &&
@@ -335,7 +344,7 @@ try_small_blas(const ln_array *a, const ln_array *b, ln_array *out)
 
     if (a->nd == 2 && b->nd == 2) {
         ln_intp m = a->dimensions[0], n = a->dimensions[1], p = b->dimensions[1];
-        if (m <= 1 || n <= 1 || p <= 1 || m > INT_MAX || n > INT_MAX || p > INT_MAX) return 0;
+        if (m <= 1 || n < 1 || p <= 1 || m > INT_MAX || n > INT_MAX || p > INT_MAX) return 0;
         int af = 0, bf = 0;
         if (!is_matrix_contig(a, &af) || !is_matrix_contig(b, &bf)) return 0;
         int lda = (int)(af ? a->dimensions[0] : a->dimensions[1]);
@@ -434,6 +443,11 @@ static int
 execute_dot_same_dtype(const ln_array *a, const ln_array *b, int match_dim,
                        ln_array *out, ln_error *err)
 {
+    if(out->descr->type_num!=LN_TIMEDELTA&&
+            (!ln_get_multiply_loop(out->descr->type_num)||!ln_get_add_loop(out->descr->type_num)||
+             out->descr->elsize>32)){
+        seterr(err,"dot not available for this dtype");return -1;
+    }
     if (try_small_blas(a, b, out)) return 0;
     ln_intp k = a->dimensions[a->nd - 1];
     ln_intp total = ln_array_size(out);

@@ -1821,7 +1821,9 @@ ln_linalg_tensordot(const ln_array *a, const ln_array *b,
                     const int *axes_a, const int *axes_b,
                     int naxes, ln_error *err)
 {
-    if(!a||!b||naxes<0){seterr(err,"invalid tensordot arguments");return NULL;}
+    if(!a||!b||naxes<0||naxes>LN_MAXDIMS||naxes>a->nd||naxes>b->nd||
+            (naxes&&(!axes_a||!axes_b))){seterr(err,"invalid tensordot arguments");return NULL;}
+    if(a->nd+b->nd-2*naxes>LN_MAXDIMS){seterr(err,"tensordot result exceeds the native dimension limit");return NULL;}
     uint8_t ca[LN_MAXDIMS]={0},cb[LN_MAXDIMS]={0};
     for(int i=0;i<naxes;i++){
         int aa=axes_a[i],bb=axes_b[i];

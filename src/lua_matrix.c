@@ -1,6 +1,7 @@
 #include "lua_matrix.h"
 #include "lua_array_api.h"
 #include "ln_matrix.h"
+#include "ln_linalg.h"
 #include <limits.h>
 #include <string.h>
 static lua_Integer integer(lua_State *L,int index)
@@ -305,5 +306,49 @@ int ln_lua_kron(lua_State *L)
     ln_array *a=ln_lua_test_array(L,1);if(!a)a=ln_lua_legacy_array(L,1,NULL);
     ln_array *b=ln_lua_test_array(L,2);if(!b)b=ln_lua_legacy_array(L,2,NULL);
     ln_error err={0};ln_array *result=ln_matrix_kron(a,b,&err);
+    return result?ln_lua_push_array(L,result):ln_lua_fail(L,&err);
+}
+
+static int contraction_axis_list(lua_State *L,int index,int nd,int *out)
+{
+    index=lua_absindex(L,index);
+    if(lua_type(L,index)!=LUA_TTABLE){out[0]=axis(L,integer(L,index),nd);return 1;}
+    size_t length=lua_rawlen(L,index);
+    if(length>LN_MAXDIMS)return luaL_error(L,"too many contraction axes");
+    for(size_t i=0;i<length;++i){lua_geti(L,index,(lua_Integer)i+1);out[i]=axis(L,integer(L,-1),nd);lua_pop(L,1);}
+    return (int)length;
+}
+int ln_lua_tensordot(lua_State *L)
+{
+    int top=lua_gettop(L),index=3,aa[LN_MAXDIMS],bb[LN_MAXDIMS],count=2;
+    if(top<2||top>3)return luaL_error(L,"tensordot accepts two inputs and optional axes");
+    ln_array *a=ln_lua_test_array(L,1);if(!a)a=ln_lua_legacy_array(L,1,NULL);
+    ln_array *b=ln_lua_test_array(L,2);if(!b)b=ln_lua_legacy_array(L,2,NULL);
+    if(top==3&&lua_type(L,3)==LUA_TTABLE&&lua_rawlen(L,3)==0){
+        lua_pushnil(L);
+        while(lua_next(L,3)){
+            size_t n=0;const char *key=lua_type(L,-2)==LUA_TSTRING?lua_tolstring(L,-2,&n):NULL;
+            if(!key||n!=4||memcmp(key,"axes",4))return luaL_error(L,"unknown tensordot option");
+            lua_pop(L,1);
+        }
+        lua_getfield(L,3,"axes");index=lua_gettop(L);
+    }
+    if(top==3&&lua_type(L,index)!=LUA_TNIL){
+        if(lua_type(L,index)==LUA_TTABLE){
+            if(lua_rawlen(L,index)!=2)return luaL_error(L,"axes must contain two axis lists or integers");
+            lua_geti(L,index,1);count=contraction_axis_list(L,-1,a->nd,aa);lua_pop(L,1);
+            lua_geti(L,index,2);int second=contraction_axis_list(L,-1,b->nd,bb);lua_pop(L,1);
+            if(count!=second)return luaL_error(L,"contraction axis lists must have equal length");
+            goto execute;
+        }
+        lua_Integer requested=integer(L,index);
+        if(requested<0)requested=0;
+        if(requested>a->nd||requested>b->nd)return luaL_error(L,"axes exceeds input dimensions");
+        count=(int)requested;
+    }
+    if(count>a->nd||count>b->nd)return luaL_error(L,"axes exceeds input dimensions");
+    for(int i=0;i<count;++i){aa[i]=a->nd-count+i;bb[i]=i;}
+ execute:
+    ln_error err={0};ln_array *result=ln_linalg_tensordot(a,b,aa,bb,count,&err);
     return result?ln_lua_push_array(L,result):ln_lua_fail(L,&err);
 }

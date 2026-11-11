@@ -37,14 +37,14 @@ Los generadores recientes usan NumPy 2.5.3; los anteriores conservan su atribuci
 NumPy 2.3.5.
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 372 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 373 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.125.0-dev** aprobó **55 suites nativas**, **95 suites Lua**, siete ejemplos
-y 78 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.126.0-dev** aprobó **55 suites nativas**, **96 suites Lua**, siete ejemplos
+y 86 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -67,7 +67,9 @@ El relleno diagonal aprobó **29,960 casos / 1,292,460 comprobaciones exactas**,
 
 Kronecker y duraciones enteras aprobaron **13,776 casos / 1,018,781 comprobaciones**. Los productos complejos64 aleatorios usan tolerancia relativa3e-7; los tipos más anchos,3e-15. El error observado fue cero. Las duraciones cubren NaT, coeficientes, máscaras, conversión de unidades, escrituras previas al error y límites de buffer. En **176 fallos de conversión con buffer**, NumPy produjo sufijos no inicializados variables: solo se comparan el prefijo definido y los metadatos completos. Las observaciones se publican como archivo separado.
 
-La auditoría dirigida ASan/UBSan instrumentó `ln_matrix`, `ln_linalg`, `lua_matrix`
+Tensordot ejecutó **22,615 casos / 2,304,132 comprobaciones**: **22,461 casos aptos para comparación** y **154 resultados object bloqueados explícitamente**. Las contracciones aleatorias usan tolerancia absoluta+relativa3e-6 para float32/complex64 y2e-12 para tipos más anchos. Los máximos observados fueron absoluto1.9073486328125e-6 y relativo1.3520483676605e-5. Se aceptan ambos signos de cero en resultados BLAS, con44 diferencias observadas; los ceros de entradas y resultados no BLAS siguen siendo exactos. Se verificaron el límite de rango nativo y las unidades/wrapping de productos de duraciones.
+
+La auditoría dirigida ASan/UBSan instrumentó `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`
 `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi` y `ln_datetime`, además de la prueba nativa de matrices y el runner Lua. Aprobaron
 las regresiones y el corpus nuevo. Las demás dependencias no estaban completamente
 instrumentadas y la detección de fugas estaba desactivada. El alcance es dirigido;

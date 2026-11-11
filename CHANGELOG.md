@@ -12,6 +12,14 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.126.0-dev
+
+Added root `tensordot` with one-based arbitrary axis pairs, ordinary Lua inputs,
+negative/zero counts and typed scalar results. Guarded native contraction shape
+buffers against results above64 dimensions. Fixed common-unit conversion in dot,
+added legacy raw-tick timedelta dot and rejected unsupported empty-result dtypes.
+Added executable EN/ES guides and explicit BLAS/object-dtype comparison limits.
+
 ## 0.125.0-dev
 
 Added `kron` with strong-array coercion, interleaved axes, typed multiplication,

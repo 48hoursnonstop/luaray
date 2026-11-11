@@ -1,12 +1,11 @@
 {
-  "version": "0.125.0-dev",
+  "version": "0.126.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy 2.5.3",
   "new_reference_cases": {
-    "kron_and_integer_scalar_edges": 8242,
-    "integer_duration_outputs_and_masks": 5534
+    "tensordot_parity_eligible": 22461
   },
-  "new_lua_regression_checks": 30,
+  "new_lua_regression_checks": 34,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -14,23 +13,21 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.kron": "implemented_partial",
-    "numpy.multiply": "implemented_partial",
-    "numpy.ndarray.astype": "implemented_partial"
+    "numpy.tensordot": "implemented_partial",
+    "numpy.dot": "implemented_partial"
   },
   "evidence": [
     "tests/native/test_matrix_core.c",
     "tests/lua/matrix_regression.lua",
     "tests/lua/trace_regression.lua",
     "compatibility/numpy-source.sha256",
-    "tests/lua/kron_regression.lua",
-    "docs/kron.md",
-    "docs/temporal_scaling.md"
+    "tests/lua/tensordot_regression.lua",
+    "docs/tensordot.md"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 372,
-    "missing_bindings": 302,
+    "available_callables": 373,
+    "missing_bindings": 301,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -97,12 +94,17 @@
     "Kron coerces both inputs to strong arrays, interleaves axes and uses C-order reshape. Scalar-right and scalar-left rank limits differ as in NumPy2.5.3; scalar results are typed rank-zero ndarrays.",
     "General kron random complex64 values use relative3e-7 and wider float/complex relative3e-15; exact ordinary values, signed zeros and metadata are separate. Observed new numerical errors were zero.",
     "Integer duration multiplication uses int64 coefficient conversion, NaT propagation and checked overflow. Completed writes, mask-run continuation and tested buffer/negative-stride traversal match references; every possible foreign/output/iterator layout is not certified.",
-    "In176 failed buffered unit-conversion cases, upstream flushes nondeterministic uninitialized suffix cells. Only defined prefix values and full metadata are compared; LuaRay preserves unwritten cells. Full suffix/exception-message parity is not claimed."
+    "In176 failed buffered unit-conversion cases, upstream flushes nondeterministic uninitialized suffix cells. Only defined prefix values and full metadata are compared; LuaRay preserves unwritten cells. Full suffix/exception-message parity is not claimed.",
+    "Tensordot adapts positive axes to one-based Lua integers and returns typed rank-zero arrays. Negative count means no contraction. Python iterable/subclass protocols remain unsupported.",
+    "Tensordot has154 executed object-result cases explicitly blocked, excluded from parity-eligible counts. BLAS result zero signs are not certified across vendors:44 observed sign differences; input zero signs and non-BLAS result zeros remain exact.",
+    "General random contraction tolerances are absolute+relative3e-6 for float32/complex64 and2e-12 for wider float/complex types; exact ordinary nonzero values and metadata are separate.",
+    "Legacy timedelta dot uses raw int64 wrapping after common-unit conversion and treats NaT as raw bits, matching arraytypes.c.src rather than ordinary duration multiplication."
   ],
   "sanitizers": {
-    "version": "0.125.0-dev",
+    "version": "0.126.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
+      "ln_dot",
       "ln_matrix",
       "ln_linalg",
       "lua_matrix",
@@ -120,9 +122,16 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.125.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.126.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Defined values and states, dtype, shape, strides, identity and sharing; 48 general random kron cases use fixed numerical tolerances. In176 failed buffered unit-conversion cases only the defined prefix and metadata are certified.",
-  "new_reference_checks": 1018781,
-  "buffered_error_prefix_only_cases": 176
+  "new_check_semantics": "Exact tested input states, metadata, ownership and ordinary nonzero results; bounded general floating contraction errors and counted BLAS zero-sign differences.154 object-result cases are blocked, not compatible.",
+  "new_reference_checks": 2304132,
+  "new_executed_cases": 22615,
+  "new_blocked_cases": {
+    "object_result_dtype": 154
+  },
+  "new_reference_checks_scope": "Includes explicit blocked-result checks and exact input-state checks; blocked cases are not counted as compatible.",
+  "observed_blas_zero_sign_differences": 44,
+  "observed_max_absolute_error": 1.9073486328125e-06,
+  "observed_max_relative_error": 1.3520483676605e-05
 }

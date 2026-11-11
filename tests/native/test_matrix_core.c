@@ -1,5 +1,6 @@
 #include "ln_matrix.h"
 #include "ln_datetime.h"
+#include "ln_linalg.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -98,5 +99,10 @@ int main(void)
     int64_t cast_ticks;
     assert(ln_datetime_cast_value(-1,milliseconds,hours,&cast_ticks,&err)==0&&cast_ticks==-1);
     assert(ln_datetime_cast_value(INT64_MIN+1,milliseconds,hours,&cast_ticks,&err)<0&&err.kind==LN_ERROR_OVERFLOW);
+    ln_intp high_dims[LN_MAXDIMS];for(int d=0;d<LN_MAXDIMS;++d)high_dims[d]=1;
+    ln_array *high_rank=ln_array_new(LN_MAXDIMS,high_dims,ln_dtype_by_name("int8"),0,1,&err);assert(high_rank);
+    assert(ln_linalg_tensordot(high_rank,high_rank,NULL,NULL,0,&err)==NULL);
+    assert(ln_linalg_tensordot(high_rank,high_rank,NULL,NULL,1,&err)==NULL);
+    ln_array_free(high_rank);
     puts("matrix native: diagonal layout, shared lifetime, readonly, construction, overflow and staged trace passed");
 }

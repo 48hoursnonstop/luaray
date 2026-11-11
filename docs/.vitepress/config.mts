@@ -29,6 +29,7 @@ const pages = [
     ['Sequences and sampling', 'Secuencias y muestreo', 'sampling'],
     ['Finite differences', 'Diferencias finitas', 'differences'],
     ['Numerical gradients', 'Gradientes numéricos', 'gradient'],
+    ['Trapezoidal integration', 'Integración trapezoidal', 'integration'],
     ['FFT helpers', 'Funciones FFT', 'fft_helpers'],
     ['Vectors and grids', 'Vectores y mallas', 'vectors_and_grids'],
     ['Diagonals and matrices', 'Diagonales y matrices', 'matrices'],
@@ -84,7 +85,7 @@ export default defineConfig({
         nav: [
           { text: 'Guide', link: '/getting-started' },
           { text: 'Reference', link: '/creation' },
-          { text: '0.129.0-dev', link: `${repo}/releases/tag/v0.129.0-dev` },
+          { text: '0.130.0-dev', link: `${repo}/releases/tag/v0.130.0-dev` },
         ],
         sidebar: sidebar(),
       },
@@ -95,7 +96,7 @@ export default defineConfig({
         nav: [
           { text: 'Guía', link: '/es/getting-started' },
           { text: 'Referencia', link: '/es/creation' },
-          { text: '0.129.0-dev', link: `${repo}/releases/tag/v0.129.0-dev` },
+          { text: '0.130.0-dev', link: `${repo}/releases/tag/v0.130.0-dev` },
         ],
         sidebar: sidebar(true),
         outline: { label: 'En esta página', level: [2, 3] },

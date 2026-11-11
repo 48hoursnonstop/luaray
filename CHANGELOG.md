@@ -12,6 +12,13 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.130.0-dev
+
+Added Lua-native `trapezoid` over native typed differences, arithmetic and
+reductions. Supports coordinate/spacing arrays, axes and broadcasting, preserved
+integer operation order, duration units/NaT and typed rank-zero results. Added
+maintained regressions and executable English/Spanish integration guides.
+
 ## 0.129.0-dev
 
 Added Lua-native `gradient` with uniform and uneven coordinates, selectable axes,

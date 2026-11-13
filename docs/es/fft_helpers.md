@@ -1,15 +1,15 @@
 # Frecuencias FFT, desplazamiento de espectros y transformadas hermitianas
 
-`np.fft` utiliza arrays nativos de LuaRay, auxiliares C y PocketFFT C++ incluido.
+`lr.fft` utiliza arrays nativos de LuaRay, auxiliares C y PocketFFT C++ incluido.
 Python/NumPy solo intervienen como referencia durante el desarrollo.
 
 ```lua
-local np = require('luaray')
-local frecuencias = np.fft.fftfreq(4, 0.5) -- {0, .5, -1, -.5}
-local centrado = np.fft.fftshift(frecuencias)
-local original = np.fft.ifftshift(centrado)
-local espectro = np.fft.hfft({1, 2, 3}) -- {8, -2, 0, -2}
-local muestras = np.fft.ihfft(espectro)
+local lr = require('luaray')
+local frecuencias = lr.fft.fftfreq(4, 0.5) -- {0, .5, -1, -.5}
+local centrado = lr.fft.fftshift(frecuencias)
+local original = lr.fft.ifftshift(centrado)
+local espectro = lr.fft.hfft({1, 2, 3}) -- {8, -2, 0, -2}
+local muestras = lr.fft.ihfft(espectro)
 ```
 
 ## Frecuencias
@@ -57,9 +57,9 @@ invertida para producir un espectro real. `ihfft` combina rfft con conjugación
 final. Admiten estas formas:
 
 ```lua
-np.fft.hfft(a, {n=8, axis=-1, norm='ortho', out=destino})
-np.fft.ihfft(a, 8, -1, 'backward', destino)
-np.fft.fft(a, nil, 1, 'forward') -- nil n conserva los argumentos siguientes
+lr.fft.hfft(a, {n=8, axis=-1, norm='ortho', out=destino})
+lr.fft.ihfft(a, 8, -1, 'backward', destino)
+lr.fft.fft(a, nil, 1, 'forward') -- nil n conserva los argumentos siguientes
 ```
 
 Opciones: n, axis, norm y out. El eje predeterminado es el último. hfft usa

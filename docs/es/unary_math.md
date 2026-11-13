@@ -27,17 +27,17 @@ hay bucles para cadenas, datetime/timedelta, objetos ni tipos estructurados.
 ## Uso desde Lua
 
 ```lua
-local np = require('luaray')
-local values = np.array({-2.5, -0.5, 0.5, 2.5}, 'float32')
-local rounded = np.rint(values) -- {-2, -0, 0, 2}, float32
-local angles = np.deg2rad({0, 90, 180})
-local scalar = np.square(3) -- ndarray de rango cero, int64 con valor 9
+local lr = require('luaray')
+local values = lr.array({-2.5, -0.5, 0.5, 2.5}, 'float32')
+local rounded = lr.rint(values) -- {-2, -0, 0, 2}, float32
+local angles = lr.deg2rad({0, 90, 180})
+local scalar = lr.square(3) -- ndarray de rango cero, int64 con valor 9
 print(scalar:tolist())
 
-local out = np.full({4}, 99, 'float64')
-local same = np.ceil(values, {
+local out = lr.full({4}, 99, 'float64')
+local same = lr.ceil(values, {
   out = out,
-  where = np.array({true, false, true, false}, 'bool'),
+  where = lr.array({true, false, true, false}, 'bool'),
 })
 assert(rawequal(same, out)) -- {-2, 99, 1, 99}
 ```
@@ -52,7 +52,7 @@ temporal y escritura posterior; las pruebas comprueban cambios reales y respaldo
 
 El punto de entrada unario compartido también acepta números, booleanos,
 complejos y tablas rectangulares en operaciones existentes como sin, sqrt e
-isnan. La conversión sigue `np.array` y conserva sus limitaciones. Las opciones
+isnan. La conversión sigue `lr.array` y conserva sus limitaciones. Las opciones
 se analizan antes de que la conversión añada temporales a la pila Lua.
 Los resultados siempre son ndarrays con tipo explícito, incluso para escalares;
 esta es una adaptación de los objetos escalares devueltos por NumPy.

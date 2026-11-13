@@ -27,17 +27,17 @@ datetime/timedelta, object and structured arrays have no registered loop here.
 ## Calling from Lua
 
 ```lua
-local np = require('luaray')
-local values = np.array({-2.5, -0.5, 0.5, 2.5}, 'float32')
-local rounded = np.rint(values) -- {-2, -0, 0, 2}, float32
-local angles = np.deg2rad({0, 90, 180})
-local scalar = np.square(3) -- typed 0-D ndarray, int64 value 9
+local lr = require('luaray')
+local values = lr.array({-2.5, -0.5, 0.5, 2.5}, 'float32')
+local rounded = lr.rint(values) -- {-2, -0, 0, 2}, float32
+local angles = lr.deg2rad({0, 90, 180})
+local scalar = lr.square(3) -- typed 0-D ndarray, int64 value 9
 print(scalar:tolist())
 
-local out = np.full({4}, 99, 'float64')
-local same = np.ceil(values, {
+local out = lr.full({4}, 99, 'float64')
+local same = lr.ceil(values, {
   out = out,
-  where = np.array({true, false, true, false}, 'bool'),
+  where = lr.array({true, false, true, false}, 'bool'),
 })
 assert(rawequal(same, out)) -- {-2, 99, 1, 99}
 ```
@@ -52,7 +52,7 @@ safe temporary output and writeback; input and backing-array states are tested.
 
 The shared unary entry point now accepts ordinary Lua numbers, booleans,
 complex values and rectangular tables for existing operations such as sin,
-sqrt and isnan too. Coercion follows `np.array` and retains its limitations.
+sqrt and isnan too. Coercion follows `lr.array` and retains its limitations.
 Options are parsed before coercion pushes temporary arrays onto the Lua stack.
 Results remain typed ndarrays, including rank-zero inputs; unlike NumPy's
 scalar return objects, they preserve their dtype explicitly inside the Lua API.

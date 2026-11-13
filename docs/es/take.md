@@ -1,20 +1,20 @@
 # Extracción por índices: take
 
-LuaRay 0.100.0-dev implementa `np.take` y `ndarray:take` en su motor C nativo.
+LuaRay 0.100.0-dev implementa `lr.take` y `ndarray:take` en su motor C nativo.
 Python solo se utiliza durante el desarrollo para generar referencias.
 
 ```lua
-local np = require('luaray')
-local a = np.array({{1,2,3},{4,5,6}}, 'int32')
+local lr = require('luaray')
+local a = lr.array({{1,2,3},{4,5,6}}, 'int32')
 local extremos = a:take({1,-1}, {axis=2}) -- {{1,3},{4,6}}
-local ultimo = np.take(a, -1)           -- 6, aplanado en orden C
-local out = np.zeros({2,3}, 'float64')
-assert(np.take(a, {-1,1}, {axis=1,out=out}) == out)
+local ultimo = lr.take(a, -1)           -- 6, aplanado en orden C
+local out = lr.zeros({2,3}, 'float64')
+assert(lr.take(a, {-1,1}, {axis=1,out=out}) == out)
 ```
 
 ## Firma y coordenadas
 
-`np.take(input, indices [, axis_or_options])` e
+`lr.take(input, indices [, axis_or_options])` e
 `input:take(indices [, axis_or_options])` comparten implementación. El tercer
 argumento admite un eje o una tabla con `axis`, `mode` y `out`. Sin eje, o con
 nil/false, se aplana la entrada en orden C. Ejes e índices positivos empiezan

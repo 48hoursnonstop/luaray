@@ -18,3 +18,5 @@ npm run dev
 Node.js is needed only to work on the documentation website. The numerical
 library keeps its native build dependencies. Generated site files and dependencies
 are ignored by Git; GitHub Actions builds and deploys the site to Pages.
+
+Lua examples use `local lr = require("luaray")` consistently with the project README.

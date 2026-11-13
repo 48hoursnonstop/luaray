@@ -7,11 +7,11 @@ cadenas de ancho fijo y promoción booleana. No necesita Python en ejecución.
 ## Residuos y potencias
 
 ```lua
-local np = require('luaray')
-assert(np.fmod(-5, 3):tolist() == -2)
-assert(np.remainder(-5, 3):tolist() == 1)
-assert(np.float_power(2, -3):tolist() == 0.125)
-local huge = np.float_power(np.array({2}, 'int8'), 300)
+local lr = require('luaray')
+assert(lr.fmod(-5, 3):tolist() == -2)
+assert(lr.remainder(-5, 3):tolist() == 1)
+assert(lr.float_power(2, -3):tolist() == 0.125)
+local huge = lr.float_power(lr.array({2}, 'int8'), 300)
 assert(huge.dtype == 'float64') -- promueve antes de convertir el exponente
 ```
 
@@ -32,14 +32,14 @@ nativos de potencia con una resolución distinta de `power`.
 ## Entradas Lua ordinarias
 
 ```lua
-local sum = np.add({1,2,3}, 2) -- {3,4,5}
-local broadcast = np.multiply({{1},{2}}, {10,20,30}) -- forma {2,3}
-local scalar = np.add(1, 2) -- ndarray int64 de rango cero
+local sum = lr.add({1,2,3}, 2) -- {3,4,5}
+local broadcast = lr.multiply({{1},{2}}, {10,20,30}) -- forma {2,3}
+local scalar = lr.add(1, 2) -- ndarray int64 de rango cero
 print(scalar:tolist()) -- 3
 
-local out = np.full({3}, 99, 'float64')
-assert(rawequal(np.fmod({5,6,7}, 3, {
-  out=out, where=np.array({true,false,true}),
+local out = lr.full({3}, 99, 'float64')
+assert(rawequal(lr.fmod({5,6,7}, 3, {
+  out=out, where=lr.array({true,false,true}),
 }), out)) -- {2,99,1}
 ```
 
@@ -62,10 +62,10 @@ se calculan mediante temporales seguros.
 ## Cadenas de ancho fijo
 
 ```lua
-assert(np.add('λ', '🙂'):tolist() == 'λ🙂')
-local a = np.array({'a\0b', 'x\0'}, 'S4')
-local b = np.array({'c', 'y'}, 'S4')
-local c = np.add(a, b) -- |S8: {'a\0bc', 'xy'}
+assert(lr.add('λ', '🙂'):tolist() == 'λ🙂')
+local a = lr.array({'a\0b', 'x\0'}, 'S4')
+local b = lr.array({'c', 'y'}, 'S4')
+local c = lr.add(a, b) -- |S8: {'a\0bc', 'xy'}
 ```
 
 La suma tiene firmas S+S y U+U. El ancho de salida suma los anchos declarados;

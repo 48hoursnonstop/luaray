@@ -1,6 +1,6 @@
 # Clipping values
 
-LuaRay 0.114.0-dev implements `np.clip(a, lower, upper, options)` and
+LuaRay 0.114.0-dev implements `lr.clip(a, lower, upper, options)` and
 `a:clip(lower, upper, options)` with a native fused, three-input uniform kernel.
 A missing or `nil` bound is open. The options table supports `out` and `where`;
 alternatively pass the output ndarray directly, followed by an optional mask.
@@ -8,12 +8,12 @@ Unknown options and embedded-NUL option names raise errors. Ordinary Lua inputs
 use the existing constructor; scalar results are typed rank-zero ndarrays.
 
 ```lua
-local np = require('luaray')
-local a = np.array({-2, 0, 4}, 'float32')
-assert(np.clip(a, 0, 3):tolist()[3] == 3)
-local out = np.full({3}, 7, 'float32')
+local lr = require('luaray')
+local a = lr.array({-2, 0, 4}, 'float32')
+assert(lr.clip(a, 0, 3):tolist()[3] == 3)
+local out = lr.full({3}, 7, 'float32')
 assert(rawequal(a:clip(nil, 2, {
-  out = out, where = np.array({true, false, true})
+  out = out, where = lr.array({true, false, true})
 }), out))
 assert(out:tolist()[2] == 7)
 ```

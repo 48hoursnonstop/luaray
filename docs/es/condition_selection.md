@@ -5,25 +5,25 @@ Un módulo C administra las coordenadas y reutiliza el motor take verificado.
 La ejecución utiliza Lua/C/C++, sin Python.
 
 ```lua
-local np = require('luaray')
-local a = np.array({{0,2,0},{3,0,4}}, 'int32')
+local lr = require('luaray')
+local a = lr.array({{0,2,0},{3,0,4}}, 'int32')
 local coordenadas = a:nonzero()
 -- coordenadas[1]: {1,2,2}; coordenadas[2]: {2,1,3}
 local seleccion = a:get(table.unpack(coordenadas)) -- {2,3,4}
-local posiciones = np.flatnonzero(a)             -- {2,4,6}
+local posiciones = lr.flatnonzero(a)             -- {2,4,6}
 local columnas = a:compress({true,false,true}, {axis=2})
 -- {{0,0},{3,4}}
 ```
 
 ## nonzero y flatnonzero
 
-`np.nonzero(input)` e `input:nonzero()` devuelven una **tabla Lua de ndarrays**,
+`lr.nonzero(input)` e `input:nonzero()` devuelven una **tabla Lua de ndarrays**,
 uno por eje. Utiliza `table.unpack` para pasarlos como índices avanzados separados.
 Las posiciones empiezan en **1** y se enumeran en orden C, incluso para entradas
 transpuestas o invertidas. La tupla de NumPy se adapta a una tabla Lua y sus
 coordenadas al modelo de índices Lua.
 
-Nonzero rechaza entradas de cero dimensiones. `np.flatnonzero(input)` utiliza
+Nonzero rechaza entradas de cero dimensiones. `lr.flatnonzero(input)` utiliza
 posiciones aplanadas C y devuelve un ndarray entero, incluso para escalares.
 Un escalar no nulo produce `{1}`; cero produce un array vacío.
 
@@ -36,7 +36,7 @@ strides observables hasta rango 64.
 
 ## compress
 
-`np.compress(condition, input [, axis_or_options])` e
+`lr.compress(condition, input [, axis_or_options])` e
 `input:compress(condition [, axis_or_options])` seleccionan secciones de un eje.
 El tercer argumento admite un eje o `{axis=...,out=...}`. Sin eje, o con
 nil/false, se aplana la fuente en orden C. Los ejes positivos empiezan en 1;
@@ -57,7 +57,7 @@ que las vistas compartidas utilizan las posiciones de selección originales.
 
 ## extract
 
-`np.extract(condition, input)` aplana ambos operandos en orden C y devuelve una
+`lr.extract(condition, input)` aplana ambos operandos en orden C y devuelve una
 copia unidimensional de los valores seleccionados. La condición admite cualquier
 rango compatible, incluido cero. No acepta eje ni out. Se permite una cola falsa
 extra; una posición seleccionada fuera de la fuente produce un error. Una

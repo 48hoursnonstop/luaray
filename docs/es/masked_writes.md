@@ -4,7 +4,7 @@ LuaRay 0.99 corrige `copyto` y `putmask`, incorporados en 0.97. Consulta tambié
 la [guía de índices y selección](writing.md). La ejecución sigue usando Lua y
 bibliotecas nativas; Python/NumPy solo son referencias de desarrollo.
 
-## `np.copyto(destination, source, casting, where)`
+## `lr.copyto(destination, source, casting, where)`
 
 El origen admite ndarray, tabla rectangular o escalar y se expande al destino.
 Se retiran dimensiones unitarias iniciales sobrantes. `casting` usa `same_kind`
@@ -13,9 +13,9 @@ para conservar el valor predeterminado al indicar `where`. `same_value` no es
 un modo copyto admitido por la versión NumPy fijada. Devuelve `nil`.
 
 ```lua
-local np = require('luaray')
-local matrix = np.zeros({3,4}, 'float32')
-np.copyto(matrix, 1.5, 'no', {1,0,1,0})
+local lr = require('luaray')
+local matrix = lr.zeros({3,4}, 'float32')
+lr.copyto(matrix, 1.5, 'no', {1,0,1,0})
 assert(matrix:get(1,1) == 1.5 and matrix:get(1,2) == 0)
 ```
 
@@ -55,7 +55,7 @@ de solo lectura fallan; dimensión cero sigue la asignación escalar. Convertir
 arrays complejos a datetime/timedelta con `unsafe` usa la parte real y produce
 NaT si no es finita o queda fuera de rango.
 
-## `np.putmask(destination, mask, values)`
+## `lr.putmask(destination, mask, values)`
 
 Todo se aplana en orden lógico C. El destino debe ser escribible y la máscara
 debe tener igual número de elementos, sin exigir la misma forma. Las máscaras
@@ -66,8 +66,8 @@ Los valores avanzan según **la posición del destino**, incluso cuando la másc
 es falsa. En `place` solo avanzan en posiciones elegidas:
 
 ```lua
-local a = np.arange(4, 'int32')
-np.putmask(a, {1,0,1,0}, {9,8}) -- {9,1,9,3}
+local a = lr.arange(4, 'int32')
+lr.putmask(a, {1,0,1,0}, {9,8}) -- {9,1,9,3}
 ```
 
 Los valores ndarray requieren conversión segura. Las tablas/escalares Lua se

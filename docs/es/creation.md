@@ -6,22 +6,22 @@ vida de los objetos. Python solo proporciona referencias de desarrollo; los
 casts y copyto existentes realizan conversión y llenado.
 
 ```lua
-local np = require('luaray')
-local a = np.array({{1,2,3},{4,5,6}}, 'int32')
-assert(np.asarray(a) == a)
+local lr = require('luaray')
+local a = lr.array({{1,2,3},{4,5,6}}, 'int32')
+assert(lr.asarray(a) == a)
 local independiente = a:copy()
 independiente:set(99, 1, 1) -- primero valor; a no cambia
-local vista = np.array(a, {copy=false, ndmin=3})
-local lleno = np.full_like(a, 7, {dtype='float32', shape={3,2}, order='F'})
-local finito = np.asarray_chkfinite({1,2,3})
+local vista = lr.array(a, {copy=false, ndmin=3})
+local lleno = lr.full_like(a, 7, {dtype='float32', shape={3,2}, order='F'})
+local finito = lr.asarray_chkfinite({1,2,3})
 ```
 
 ## Firmas Lua
 
 Las conversiones aceptan entrada, un dtype opcional o tabla de opciones y otra
 tabla opcional después del dtype posicional. Por ejemplo:
-`np.asarray(a, 'float32', {order='C'})` o
-`np.asarray(a, {dtype='float32', order='C'})`.
+`lr.asarray(a, 'float32', {order='C'})` o
+`lr.asarray(a, {dtype='float32', order='C'})`.
 
 | Función | Opciones | Valores predeterminados |
 | --- | --- | --- |
@@ -35,7 +35,7 @@ tabla opcional después del dtype posicional. Por ejemplo:
 | empty / zeros / ones | dtype, order | float64, C |
 | full | dtype, order; valor tras forma | dtype del valor, C |
 
-También se aceptan `np.copy(a, 'F')` y `a:copy('F')`. La forma puede ser entero
+También se aceptan `lr.copy(a, 'F')` y `a:copy('F')`. La forma puede ser entero
 Lua o tabla de dimensiones; `{}` significa escalar. Los constructores like
 admiten shape en opciones. empty/zeros/ones/full solo aceptan C/F. Se rechazan
 opciones desconocidas, duplicadas o inválidas. No se implementan device/like,
@@ -79,11 +79,11 @@ complejos y ticks temporales. ones/ones_like y full/full_like usan copyto unsafe
 Los valores se difunden a la forma pedida. full sin dtype materializa primero
 el valor para inferir tipo; los like usan el tipo del prototipo salvo override.
 
-Un escalar débil300 no cabe en uint8 y `np.full(2,300,'uint8')` falla. Un valor
+Un escalar débil300 no cabe en uint8 y `lr.full(2,300,'uint8')` falla. Un valor
 fuerte sí usa conversión array:
 
 ```lua
-local resultado = np.full(2, np.array(300, 'int64'), 'uint8') -- {44,44}
+local resultado = lr.full(2, lr.array(300, 'int64'), 'uint8') -- {44,44}
 ```
 
 La distinción también aplica a full_like. empty/empty_like asignan memoria sin
@@ -109,7 +109,7 @@ patrón de bits del entero mínimo. Un datetime NaT tipado sí es válido. Empaq
 escalares y convertir arrays son caminos distintos. No se reproducen todas las
 advertencias temporales ni todo el protocolo de tipos escalares Python.
 
-Se conserva la restricción histórica de np.astype/ndarray:astype LuaRay para
+Se conserva la restricción histórica de lr.astype/ndarray:astype LuaRay para
 números→datetime genérico como incompatibilidad parcial documentada. La creación
 usa su camino independiente de casts array. Las regresiones históricas se
 mantuvieron. Esto no declara equivalencia con la función raíz astype Array API

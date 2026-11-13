@@ -33,13 +33,13 @@ Para cambiar rutas de bibliotecas o flags del compilador, consulta la
 Guarda esto como `first.lua` en el checkout:
 
 ```lua
-local np = require("luaray")
+local lr = require("luaray")
 
-local temperatures = np.array({18, 21, 24}, "float64")
+local temperatures = lr.array({18, 21, 24}, "float64")
 local fahrenheit = temperatures * 1.8 + 32
 
 assert(math.abs(fahrenheit[1] - 64.4) < 1e-12)
-assert(np.mean(temperatures) == 21)
+assert(lr.mean(temperatures) == 21)
 print(fahrenheit:tolist()[1]) -- 64.4
 ```
 

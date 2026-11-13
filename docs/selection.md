@@ -1,21 +1,21 @@
 # Conditional values: where and select
 
-LuaRay 0.104.0-dev adds native `np.where` and `np.select`. Where uses the existing
+LuaRay 0.104.0-dev adds native `lr.where` and `lr.select`. Where uses the existing
 generalized ndarray iterator; select combines separate broadcasting groups and
 masked assignment. Neither executes Python at runtime.
 
 ```lua
-local np = require('luaray')
-local a = np.array({{1,2,3},{4,5,6}}, 'int32')
-local result = np.where(np.greater(a,3), a, 0)
+local lr = require('luaray')
+local a = lr.array({{1,2,3},{4,5,6}}, 'int32')
+local result = lr.where(lr.greater(a,3), a, 0)
 -- {{0,0,0},{4,5,6}}
-local piecewise = np.select({np.less(a,3), np.greater(a,4)}, {-1,9}, 0)
+local piecewise = lr.select({lr.less(a,3), lr.greater(a,4)}, {-1,9}, 0)
 -- {{-1,-1,0},{0,9,9}}
 ```
 
 ## where
 
-`np.where(condition, x, y)` broadcasts the three operands and returns a new
+`lr.where(condition, x, y)` broadcasts the three operands and returns a new
 ndarray. The dtype is resolved from x/y using supported strong/weak promotion.
 Numeric Lua scalars are weak; typed arrays retain their descriptors. Weak values
 are packed into the resolved dtype with its scalar overflow checks. A uint8
@@ -27,9 +27,9 @@ false, nonzero/nonempty strings and NaN are true. Output allocation follows
 KEEPORDER across all operands, including unselected ones. F-order inputs can
 produce F-order output; conflicting operand orders resolve in C order. Inputs
 remain unchanged. Even an all-scalar call returns a **zero-dimensional ndarray**;
-use `np.where(true,1,2):get()` to read its value.
+use `lr.where(true,1,2):get()` to read its value.
 
-`np.where(condition)` returns the same Lua table of one-based coordinate arrays
+`lr.where(condition)` returns the same Lua table of one-based coordinate arrays
 as [nonzero](condition_selection.md). A scalar condition is invalid for this
 unary form. Supplying exactly two operands is an error.
 
@@ -41,7 +41,7 @@ unselected invalid ASCII byte in an S1 operand can succeed with a U3 result
 
 ## select
 
-`np.select(conditions, choices [, default])` requires equal, nonempty sequences.
+`lr.select(conditions, choices [, default])` requires equal, nonempty sequences.
 A sequence may be a Lua table or an ndarray whose first axis enumerates its
 items. Conditions must be boolean arrays/scalars; numeric arrays are rejected.
 Choices/default determine a common dtype with supported weak scalar promotion.

@@ -14,13 +14,13 @@ FFT, linear algebra, and random number generation.
 ## A small example
 
 ```lua
-local np = require("luaray")
+local lr = require("luaray")
 
-local samples = np.array({{1, 2, 3}, {4, 5, 6}}, "float64")
-local totals = np.sum(samples, 2)
+local samples = lr.array({{1, 2, 3}, {4, 5, 6}}, "float64")
+local totals = lr.sum(samples, 2)
 assert(totals[1] == 6 and totals[2] == 15)
 
-local shifted = samples + np.array({10, 20, 30})
+local shifted = samples + lr.array({10, 20, 30})
 assert(shifted:get(2, 3) == 36)
 ```
 

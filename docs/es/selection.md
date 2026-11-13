@@ -1,21 +1,21 @@
 # Valores condicionales: where y select
 
-LuaRay 0.104.0-dev añade `np.where` y `np.select` nativos. Where utiliza el
+LuaRay 0.104.0-dev añade `lr.where` y `lr.select` nativos. Where utiliza el
 iterador general de ndarray; select combina grupos de broadcasting y escritura
 con máscara. No ejecutan Python durante el uso normal.
 
 ```lua
-local np = require('luaray')
-local a = np.array({{1,2,3},{4,5,6}}, 'int32')
-local resultado = np.where(np.greater(a,3), a, 0)
+local lr = require('luaray')
+local a = lr.array({{1,2,3},{4,5,6}}, 'int32')
+local resultado = lr.where(lr.greater(a,3), a, 0)
 -- {{0,0,0},{4,5,6}}
-local tramos = np.select({np.less(a,3), np.greater(a,4)}, {-1,9}, 0)
+local tramos = lr.select({lr.less(a,3), lr.greater(a,4)}, {-1,9}, 0)
 -- {{-1,-1,0},{0,9,9}}
 ```
 
 ## where
 
-`np.where(condition, x, y)` aplica broadcasting a los tres operandos y devuelve
+`lr.where(condition, x, y)` aplica broadcasting a los tres operandos y devuelve
 un ndarray independiente. X/y determinan el dtype mediante las reglas fuertes/
 débiles admitidas. Los números Lua son débiles; los arrays conservan su dtype.
 Los escalares débiles se empaquetan con comprobación de rango: un array uint8
@@ -27,9 +27,9 @@ son falsos, valores no nulos/cadenas no vacías y NaN son verdaderos. El orden d
 memoria sigue KEEPORDER entre todos los operandos, incluidos los no seleccionados.
 Puede producir orden Fortran; C resuelve conflictos. No modifica las entradas.
 Una llamada con escalares también devuelve un **ndarray de cero dimensiones**;
-`np.where(true,1,2):get()` permite leer su valor.
+`lr.where(true,1,2):get()` permite leer su valor.
 
-`np.where(condition)` devuelve la tabla de coordenadas con índices desde uno de
+`lr.where(condition)` devuelve la tabla de coordenadas con índices desde uno de
 [nonzero](condition_selection.md). Esta forma rechaza condiciones escalares.
 Proporcionar exactamente dos operandos produce un error.
 
@@ -41,7 +41,7 @@ real en las referencias.
 
 ## select
 
-`np.select(conditions, choices [, default])` exige secuencias no vacías de igual
+`lr.select(conditions, choices [, default])` exige secuencias no vacías de igual
 longitud. Se admiten tablas Lua y ndarrays cuyo primer eje enumera elementos.
 Las condiciones deben ser booleanas; se rechazan arrays numéricos. Opciones y
 default resuelven el dtype común con las reglas débiles/fuertes compatibles.

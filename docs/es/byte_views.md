@@ -4,11 +4,11 @@ LuaRay0.115.0-dev añade `a:view(dtype)`, `a:tobytes(order)`, `a.itemsize` y
 `a.nbytes`. Operan sobre memoria real sin Python.
 
 ```lua
-local np = require('luaray')
-local a = np.array({1.0}, 'float32')
+local lr = require('luaray')
+local a = lr.array({1.0}, 'float32')
 local bits = a:view('uint32')
 assert(bits:tolist()[1] == 1065353216)
-assert(np.shares_memory(a, bits))
+assert(lr.shares_memory(a, bits))
 assert(a:tobytes() == string.pack('f', 1.0))
 bits:set(0, 1)
 assert(a:tolist()[1] == 0.0)

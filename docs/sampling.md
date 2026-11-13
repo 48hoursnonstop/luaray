@@ -5,12 +5,12 @@ arithmetic ufuncs and memory-layout allocator. Runtime requires Lua/native
 libraries; NumPy2.5.3 supplies development reference values only.
 
 ```lua
-local np = require('luaray')
-local samples, step = np.linspace(-1, 1, 5, {retstep=true})
+local lr = require('luaray')
+local samples, step = lr.linspace(-1, 1, 5, {retstep=true})
 -- samples: {-1, -.5, 0, .5, 1}; step: .5
-local powers = np.logspace(0, 2, 3) -- {1, 10, 100}
-local geometric = np.geomspace(-1, -16, 3) -- {-1, -4, -16}
-local rows = np.linspace(np.array({1,2}, 'float32'), 3,
+local powers = lr.logspace(0, 2, 3) -- {1, 10, 100}
+local geometric = lr.geomspace(-1, -16, 3) -- {-1, -4, -16}
+local rows = lr.linspace(lr.array({1,2}, 'float32'), 3,
                          {num=3, axis=-1})
 -- {{1,2,3}, {2,2.5,3}}, float32
 ```

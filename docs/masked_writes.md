@@ -4,7 +4,7 @@ LuaRay 0.99 corrects the native `copyto` and `putmask` behavior introduced in
 0.97. See also [indexed and selected writes](writing.md). Runtime remains Lua
 and native libraries; NumPy/Python are development references only.
 
-## `np.copyto(destination, source, casting, where)`
+## `lr.copyto(destination, source, casting, where)`
 
 `source` accepts an ndarray, rectangular Lua table or scalar and broadcasts to
 the destination. Extra leading singleton source dimensions are stripped.
@@ -14,9 +14,9 @@ the destination. Extra leading singleton source dimensions are stripped.
 Returns `nil`.
 
 ```lua
-local np = require('luaray')
-local matrix = np.zeros({3,4}, 'float32')
-np.copyto(matrix, 1.5, 'no', {1,0,1,0})
+local lr = require('luaray')
+local matrix = lr.zeros({3,4}, 'float32')
+lr.copyto(matrix, 1.5, 'no', {1,0,1,0})
 assert(matrix:get(1,1) == 1.5 and matrix:get(1,2) == 0)
 ```
 
@@ -56,7 +56,7 @@ zero-dimensional self-copy still follows scalar assignment. Unsafe complex-array
 conversion to datetime/timedelta uses the real component, with nonfinite or
 out-of-range real values producing NaT.
 
-## `np.putmask(destination, mask, values)`
+## `lr.putmask(destination, mask, values)`
 
 Operands flatten in logical C order. The destination must be writable; the mask
 must have the same element count, but need not have the same shape. Array and Lua
@@ -67,8 +67,8 @@ Values repeat by **destination position**, advancing even at false positions.
 `place` instead advances only at selected positions:
 
 ```lua
-local a = np.arange(4, 'int32')
-np.putmask(a, {1,0,1,0}, {9,8}) -- {9,1,9,3}
+local a = lr.arange(4, 'int32')
+lr.putmask(a, {1,0,1,0}, {9,8}) -- {9,1,9,3}
 ```
 
 Ndarray values require safe dtype conversion; Lua scalar/table values are packed

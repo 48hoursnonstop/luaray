@@ -1,23 +1,23 @@
 # Gathering and writing along an axis
 
-LuaRay 0.101.0-dev implements `np.take_along_axis` and `np.put_along_axis`
+LuaRay 0.101.0-dev implements `lr.take_along_axis` and `lr.put_along_axis`
 through its C ndarray and advanced-indexing engines. No Python runtime is used.
 
 ```lua
-local np = require('luaray')
-local a = np.array({{10,30,20},{60,40,50}}, 'int32')
-local order = np.argsort(a, {axis=2})
-local sorted = np.take_along_axis(a, order, 2)
+local lr = require('luaray')
+local a = lr.array({{10,30,20},{60,40,50}}, 'int32')
+local order = lr.argsort(a, {axis=2})
+local sorted = lr.take_along_axis(a, order, 2)
 -- sorted: {{10,20,30},{40,50,60}}
-np.put_along_axis(a, {{2},{1}}, 99, 2)
+lr.put_along_axis(a, {{2},{1}}, 99, 2)
 -- a: {{10,99,20},{99,40,50}}
 ```
 
 ## Signatures
 
-`np.take_along_axis(input, indices [, axis])` returns an independent ndarray.
+`lr.take_along_axis(input, indices [, axis])` returns an independent ndarray.
 The default axis is the last, matching NumPy since 2.3. An explicitly supplied
-nil or false axis selects the flat-iterator path. `np.put_along_axis(input,
+nil or false axis selects the flat-iterator path. `lr.put_along_axis(input,
 indices, values, axis)` requires that fourth argument, writes in place and
 returns nil. These are namespace functions, matching NumPy's public functions.
 
@@ -62,7 +62,7 @@ buffers remain written. Tests cover both sides of this boundary.
 
 ## Flattening and read-only views
 
-The explicit nil/false axis follows NumPy 2.5.3's `np.array(input.flat)` behavior.
+The explicit nil/false axis follows NumPy 2.5.3's `numpy.array(input.flat)` behavior.
 A C-contiguous source produces a shared flat view, preserving write permission.
 A noncontiguous source produces a **read-only copy**. Gather works on either;
 put rejects the latter, including transposed or reversed noncontiguous inputs.

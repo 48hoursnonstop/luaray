@@ -1,6 +1,6 @@
 # Recorte de valores
 
-LuaRay 0.114.0-dev incorpora `np.clip(a, inferior, superior, opciones)` y
+LuaRay 0.114.0-dev incorpora `lr.clip(a, inferior, superior, opciones)` y
 `a:clip(inferior, superior, opciones)` con un kernel nativo de tres entradas.
 `nil` deja abierto un límite. Las opciones admiten `out` y `where`; también puede
 pasarse directamente el ndarray de salida y después la máscara opcional. Las
@@ -8,11 +8,11 @@ opciones desconocidas o con NUL se rechazan. Los resultados escalares conservan
 la convención de ndarray tipado de rango cero.
 
 ```lua
-local np = require('luaray')
-local a = np.array({-2, 0, 4}, 'float32')
+local lr = require('luaray')
+local a = lr.array({-2, 0, 4}, 'float32')
 assert(a:clip(0, 3):tolist()[3] == 3)
-local out = np.full({3}, 7, 'float32')
-np.clip(a, nil, 2, {out=out, where=np.array({true,false,true})})
+local out = lr.full({3}, 7, 'float32')
+lr.clip(a, nil, 2, {out=out, where=lr.array({true,false,true})})
 assert(out:tolist()[2] == 7)
 ```
 

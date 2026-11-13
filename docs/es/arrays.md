@@ -9,8 +9,8 @@ sobre colecciones completas sin escribir bucles sobre tablas Lua.
 ## Crea un array
 
 ```lua
-local np = require("luaray")
-local a = np.array({{1, 2, 3}, {4, 5, 6}}, "float64")
+local lr = require("luaray")
+local a = lr.array({{1, 2, 3}, {4, 5, 6}}, "float64")
 
 assert(a.ndim == 2)            -- número de ejes
 assert(a.shape[1] == 2)        -- dos filas
@@ -46,23 +46,23 @@ ejes restantes. En un array unidimensional devuelve un valor.
 
 ## Selecciona un slice
 
-`np.slice(start, stop, step)` tiene un límite final **exclusivo**. Usa `nil` para
+`lr.slice(start, stop, step)` tiene un límite final **exclusivo**. Usa `nil` para
 omitir un límite y un paso negativo para recorrer al revés. Los slices básicos
 comparten memoria con el original.
 
 ```lua
-local values = np.array({10, 20, 30, 40, 50}, "int32")
-local middle = values[np.slice(2, 5)] -- {20, 30, 40}
+local values = lr.array({10, 20, 30, 40, 50}, "int32")
+local middle = values[lr.slice(2, 5)] -- {20, 30, 40}
 assert(middle.size == 3 and middle[3] == 40)
 
-local reversed = values[np.slice(nil, nil, -1)]
+local reversed = values[lr.slice(nil, nil, -1)]
 assert(reversed[1] == 50)
 reversed[1] = 99
 assert(values[5] == 99)
 ```
 
-Usa `a:get(spec1, spec2, ...)` para seleccionar en varios ejes. `np.ellipsis`
-representa los ejes restantes y `np.newaxis` añade una dimensión de longitud uno.
+Usa `a:get(spec1, spec2, ...)` para seleccionar en varios ejes. `lr.ellipsis`
+representa los ejes restantes y `lr.newaxis` añade una dimensión de longitud uno.
 
 ## Calcula elemento a elemento
 
@@ -70,8 +70,8 @@ Los operadores aritméticos actúan sobre cada elemento. Las funciones con nombr
 resuelven raíces, potencias, recortes y trigonometría.
 
 ```lua
-local x = np.array({1, 4, 9}, "float64")
-local y = np.sqrt(x) * 2
+local x = lr.array({1, 4, 9}, "float64")
+local y = lr.sqrt(x) * 2
 assert(y[1] == 2 and y[2] == 4 and y[3] == 6)
 ```
 
@@ -85,8 +85,8 @@ misma longitud o incluir una dimensión de longitud uno. Así puedes combinar
 un vector con todas las filas de una matriz:
 
 ```lua
-local matrix = np.array({{1, 2, 3}, {4, 5, 6}}, "float64")
-local offsets = np.array({10, 20, 30}, "float64")
+local matrix = lr.array({{1, 2, 3}, {4, 5, 6}}, "float64")
+local offsets = lr.array({10, 20, 30}, "float64")
 local shifted = matrix + offsets
 assert(shifted:get(1, 1) == 11)
 assert(shifted:get(2, 3) == 36)
@@ -101,10 +101,10 @@ Sin un eje, se reduce todo el array. Los ejes positivos empiezan en uno:
 el eje 1 combina filas; el eje 2 combina columnas en esta matriz.
 
 ```lua
-assert(np.sum(matrix) == 21)
-local row_totals = np.sum(matrix, 2)
+assert(lr.sum(matrix) == 21)
+local row_totals = lr.sum(matrix, 2)
 assert(row_totals[1] == 6 and row_totals[2] == 15)
-local column_totals = np.sum(matrix, 1)
+local column_totals = lr.sum(matrix, 1)
 assert(column_totals[1] == 5 and column_totals[3] == 9)
 ```
 
@@ -119,8 +119,8 @@ Usa `copy()` antes de editar si necesitas conservar el array original.
 ```lua
 local view = matrix[1]
 local independent = matrix:copy()
-assert(np.shares_memory(matrix, view))
-assert(not np.shares_memory(matrix, independent))
+assert(lr.shares_memory(matrix, view))
+assert(not lr.shares_memory(matrix, independent))
 independent:set(100, 1, 1)
 assert(matrix:get(1, 1) == 1)
 ```

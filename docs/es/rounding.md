@@ -1,20 +1,20 @@
 # Redondeo decimal
 
-LuaRay 0.113.0-dev implementa `np.round`, `np.around` y `a:round` siguiendo
+LuaRay 0.113.0-dev implementa `lr.round`, `lr.around` y `a:round` siguiendo
 calculation.c de NumPy 2.5.3. Conserva la composición real multiply/rint/divide
 y su precisión por tipo, sin sustituirla por redondeo escalar del lenguaje.
 
 ```lua
-local np = require('luaray')
-local a = np.array({1.25, 2.5}, 'float32')
+local lr = require('luaray')
+local a = lr.array({1.25, 2.5}, 'float32')
 local r = a:round(1)
-local out = np.empty({2}, 'float64')
-assert(rawequal(np.round(a, {decimals=1, out=out}), out))
-assert(np.round({15,25}, -1):tolist()[2] == 20)
+local out = lr.empty({2}, 'float64')
+assert(rawequal(lr.round(a, {decimals=1, out=out}), out))
+assert(lr.round({15,25}, -1):tolist()[2] == 20)
 ```
 
-Se admiten `np.round(input, decimals, out)`,
-`np.round(input, {decimals=...,out=...})` y el método equivalente. Decimals usa
+Se admiten `lr.round(input, decimals, out)`,
+`lr.round(input, {decimals=...,out=...})` y el método equivalente. Decimals usa
 cero por defecto y debe ser entero Lua dentro del rango int de C; también se
 aceptan booleanos como 0/1. Las entradas ordinarias usan el constructor existente
 y los escalares devuelven ndarrays de rango cero. Opciones desconocidas, claves
@@ -51,12 +51,12 @@ Las funciones raíz conservan el reintento de fromnumeric.py: un TypeError del
 método ndarray provoca un intento adicional. El método no reintenta:
 
 ```lua
-local td = np.array({1}, 'timedelta64[h]')
-assert(not pcall(np.round, td, 1, td))
-assert(np.astype(td, 'int64'):tolist()[1] == 100) -- dos multiplicaciones parciales
-local once = np.array({1}, 'timedelta64[h]')
+local td = lr.array({1}, 'timedelta64[h]')
+assert(not pcall(lr.round, td, 1, td))
+assert(lr.astype(td, 'int64'):tolist()[1] == 100) -- dos multiplicaciones parciales
+local once = lr.array({1}, 'timedelta64[h]')
 assert(not pcall(function() once:round(1, once) end))
-assert(np.astype(once, 'int64'):tolist()[1] == 10)
+assert(lr.astype(once, 'int64'):tolist()[1] == 10)
 ```
 
 Las categorías internas distinguen los errores relevantes para ese reintento;

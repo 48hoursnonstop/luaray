@@ -1,19 +1,19 @@
 # Selección entre arrays: choose
 
-LuaRay 0.102.0-dev implementa `np.choose` y `ndarray:choose` mediante un módulo
+LuaRay 0.102.0-dev implementa `lr.choose` y `ndarray:choose` mediante un módulo
 C nativo. Opciones y selectores admiten broadcasting; no utiliza Python al ejecutar.
 
 ```lua
-local np = require('luaray')
-local selector = np.array({1,2,1}, 'int64')
-local a = np.choose(selector, {{10,11,12},{20,21,22}})
+local lr = require('luaray')
+local selector = lr.array({1,2,1}, 'int64')
+local a = lr.choose(selector, {{10,11,12},{20,21,22}})
 -- {10,21,12}
 local b = selector:choose({10,20}) -- {10,20,10}
 ```
 
 ## Argumentos y modos
 
-`np.choose(selector, choices [, mode_or_options])` y
+`lr.choose(selector, choices [, mode_or_options])` y
 `selector:choose(choices [, mode_or_options])` admiten un modo o una tabla con
 `mode` y `out`. El modo predeterminado es raise. Choices es una secuencia de
 1–63 arrays/escalares o un ndarray cuyo primer eje enumera las opciones. Todos

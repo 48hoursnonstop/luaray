@@ -26,7 +26,7 @@ Available names are classified `implemented_partial`; behavior is assessed
 separately through original fixtures and release-specific contracts. The
 inventory declares zero APIs completely compatible. Missing names use
 `not_implemented` pending review; alternate Lua spellings can exist, such as
-`np.add_accumulate` for an operation exposed differently by NumPy ufunc objects.
+`lr.add_accumulate` for an operation exposed differently by NumPy ufunc objects.
 The table measures direct names in its stated scope, not all mathematical
 capabilities or overall NumPy completion.
 

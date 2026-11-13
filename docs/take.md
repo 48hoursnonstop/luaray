@@ -1,20 +1,20 @@
 # Indexed gathering: take
 
-LuaRay 0.100.0-dev implements `np.take` and `ndarray:take` in its native C engine.
+LuaRay 0.100.0-dev implements `lr.take` and `ndarray:take` in its native C engine.
 Python is used only to generate development reference fixtures.
 
 ```lua
-local np = require('luaray')
-local a = np.array({{1,2,3},{4,5,6}}, 'int32')
+local lr = require('luaray')
+local a = lr.array({{1,2,3},{4,5,6}}, 'int32')
 local ends = a:take({1,-1}, {axis=2}) -- {{1,3},{4,6}}
-local last = np.take(a, -1)          -- 6, after C-order flattening
-local out = np.zeros({2,3}, 'float64')
-assert(np.take(a, {-1,1}, {axis=1,out=out}) == out)
+local last = lr.take(a, -1)          -- 6, after C-order flattening
+local out = lr.zeros({2,3}, 'float64')
+assert(lr.take(a, {-1,1}, {axis=1,out=out}) == out)
 ```
 
 ## Signature and coordinates
 
-`np.take(input, indices [, axis_or_options])` and
+`lr.take(input, indices [, axis_or_options])` and
 `input:take(indices [, axis_or_options])` share the same implementation.
 The third argument is a positive/negative axis or a table with `axis`, `mode`
 and `out` fields. Omitted, nil or false `axis` flattens the input in C order.

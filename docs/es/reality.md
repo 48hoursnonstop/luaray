@@ -5,15 +5,15 @@ de componentes y el motor nativo de tipos/ufuncs. Python solo es un oráculo de
 desarrollo.
 
 ```lua
-local np = require('luaray')
-local z = np.array({np.complex(1,0), np.complex(2,1)}, 'complex64')
-local reales = np.isreal(z) -- {true,false}
-local complejos = np.iscomplex(z) -- {false,true}
-assert(np.iscomplexobj(z)) -- comprueba el tipo, incluso si todo imag fuera cero
-assert(not np.isrealobj(z))
-local near = np.array({np.complex(1,1e-6)}, 'complex64')
-local r = np.real_if_close(near) -- vista float32 del componente real
-np.copyto(r, 7, 'unsafe') -- cambia la parte real de near
+local lr = require('luaray')
+local z = lr.array({lr.complex(1,0), lr.complex(2,1)}, 'complex64')
+local reales = lr.isreal(z) -- {true,false}
+local complejos = lr.iscomplex(z) -- {false,true}
+assert(lr.iscomplexobj(z)) -- comprueba el tipo, incluso si todo imag fuera cero
+assert(not lr.isrealobj(z))
+local near = lr.array({lr.complex(1,1e-6)}, 'complex64')
+local r = lr.real_if_close(near) -- vista float32 del componente real
+lr.copyto(r, 7, 'unsafe') -- cambia la parte real de near
 ```
 
 `iscomplex` comprueba si cada parte imaginaria es distinta de cero; para tipos
@@ -50,7 +50,7 @@ numérico válido, formas `1-j` y espacios junto a paréntesis. Rechaza guiones
 bajos inválidos, hexadecimal/nan-payload exclusivo de C y NUL interno en cadenas
 numéricas no booleanas. Bool conserva la regla de contenido no vacío.
 La gramática Unicode completa y la independencia de locale siguen pendientes;
-no se declara equivalencia con la firma numérica restringida de np.astype raíz.
+no se declara equivalencia con la firma numérica restringida de lr.astype raíz.
 
 Las referencias x87 de precisión completa se construyen mediante ldexp, stack
 y escritura de componentes nativos: las cadenas complejas perderían precisión

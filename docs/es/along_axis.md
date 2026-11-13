@@ -1,23 +1,23 @@
 # Extracción y escritura a lo largo de un eje
 
-LuaRay 0.101.0-dev implementa `np.take_along_axis` y `np.put_along_axis` con
+LuaRay 0.101.0-dev implementa `lr.take_along_axis` y `lr.put_along_axis` con
 su motor C de ndarray e indexación avanzada. No utiliza Python en ejecución.
 
 ```lua
-local np = require('luaray')
-local a = np.array({{10,30,20},{60,40,50}}, 'int32')
-local orden = np.argsort(a, {axis=2})
-local ordenado = np.take_along_axis(a, orden, 2)
+local lr = require('luaray')
+local a = lr.array({{10,30,20},{60,40,50}}, 'int32')
+local orden = lr.argsort(a, {axis=2})
+local ordenado = lr.take_along_axis(a, orden, 2)
 -- {{10,20,30},{40,50,60}}
-np.put_along_axis(a, {{2},{1}}, 99, 2)
+lr.put_along_axis(a, {{2},{1}}, 99, 2)
 -- a: {{10,99,20},{99,40,50}}
 ```
 
 ## Firmas
 
-`np.take_along_axis(input, indices [, axis])` devuelve un ndarray independiente.
+`lr.take_along_axis(input, indices [, axis])` devuelve un ndarray independiente.
 El eje predeterminado es el último, como en NumPy desde 2.3. Un nil o false
-explícito selecciona el recorrido aplanado. `np.put_along_axis(input, indices,
+explícito selecciona el recorrido aplanado. `lr.put_along_axis(input, indices,
 values, axis)` exige el cuarto argumento, modifica la entrada y devuelve nil.
 Son funciones del módulo, siguiendo la API pública de NumPy.
 
@@ -62,7 +62,7 @@ lados de ese límite.
 
 ## Aplanado y permisos de escritura
 
-Un eje nil/false explícito sigue a `np.array(input.flat)` de NumPy 2.5.3. Una
+Un eje nil/false explícito sigue a `numpy.array(input.flat)` de NumPy 2.5.3. Una
 entrada contigua C produce una vista plana compartida que conserva sus permisos.
 Una entrada no contigua produce una **copia de solo lectura**. La extracción
 funciona con ambas; put rechaza la segunda, incluidas vistas transpuestas o

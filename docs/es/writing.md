@@ -6,15 +6,15 @@ Python y NumPy solo generan las referencias de desarrollo. Se conservan forma,
 strides y dtype del destino.
 
 ```lua
-local np = require('luaray')
-local a = np.arange(6, 'int32')
-np.put(a, {1, 3, -1}, {9, 8})
+local lr = require('luaray')
+local a = lr.arange(6, 'int32')
+lr.put(a, {1, 3, -1}, {9, 8})
 -- a = {9, 1, 8, 3, 4, 9}
-np.place(a, {true, false, true, false, false, true}, {5, 6})
+lr.place(a, {true, false, true, false, false, true}, {5, 6})
 -- a = {5, 1, 6, 3, 4, 5}
 ```
 
-## `np.put(a, indices, values, mode)` y `a:put(indices, values, mode)`
+## `lr.put(a, indices, values, mode)` y `a:put(indices, values, mode)`
 
 El destino debe ser un ndarray escribible. Los índices y valores admiten
 ndarrays, tablas Lua rectangulares o escalares. Se aplanan en orden lógico C;
@@ -54,7 +54,7 @@ solapamiento, se conservan las escrituras anteriores al índice inválido. Es
 el comportamiento real de upstream; la API no promete escrituras atómicas
 en todos los casos.
 
-## `np.place(a, mask, values)`
+## `lr.place(a, mask, values)`
 
 El destino debe ser un ndarray escribible. La máscara admite arrays, tablas
 rectangulares o escalares y se convierte a booleano. Debe tener exactamente

@@ -1,23 +1,23 @@
 # Cross products and coordinate grids
 
-LuaRay0.116.0-dev implements native `np.cross` and `np.meshgrid`. The existing
-`np.linalg.cross` now shares the cross engine, with common-dtype input casts and
+LuaRay0.116.0-dev implements native `lr.cross` and `lr.meshgrid`. The existing
+`lr.linalg.cross` now shares the cross engine, with common-dtype input casts and
 source-compatible output-axis strides.
 
 ```lua
-local np = require('luaray')
-local z = np.cross({1,0,0}, {0,1,0})
+local lr = require('luaray')
+local z = lr.cross({1,0,0}, {0,1,0})
 assert(z:tolist()[3] == 1)
-local x = np.array({0.,1.}, 'float32')
-local y = np.array({0.,1.,2.}, 'float64')
-local grids = np.meshgrid({x,y}, {indexing='xy'})
+local x = lr.array({0.,1.}, 'float32')
+local y = lr.array({0.,1.,2.}, 'float64')
+local grids = lr.meshgrid({x,y}, {indexing='xy'})
 assert(grids[1].shape[1] == 3 and grids[1].shape[2] == 2)
 assert(grids[1].dtype == 'float32' and grids[2].dtype == 'float64')
 ```
 
 ## Cross product
 
-`np.cross(a,b,{axisa=-1,axisb=-1,axisc=-1,axis=nil})` accepts ndarrays or ordinary
+`lr.cross(a,b,{axisa=-1,axisb=-1,axisc=-1,axis=nil})` accepts ndarrays or ordinary
 Lua constructor inputs. Each vector axis must have exactly three components,
 matching the pinned NumPy2.5.3 source: two-component cross was removed upstream.
 The other dimensions broadcast together. A scalar input is invalid.
@@ -26,7 +26,7 @@ Axes use Lua one-based positive indices; negative indices count from the end,
 and zero is invalid. Axes must be Lua integers. `axis`, when present, overrides
 all three individual axes, including ignored invalid individual values. Unknown
 options, embedded-NUL keys and additional arguments raise ordinary Lua errors.
-`np.linalg.cross(a,b,axis)` or `{axis=...}` remains the existing ndarray-only
+`lr.linalg.cross(a,b,axis)` or `{axis=...}` remains the existing ndarray-only
 wrapper using one shared axis for inputs and output.
 
 Both inputs are cast to their common dtype before any multiplication. Output is
@@ -45,7 +45,7 @@ numerical guarantees, not byte-identical CPU dispatch or every dtype/FP mode.
 
 ## Meshgrid
 
-The Lua-first signature is **`np.meshgrid({x1,x2,...}, options)`**, returning a
+The Lua-first signature is **`lr.meshgrid({x1,x2,...}, options)`**, returning a
 sequence table of ndarrays. The input list is explicit rather than Python's
 variadic argument syntax. Empty input returns an empty table. Up to64 inputs
 are supported, within the ndarray rank limit.
@@ -70,10 +70,10 @@ input views remain readonly when no intervening copy was needed. Source shape
 matches preserve existing strides rather than zeroing unused singleton strides.
 
 ```lua
-local shared = np.meshgrid({x,y}, {copy=false})
+local shared = lr.meshgrid({x,y}, {copy=false})
 shared[1]:set(7.,1,1)
 assert(x:tolist()[1] == 7.)
-local sparse = np.meshgrid({x,y}, {sparse=true,copy=false,indexing='ij'})
+local sparse = lr.meshgrid({x,y}, {sparse=true,copy=false,indexing='ij'})
 assert(sparse[1].shape[2] == 1 and sparse[2].shape[1] == 1)
 ```
 

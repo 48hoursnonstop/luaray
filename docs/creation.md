@@ -6,22 +6,22 @@ is only a development oracle. Existing numeric/string/temporal casts and copyto
 supply conversion and filling semantics.
 
 ```lua
-local np = require('luaray')
-local a = np.array({{1,2,3},{4,5,6}}, 'int32')
-assert(np.asarray(a) == a)
+local lr = require('luaray')
+local a = lr.array({{1,2,3},{4,5,6}}, 'int32')
+assert(lr.asarray(a) == a)
 local independent = a:copy()
 independent:set(99, 1, 1) -- value first; a stays unchanged
-local view = np.array(a, {copy=false, ndmin=3})
-local filled = np.full_like(a, 7, {dtype='float32', shape={3,2}, order='F'})
-local finite = np.asarray_chkfinite({1,2,3})
+local view = lr.array(a, {copy=false, ndmin=3})
+local filled = lr.full_like(a, 7, {dtype='float32', shape={3,2}, order='F'})
+local finite = lr.asarray_chkfinite({1,2,3})
 ```
 
 ## Lua calling conventions
 
 Conversion functions accept input, an optional dtype string or options table,
 and an optional options table after a positional dtype. For example:
-`np.asarray(a, 'float32', {order='C'})` or
-`np.asarray(a, {dtype='float32', order='C'})`.
+`lr.asarray(a, 'float32', {order='C'})` or
+`lr.asarray(a, {dtype='float32', order='C'})`.
 
 | Function | Options | Defaults |
 | --- | --- | --- |
@@ -35,7 +35,7 @@ and an optional options table after a positional dtype. For example:
 | empty / zeros / ones | dtype, order | float64, C |
 | full | dtype, order; fill value after shape | fill dtype, C |
 
-`np.copy(a, 'F')` and `a:copy('F')` are also supported. Shape constructors accept
+`lr.copy(a, 'F')` and `a:copy('F')` are also supported. Shape constructors accept
 a Lua integer or a table of dimensions; `{}` means scalar shape. Like constructors
 accept a shape override in the options table. Only C/F order is accepted by
 empty/zeros/ones/full, matching the source constructor restriction. Unknown
@@ -88,8 +88,8 @@ Weak scalar versus strong array conversion remains observable:
 
 ```lua
 -- Rejects scalar300 outside uint8 bounds:
--- np.full(2, 300, 'uint8')
-local wrapped = np.full(2, np.array(300, 'int64'), 'uint8') -- {44,44}
+-- lr.full(2, 300, 'uint8')
+local wrapped = lr.full(2, lr.array(300, 'int64'), 'uint8') -- {44,44}
 ```
 
 The same distinction applies to full_like. Empty constructors really allocate
@@ -116,7 +116,7 @@ minimum signed integer bit pattern; a typed datetime NaT remains valid. Scalar
 packing and array casting are separate operations. Generic temporal warnings
 and the entire Python scalar/type protocol are not reproduced.
 
-The historical LuaRay np.astype/ndarray:astype numeric-to-generic-datetime
+The historical LuaRay lr.astype/ndarray:astype numeric-to-generic-datetime
 restriction remains a documented partial-compatibility contract. Construction
 uses its own source-derived array-cast path. Existing legacy regression assertions
 were retained. This does not claim NumPy2.5.3's numeric-only root Array API astype

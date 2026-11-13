@@ -1,19 +1,19 @@
 # Productos vectoriales y mallas de coordenadas
 
-LuaRay0.116.0-dev añade `np.cross` y `np.meshgrid` nativos. El `np.linalg.cross`
+LuaRay0.116.0-dev añade `lr.cross` y `lr.meshgrid` nativos. El `lr.linalg.cross`
 existente comparte el motor corregido: promoción antes de multiplicar y strides
 de salida compatibles con los ejes de NumPy.
 
 ```lua
-local np = require('luaray')
-assert(np.cross({1,0,0},{0,1,0}):tolist()[3] == 1)
-local x = np.array({0.,1.}, 'float32')
-local y = np.array({0.,1.,2.}, 'float64')
-local g = np.meshgrid({x,y}, {indexing='xy'})
+local lr = require('luaray')
+assert(lr.cross({1,0,0},{0,1,0}):tolist()[3] == 1)
+local x = lr.array({0.,1.}, 'float32')
+local y = lr.array({0.,1.,2.}, 'float64')
+local g = lr.meshgrid({x,y}, {indexing='xy'})
 assert(g[1].shape[1] == 3 and g[1].shape[2] == 2)
 ```
 
-`np.cross(a,b,{axisa=-1,axisb=-1,axisc=-1,axis=nil})` acepta ndarrays o entradas
+`lr.cross(a,b,{axisa=-1,axisb=-1,axisc=-1,axis=nil})` acepta ndarrays o entradas
 Lua del constructor. Ambos ejes vectoriales deben tener tres componentes, como
 NumPy2.5.3: esa versión eliminó los vectores de dos componentes. Las otras
 dimensiones usan broadcasting. Los ejes positivos empiezan en uno; negativos
@@ -28,7 +28,7 @@ son6e-7 para complex64 y2e-15 para complejos mayores, multiplicados por
 `max(1,abs(componente))`. Metadatos, casos exactos, ceros con signo, NaN e
 infinitos se comprueban aparte. No se declara igualdad binaria de todo CPU/FP.
 
-La firma Lua es **`np.meshgrid({x1,x2,...}, opciones)`**, que devuelve una tabla
+La firma Lua es **`lr.meshgrid({x1,x2,...}, opciones)`**, que devuelve una tabla
 de ndarrays. Usa una lista explícita de entradas; sin entradas devuelve `{}`.
 Admite hasta64. Las opciones son `copy=true`, `sparse=false`, `indexing='xy'`;
 copy/sparse deben ser booleanos y indexing acepta xy/ij. Se rechazan claves

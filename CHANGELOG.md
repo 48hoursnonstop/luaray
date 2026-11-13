@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Standardized Lua documentation examples and API references on the `lr` alias.
+
 - Published a searchable documentation website with topic navigation, page outlines,
   English/Spanish switching, mobile navigation, and light/dark appearance.
 - Added getting-started and array fundamentals guides with executable Lua examples.

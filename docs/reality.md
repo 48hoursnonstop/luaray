@@ -5,15 +5,15 @@ the component views and shared dtype/ufunc engine. Python is a development
 oracle only.
 
 ```lua
-local np = require('luaray')
-local z = np.array({np.complex(1,0), np.complex(2,1)}, 'complex64')
-local real_elements = np.isreal(z) -- {true,false}
-local complex_elements = np.iscomplex(z) -- {false,true}
-assert(np.iscomplexobj(z)) -- checks dtype, even if every imag value were zero
-assert(not np.isrealobj(z))
-local near = np.array({np.complex(1,1e-6)}, 'complex64')
-local r = np.real_if_close(near) -- float32 component view
-np.copyto(r, 7, 'unsafe') -- changes the real part of near
+local lr = require('luaray')
+local z = lr.array({lr.complex(1,0), lr.complex(2,1)}, 'complex64')
+local real_elements = lr.isreal(z) -- {true,false}
+local complex_elements = lr.iscomplex(z) -- {false,true}
+assert(lr.iscomplexobj(z)) -- checks dtype, even if every imag value were zero
+assert(not lr.isrealobj(z))
+local near = lr.array({lr.complex(1,1e-6)}, 'complex64')
+local r = lr.real_if_close(near) -- float32 component view
+lr.copyto(r, 7, 'unsafe') -- changes the real part of near
 ```
 
 | Function | Contract |

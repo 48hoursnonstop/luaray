@@ -26,7 +26,7 @@ nombres disponibles se clasifican `implemented_partial`. El comportamiento se
 verifica por separado mediante referencias originales y contratos de cada
 versión. Este inventario declara cero APIs completamente compatibles. Los nombres
 ausentes quedan como `not_implemented` hasta revisión; puede haber una API Lua
-alternativa, como `np.add_accumulate` para una operación que NumPy expone dentro
+alternativa, como `lr.add_accumulate` para una operación que NumPy expone dentro
 de un objeto ufunc. La tabla mide nombres directos en ese alcance y no todas
 las capacidades matemáticas ni el avance global de NumPy.
 

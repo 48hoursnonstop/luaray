@@ -5,25 +5,25 @@ The condition subsystem owns coordinate storage; compress/extract reuse the
 verified native take engine. Runtime is Lua/native C/C++, without Python.
 
 ```lua
-local np = require('luaray')
-local a = np.array({{0,2,0},{3,0,4}}, 'int32')
+local lr = require('luaray')
+local a = lr.array({{0,2,0},{3,0,4}}, 'int32')
 local coordinates = a:nonzero()
 -- coordinates[1]: {1,2,2}; coordinates[2]: {2,1,3}
 local selected = a:get(table.unpack(coordinates)) -- {2,3,4}
-local flat_positions = np.flatnonzero(a)         -- {2,4,6}
+local flat_positions = lr.flatnonzero(a)         -- {2,4,6}
 local columns = a:compress({true,false,true}, {axis=2})
 -- {{0,0},{3,4}}
 ```
 
 ## nonzero and flatnonzero
 
-`np.nonzero(input)` and `input:nonzero()` return a Lua **table of ndarrays**,
+`lr.nonzero(input)` and `input:nonzero()` return a Lua **table of ndarrays**,
 one coordinate array per input axis. Use `table.unpack` to pass those arrays as
 separate advanced indices. Positions start at **1** and are listed in C order,
 even for transposed or reversed sources. The original NumPy tuple becomes a
 Lua table; coordinate values are adapted to Lua indexing.
 
-Regular nonzero rejects zero-dimensional input. `np.flatnonzero(input)` first
+Regular nonzero rejects zero-dimensional input. `lr.flatnonzero(input)` first
 uses C-flat positions and returns one integer ndarray, including for a scalar.
 A nonzero scalar yields `{1}`; zero yields an empty array.
 
@@ -36,7 +36,7 @@ values, dtype, shape and these observable strides through rank 64.
 
 ## compress
 
-`np.compress(condition, input [, axis_or_options])` and
+`lr.compress(condition, input [, axis_or_options])` and
 `input:compress(condition [, axis_or_options])` select slices along an axis.
 The third argument is an axis, or `{axis=...,out=...}`. Omitted/nil/false axis
 flattens the source in C order. Positive axes start at 1, negative axes count
@@ -57,7 +57,7 @@ so shared condition/source/output views use the original selection positions.
 
 ## extract
 
-`np.extract(condition, input)` flattens both operands in C order, resolves
+`lr.extract(condition, input)` flattens both operands in C order, resolves
 nonzero condition positions and returns a one-dimensional copy of source values.
 Conditions may have any supported rank, including zero. There is no axis/out
 argument. Selection uses actual true positions: an overlong false tail is

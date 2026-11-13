@@ -1,20 +1,20 @@
 # Decimal rounding
 
-LuaRay 0.113.0-dev implements `np.round`, `np.around` and `a:round` from
+LuaRay 0.113.0-dev implements `lr.round`, `lr.around` and `a:round` from
 NumPy 2.5.3 calculation.c. It uses the actual typed multiply/rint/divide
 composition rather than a host-language scalar rounding approximation.
 
 ```lua
-local np = require('luaray')
-local a = np.array({1.25, 2.5}, 'float32')
+local lr = require('luaray')
+local a = lr.array({1.25, 2.5}, 'float32')
 local r = a:round(1)
-local out = np.empty({2}, 'float64')
-assert(rawequal(np.round(a, {decimals=1, out=out}), out))
-assert(np.round({15,25}, -1):tolist()[2] == 20)
+local out = lr.empty({2}, 'float64')
+assert(rawequal(lr.round(a, {decimals=1, out=out}), out))
+assert(lr.round({15,25}, -1):tolist()[2] == 20)
 ```
 
-Accepted forms are `np.round(input, decimals, out)`,
-`np.round(input, {decimals=...,out=...})`, and the equivalent ndarray method.
+Accepted forms are `lr.round(input, decimals, out)`,
+`lr.round(input, {decimals=...,out=...})`, and the equivalent ndarray method.
 Decimals default to zero and must be a Lua integer within the native C int
 range; booleans are also accepted as 0/1. Ordinary Lua inputs use the existing
 constructor. Scalar outputs remain typed rank-zero ndarrays. Unknown options,
@@ -56,12 +56,12 @@ existing ndarray method triggers one `_wrapit` retry. The ndarray method itself
 does not retry. For example:
 
 ```lua
-local td = np.array({1}, 'timedelta64[h]')
-assert(not pcall(np.round, td, 1, td))
-assert(np.astype(td, 'int64'):tolist()[1] == 100) -- two partial multiplications
-local once = np.array({1}, 'timedelta64[h]')
+local td = lr.array({1}, 'timedelta64[h]')
+assert(not pcall(lr.round, td, 1, td))
+assert(lr.astype(td, 'int64'):tolist()[1] == 100) -- two partial multiplications
+local once = lr.array({1}, 'timedelta64[h]')
 assert(not pcall(function() once:round(1, once) end))
-assert(np.astype(once, 'int64'):tolist()[1] == 10)
+assert(lr.astype(once, 'int64'):tolist()[1] == 10)
 ```
 
 Internal error categories distinguish the retry-relevant failures; the Lua API

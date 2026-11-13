@@ -5,12 +5,12 @@ asignación de memoria de LuaRay. NumPy2.5.3 solo genera referencias de desarrol
 no se necesita Python durante la ejecución.
 
 ```lua
-local np = require('luaray')
-local muestras, paso = np.linspace(-1, 1, 5, {retstep=true})
+local lr = require('luaray')
+local muestras, paso = lr.linspace(-1, 1, 5, {retstep=true})
 -- {-1, -.5, 0, .5, 1}; paso=.5
-local potencias = np.logspace(0, 2, 3) -- {1,10,100}
-local geometrica = np.geomspace(-1, -16, 3) -- {-1,-4,-16}
-local filas = np.linspace(np.array({1,2}, 'float32'), 3,
+local potencias = lr.logspace(0, 2, 3) -- {1,10,100}
+local geometrica = lr.geomspace(-1, -16, 3) -- {-1,-4,-16}
+local filas = lr.linspace(lr.array({1,2}, 'float32'), 3,
                           {num=3, axis=-1})
 -- {{1,2,3},{2,2.5,3}}, float32
 ```

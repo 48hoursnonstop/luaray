@@ -5,15 +5,15 @@ and applications need Lua 5.4 and the native module; Python/NumPy are used only
 to generate development references. Arrays keep their shape, strides and dtype.
 
 ```lua
-local np = require('luaray')
-local a = np.arange(6, 'int32')
-np.put(a, {1, 3, -1}, {9, 8})
+local lr = require('luaray')
+local a = lr.arange(6, 'int32')
+lr.put(a, {1, 3, -1}, {9, 8})
 -- a = {9, 1, 8, 3, 4, 9}
-np.place(a, {true, false, true, false, false, true}, {5, 6})
+lr.place(a, {true, false, true, false, false, true}, {5, 6})
 -- a = {5, 1, 6, 3, 4, 5}
 ```
 
-## `np.put(a, indices, values, mode)` and `a:put(indices, values, mode)`
+## `lr.put(a, indices, values, mode)` and `a:put(indices, values, mode)`
 
 The destination must be a writable ndarray. Indices and values accept ndarrays,
 rectangular Lua tables or scalars. Both are flattened in logical C order;
@@ -51,7 +51,7 @@ error discards that copy. On a contiguous, non-overlapping destination, earlier
 writes remain if a later index is invalid. This distinction follows the real
 upstream implementation; the API does not promise atomic writes in every case.
 
-## `np.place(a, mask, values)`
+## `lr.place(a, mask, values)`
 
 The destination must be a writable ndarray. The mask accepts arrays, rectangular
 Lua tables or a scalar and is converted to boolean. It must contain exactly as

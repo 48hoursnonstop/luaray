@@ -6,25 +6,25 @@ mediante el puente de propiedad existente. El reshape C interno delega al mismo
 núcleo. No se necesita Python en ejecución.
 
 ```lua
-local np = require('luaray')
-local a = np.array({{0,1,2},{3,4,5}}, 'float64')
-local columns = np.ravel(a, 'F') -- {0,3,1,4,2,5}
+local lr = require('luaray')
+local a = lr.array({{0,1,2},{3,4,5}}, 'float64')
+local columns = lr.ravel(a, 'F') -- {0,3,1,4,2,5}
 local rows = a:ravel() -- comparte el búfer de a
 local independent = a:flatten() -- siempre copia
-assert(np.shares_memory(rows, a))
-assert(not np.shares_memory(independent, a))
+assert(lr.shares_memory(rows, a))
+assert(not lr.shares_memory(independent, a))
 
-local transpose = np.transpose(a)
+local transpose = lr.transpose(a)
 local view = transpose:reshape(6, {order='F', copy=false})
-assert(np.shares_memory(view, a))
-local copied = np.reshape(a, {3,2}, {order='F', copy=true})
+assert(lr.shares_memory(view, a))
+local copied = lr.reshape(a, {3,2}, {order='F', copy=true})
 ```
 
 | Llamada Lua | Predeterminado | Contrato de almacenamiento |
 | --- | --- | --- |
-| `np.reshape(a, shape, options)` | C, copia si hace falta | Reutiliza strides compatibles o copia en el orden lógico solicitado |
+| `lr.reshape(a, shape, options)` | C, copia si hace falta | Reutiliza strides compatibles o copia en el orden lógico solicitado |
 | `a:reshape(shape, options)` | Igual | Mismo núcleo nativo |
-| `np.ravel(a, order)` / `a:ravel(order)` | C | Vista contigua de rango uno si es posible; si no, copia |
+| `lr.ravel(a, order)` / `a:ravel(order)` | C | Vista contigua de rango uno si es posible; si no, copia |
 | `a:flatten(order)` | C | Copia independiente y escribible de rango uno |
 
 `shape` es un entero o tabla de dimensiones; una tabla vacía indica rango cero.
@@ -55,10 +55,10 @@ producir una vista K aunque no tenga activadas las marcas C ni F.
 ## Memoria compartida, propiedad y escritura
 
 ```lua
-local reversed = np.flip(a:ravel(), 1)
+local reversed = lr.flip(a:ravel(), 1)
 local view = reversed:reshape({2,3}, {copy=false})
-assert(np.shares_memory(view, a)) -- strides {-24,-8}
-assert(not np.shares_memory(reversed:ravel('K'), a))
+assert(lr.shares_memory(view, a)) -- strides {-24,-8}
+assert(not lr.shares_memory(reversed:ravel('K'), a))
 ```
 
 Cada resultado tiene su propia cabecera. Las vistas retienen el búfer aunque el

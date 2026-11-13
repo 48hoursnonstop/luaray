@@ -1,17 +1,17 @@
 # Real and imaginary components
 
-LuaRay 0.111.0-dev provides `np.real(a)`, `np.imag(a)`, `a.real` and `a.imag`
+LuaRay 0.111.0-dev provides `lr.real(a)`, `lr.imag(a)`, `a.real` and `a.imag`
 through independently compiled native and Lua modules. Python is not required.
 
 ```lua
-local np = require('luaray')
-local z = np.array({np.complex(1,2), np.complex(3,4)}, 'complex64')
-local real, imag = z.real, np.imag(z) -- float32 views, stride 8 bytes
-np.copyto(real, 7, 'unsafe') -- z becomes {7+2j,7+4j}
-np.copyto(imag, -3, 'unsafe') -- z becomes {7-3j,7-3j}
-assert(np.shares_memory(real, z))
-assert(not np.shares_memory(real, imag)) -- disjoint interleaved components
-assert(np.may_share_memory(real, imag)) -- overlapping address bounds
+local lr = require('luaray')
+local z = lr.array({lr.complex(1,2), lr.complex(3,4)}, 'complex64')
+local real, imag = z.real, lr.imag(z) -- float32 views, stride 8 bytes
+lr.copyto(real, 7, 'unsafe') -- z becomes {7+2j,7+4j}
+lr.copyto(imag, -3, 'unsafe') -- z becomes {7-3j,7-3j}
+assert(lr.shares_memory(real, z))
+assert(not lr.shares_memory(real, imag)) -- disjoint interleaved components
+assert(lr.may_share_memory(real, imag)) -- overlapping address bounds
 ```
 
 Complex64, complex128 and clongdouble yield float32, float64 and longdouble
@@ -24,7 +24,7 @@ For a noncomplex ndarray, real returns the identical Lua userdata. Imaginary
 returns an independent zero-filled array with the same shape/dtype, preserving
 Fortran order when appropriate, and is read-only. This also follows NumPy for
 fixed S/U and temporal arrays: zeros mean empty strings or zero temporal ticks.
-Use `np.copy(a.imag)` if writable independent storage is needed.
+Use `lr.copy(a.imag)` if writable independent storage is needed.
 
 Ordinary Lua scalars and rectangular tables use the existing constructor.
 Scalar results follow LuaRay's typed rank-zero ndarray convention. Direct

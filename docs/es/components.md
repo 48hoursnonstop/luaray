@@ -1,17 +1,17 @@
 # Componentes real e imaginario
 
-LuaRay 0.111.0-dev proporciona `np.real(a)`, `np.imag(a)`, `a.real` y `a.imag`
+LuaRay 0.111.0-dev proporciona `lr.real(a)`, `lr.imag(a)`, `a.real` y `a.imag`
 mediante módulos nativos y Lua independientes. No requiere Python.
 
 ```lua
-local np = require('luaray')
-local z = np.array({np.complex(1,2), np.complex(3,4)}, 'complex64')
-local real, imag = z.real, np.imag(z) -- vistas float32, stride de 8 bytes
-np.copyto(real, 7, 'unsafe') -- z queda {7+2j,7+4j}
-np.copyto(imag, -3, 'unsafe') -- z queda {7-3j,7-3j}
-assert(np.shares_memory(real, z))
-assert(not np.shares_memory(real, imag)) -- componentes intercalados distintos
-assert(np.may_share_memory(real, imag)) -- intervalos de direcciones solapados
+local lr = require('luaray')
+local z = lr.array({lr.complex(1,2), lr.complex(3,4)}, 'complex64')
+local real, imag = z.real, lr.imag(z) -- vistas float32, stride de 8 bytes
+lr.copyto(real, 7, 'unsafe') -- z queda {7+2j,7+4j}
+lr.copyto(imag, -3, 'unsafe') -- z queda {7-3j,7-3j}
+assert(lr.shares_memory(real, z))
+assert(not lr.shares_memory(real, imag)) -- componentes intercalados distintos
+assert(lr.may_share_memory(real, imag)) -- intervalos de direcciones solapados
 ```
 
 Complex64, complex128 y clongdouble producen vistas float32, float64 y
@@ -23,7 +23,7 @@ invertidas, con saltos y broadcast.
 Para un ndarray no complejo, real devuelve el mismo userdata Lua. Imaginary
 crea ceros independientes con la misma forma y tipo, orden Fortran cuando
 corresponde, y solo lectura. Sigue también a NumPy para S/U y tipos temporales:
-los ceros son cadenas vacías o ticks temporales cero. `np.copy(a.imag)` produce
+los ceros son cadenas vacías o ticks temporales cero. `lr.copy(a.imag)` produce
 almacenamiento independiente escribible si lo necesitas.
 
 Los escalares y tablas rectangulares usan el constructor existente. Los

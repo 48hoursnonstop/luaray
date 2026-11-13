@@ -9,8 +9,8 @@ to calculate over whole collections rather than loop over Lua tables yourself.
 ## Create an array
 
 ```lua
-local np = require("luaray")
-local a = np.array({{1, 2, 3}, {4, 5, 6}}, "float64")
+local lr = require("luaray")
+local a = lr.array({{1, 2, 3}, {4, 5, 6}}, "float64")
 
 assert(a.ndim == 2)            -- number of axes
 assert(a.shape[1] == 2)        -- two rows
@@ -46,22 +46,22 @@ remaining axes. For a one-dimensional array, numeric indexing returns a value.
 
 ## Slice an array
 
-`np.slice(start, stop, step)` uses an **exclusive stop**. Omit a bound with `nil`.
+`lr.slice(start, stop, step)` uses an **exclusive stop**. Omit a bound with `nil`.
 A negative step reverses traversal. Basic slices share storage with their source.
 
 ```lua
-local values = np.array({10, 20, 30, 40, 50}, "int32")
-local middle = values[np.slice(2, 5)] -- {20, 30, 40}
+local values = lr.array({10, 20, 30, 40, 50}, "int32")
+local middle = values[lr.slice(2, 5)] -- {20, 30, 40}
 assert(middle.size == 3 and middle[3] == 40)
 
-local reversed = values[np.slice(nil, nil, -1)]
+local reversed = values[lr.slice(nil, nil, -1)]
 assert(reversed[1] == 50)
 reversed[1] = 99
 assert(values[5] == 99)
 ```
 
-Use `a:get(spec1, spec2, ...)` for slices on several axes. `np.ellipsis` stands
-for the remaining axes; `np.newaxis` inserts a dimension of length one.
+Use `a:get(spec1, spec2, ...)` for slices on several axes. `lr.ellipsis` stands
+for the remaining axes; `lr.newaxis` inserts a dimension of length one.
 
 ## Calculate elementwise
 
@@ -69,8 +69,8 @@ Arithmetic operators work element by element. Named functions handle common
 mathematics such as square roots, powers, clipping, and trigonometry.
 
 ```lua
-local x = np.array({1, 4, 9}, "float64")
-local y = np.sqrt(x) * 2
+local x = lr.array({1, 4, 9}, "float64")
+local y = lr.sqrt(x) * 2
 assert(y[1] == 2 and y[2] == 4 and y[3] == 6)
 ```
 
@@ -84,8 +84,8 @@ lengths or include a length-one dimension. A one-dimensional array can therefore
 be combined with every row of a matrix:
 
 ```lua
-local matrix = np.array({{1, 2, 3}, {4, 5, 6}}, "float64")
-local offsets = np.array({10, 20, 30}, "float64")
+local matrix = lr.array({{1, 2, 3}, {4, 5, 6}}, "float64")
+local offsets = lr.array({10, 20, 30}, "float64")
 local shifted = matrix + offsets
 assert(shifted:get(1, 1) == 11)
 assert(shifted:get(2, 3) == 36)
@@ -100,10 +100,10 @@ Omitting the axis reduces the entire array. Positive axes are one-based:
 axis 1 combines rows; axis 2 combines columns in this matrix.
 
 ```lua
-assert(np.sum(matrix) == 21)
-local row_totals = np.sum(matrix, 2)
+assert(lr.sum(matrix) == 21)
+local row_totals = lr.sum(matrix, 2)
 assert(row_totals[1] == 6 and row_totals[2] == 15)
-local column_totals = np.sum(matrix, 1)
+local column_totals = lr.sum(matrix, 1)
 assert(column_totals[1] == 5 and column_totals[3] == 9)
 ```
 
@@ -118,8 +118,8 @@ when you need to preserve the original array.
 ```lua
 local view = matrix[1]
 local independent = matrix:copy()
-assert(np.shares_memory(matrix, view))
-assert(not np.shares_memory(matrix, independent))
+assert(lr.shares_memory(matrix, view))
+assert(not lr.shares_memory(matrix, independent))
 independent:set(100, 1, 1)
 assert(matrix:get(1, 1) == 1)
 ```

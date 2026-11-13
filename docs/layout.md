@@ -5,25 +5,25 @@ subsystem. Public Lua bindings compile separately through the existing ownership
 bridge. Internal C-order reshape delegates to the same implementation.
 
 ```lua
-local np = require('luaray')
-local a = np.array({{0,1,2},{3,4,5}}, 'float64')
-local columns = np.ravel(a, 'F') -- {0,3,1,4,2,5}
+local lr = require('luaray')
+local a = lr.array({{0,1,2},{3,4,5}}, 'float64')
+local columns = lr.ravel(a, 'F') -- {0,3,1,4,2,5}
 local rows = a:ravel() -- shares a's buffer
 local independent = a:flatten() -- always copies
-assert(np.shares_memory(rows, a))
-assert(not np.shares_memory(independent, a))
+assert(lr.shares_memory(rows, a))
+assert(not lr.shares_memory(independent, a))
 
-local transpose = np.transpose(a)
+local transpose = lr.transpose(a)
 local view = transpose:reshape(6, {order='F', copy=false})
-assert(np.shares_memory(view, a))
-local copied = np.reshape(a, {3,2}, {order='F', copy=true})
+assert(lr.shares_memory(view, a))
+local copied = lr.reshape(a, {3,2}, {order='F', copy=true})
 ```
 
 | Lua call | Default | Storage contract |
 | --- | --- | --- |
-| `np.reshape(a, shape, options)` | C, copy if needed | Reuse compatible strides or copy in the requested logical order |
+| `lr.reshape(a, shape, options)` | C, copy if needed | Reuse compatible strides or copy in the requested logical order |
 | `a:reshape(shape, options)` | Same | Same native implementation |
-| `np.ravel(a, order)` / `a:ravel(order)` | C | Contiguous rank-one view when possible; otherwise a copy |
+| `lr.ravel(a, order)` / `a:ravel(order)` | C | Contiguous rank-one view when possible; otherwise a copy |
 | `a:flatten(order)` | C | Independent writable rank-one copy |
 
 `shape` is an integer or a Lua table of dimensions, including an empty table
@@ -54,10 +54,10 @@ ravel as a K-order view even when neither its C nor F flag is set.
 ## Sharing, ownership and writeability
 
 ```lua
-local reversed = np.flip(a:ravel(), 1)
+local reversed = lr.flip(a:ravel(), 1)
 local view = reversed:reshape({2,3}, {copy=false})
-assert(np.shares_memory(view, a)) -- strides {-24,-8}
-assert(not np.shares_memory(reversed:ravel('K'), a))
+assert(lr.shares_memory(view, a)) -- strides {-24,-8}
+assert(not lr.shares_memory(reversed:ravel('K'), a))
 ```
 
 Returned arrays have their own headers. Views retain the buffer independently

@@ -1,15 +1,15 @@
 # FFT frequencies, spectrum shifts and Hermitian transforms
 
-The `np.fft` namespace executes through native LuaRay arrays, C helpers and the
+The `lr.fft` namespace executes through native LuaRay arrays, C helpers and the
 bundled C++ PocketFFT engine. Python/NumPy are development oracles only.
 
 ```lua
-local np = require('luaray')
-local frequencies = np.fft.fftfreq(4, 0.5) -- {0, .5, -1, -.5}
-local centered = np.fft.fftshift(frequencies)
-local restored = np.fft.ifftshift(centered)
-local spectrum = np.fft.hfft({1, 2, 3}) -- {8, -2, 0, -2}
-local samples = np.fft.ihfft(spectrum)
+local lr = require('luaray')
+local frequencies = lr.fft.fftfreq(4, 0.5) -- {0, .5, -1, -.5}
+local centered = lr.fft.fftshift(frequencies)
+local restored = lr.fft.ifftshift(centered)
+local spectrum = lr.fft.hfft({1, 2, 3}) -- {8, -2, 0, -2}
+local samples = lr.fft.ihfft(spectrum)
 ```
 
 ## Frequencies
@@ -59,9 +59,9 @@ It composes a KEEPORDER conjugate copy with irfft and a swapped normalization.
 `ihfft(a, options)` composes rfft and output conjugation. Both support:
 
 ```lua
-np.fft.hfft(a, {n=8, axis=-1, norm='ortho', out=destination})
-np.fft.ihfft(a, 8, -1, 'backward', destination)
-np.fft.fft(a, nil, 1, 'forward') -- nil n retains subsequent arguments
+lr.fft.hfft(a, {n=8, axis=-1, norm='ortho', out=destination})
+lr.fft.ihfft(a, 8, -1, 'backward', destination)
+lr.fft.fft(a, nil, 1, 'forward') -- nil n retains subsequent arguments
 ```
 
 Options: n, axis, norm and out. Default axis is the last. Default hfft n is

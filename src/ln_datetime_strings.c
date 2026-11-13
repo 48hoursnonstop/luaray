@@ -22,12 +22,14 @@ static const int mdays[2][12]={{31,28,31,30,31,30,31,31,30,31,30,31},{31,29,31,3
 
 /* Direct port of NumPy datetime.c:get_datetimestruct_days. */
 static int64_t dts_days(const ln_datetimestruct *d){
-    int64_t y=d->year-(d->month<=2);
-    int64_t era=(y>=0?y:y-399)/400;
-    uint32_t yoe=(uint32_t)(y-era*400);
+    uint64_t bits=(uint64_t)d->year-(d->month<=2);int64_t y;memcpy(&y,&bits,8);
+    bits=(uint64_t)y-399;int64_t adjusted;memcpy(&adjusted,&bits,8);
+    int64_t era=(y>=0?y:adjusted)/400;
+    uint32_t yoe=(uint32_t)((uint64_t)y-(uint64_t)era*400);
     uint32_t doy=(153*(uint32_t)(d->month>2?d->month-3:d->month+9)+2)/5+(uint32_t)d->day-1;
     uint32_t doe=yoe*365+yoe/4-yoe/100+doy;
-    return era*INT64_C(146097)+(int64_t)doe-INT64_C(719468);
+    bits=(uint64_t)era*UINT64_C(146097)+(uint64_t)doe-UINT64_C(719468);
+    int64_t result;memcpy(&result,&bits,8);return result;
 }
 
 static ln_i128 floor_div128(ln_i128 a,ln_i128 b,ln_i128 *rem){
@@ -170,7 +172,10 @@ int ln_datetime_struct_to_value(const ln_datetimestruct *d,const ln_datetime_met
         default: dtserr(e,"invalid datetime unit",NULL,0);return -1;
     }
     int64_t ret;memcpy(&ret,&u,8);
-    if(m->num>1)ret=(int64_t)floor_div128((ln_i128)ret,m->num,NULL);
+    if(m->num>1){
+        if(ret<0){uint64_t adjusted=(uint64_t)ret-(uint64_t)m->num+1;memcpy(&ret,&adjusted,8);}
+        ret/=m->num;
+    }
     *out=ret;return 0;
 }
 
@@ -180,9 +185,12 @@ int ln_datetime_value_to_struct(int64_t value,const ln_datetime_meta *m,ln_datet
     if(value==LN_DATETIME_NAT){d->year=LN_DATETIME_NAT;return 0;}
     if(m->base==LN_FR_GENERIC){dtserr(e,"Cannot convert a datetime value other than NaT with generic units",NULL,0);return -1;}
     ln_i128 x=(ln_i128)value*m->num,rem=0;
-    if(m->base==LN_FR_Y){ln_i128 y=1970+x;if(y<INT64_MIN||y>INT64_MAX){dtserr(e,"datetime conversion overflow",NULL,0);return -1;}d->year=(int64_t)y;return 0;}
+    if(m->num>1&&(x>INT64_MAX||x<-(ln_i128)INT64_MAX)){
+        dtserr(e,"datetime conversion overflow",NULL,0);if(e)e->kind=LN_ERROR_OVERFLOW;return -1;
+    }
+    if(m->base==LN_FR_Y){uint64_t bits=(uint64_t)(int64_t)x+1970;memcpy(&d->year,&bits,8);return 0;}
     if(m->base==LN_FR_M){ln_i128 q=floor_div128(x,12,&rem),y=1970+q;if(y<INT64_MIN||y>INT64_MAX)return -1;d->year=(int64_t)y;d->month=(int)rem+1;return 0;}
-    if(m->base==LN_FR_W)x*=7;
+    if(m->base==LN_FR_W){uint64_t bits=(uint64_t)(int64_t)x*7;int64_t days;memcpy(&days,&bits,8);x=days;}
     ln_i128 upd=unit_per_day(m->base==LN_FR_W?LN_FR_D:m->base);if(!upd){dtserr(e,"invalid datetime unit",NULL,0);return -1;}
     ln_i128 days=floor_div128(x,upd,&rem);if(days<INT64_MIN||days>INT64_MAX){dtserr(e,"datetime conversion overflow",NULL,0);return -1;}if(set_days((int64_t)days,d)<0){dtserr(e,"datetime year overflow",NULL,0);return -1;}
     if(m->base==LN_FR_W||m->base==LN_FR_D)return 0;

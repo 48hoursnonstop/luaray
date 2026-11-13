@@ -564,17 +564,13 @@ format_temporal_ascii(const char *src, const ln_dtype *dt,
     }
     /* NumPy timedelta scalar str() first multiplies the descriptor multiplier
      * into the displayed integer, then appends the canonical plural unit. */
-    long long vv;
-    if (m->num == 0) vv = 0;
-    else {
-        if ((v > 0 && m->num > 0 && v > LLONG_MAX / m->num) ||
-            (v < 0 && m->num > 0 && v < LLONG_MIN / m->num)) {
-            set_transfer_error(err,"timedelta string conversion overflow");return -1;
-        }
-        vv = (long long)v * (long long)m->num;
-    }
-    int n=snprintf(buf,cap,"%lld %s",vv,timedelta_unit_word(m->base));
-    if(n<0||(size_t)n>=cap){set_transfer_error(err,"formatted string buffer too small");return -1;}return n;
+    uint64_t bits=(uint64_t)v*(uint64_t)m->num;int64_t scaled;memcpy(&scaled,&bits,8);
+    int n=snprintf(buf,cap,"%lld %s",(long long)scaled,timedelta_unit_word(m->base));
+    if(n<0||(size_t)n>=cap){set_transfer_error(err,"formatted string buffer too small");return -1;}
+    /* The pinned legacy timedelta-to-string cast produces at most 21
+     * characters, including when the destination string dtype is wider. */
+    if(n>21){buf[21]='\0';n=21;}
+    return n;
 }
 
 static int
@@ -1030,7 +1026,14 @@ ln_cast_strided_numeric(const char *src, ln_intp src_stride,
         const ln_datetime_meta *sm=ln_datetime_metadata(src_dtype), *dm=ln_datetime_metadata(dst_dtype);
         if(!sm||!dm){set_transfer_error(err,"invalid datetime metadata");return -1;}
         for(ln_intp i=0;i<count;++i,src+=src_stride,dst+=dst_stride){
-            int64_t v,o; memcpy(&v,src,8); if(ln_datetime_cast_value(v,sm,dm,&o,err)<0)return -1; memcpy(dst,&o,8);
+            int64_t v,o;memcpy(&v,src,8);
+            if(src_dtype->type_num==LN_DATETIME&&(sm->base<=LN_FR_M||dm->base<=LN_FR_M)&&
+               (sm->base!=dm->base||sm->num!=dm->num)){
+                ln_datetimestruct calendar;
+                if(ln_datetime_value_to_struct(v,sm,&calendar,err)<0||
+                   ln_datetime_struct_to_value(&calendar,dm,&o,err)<0)return -1;
+            }else if(ln_datetime_cast_value(v,sm,dm,&o,err)<0)return -1;
+            memcpy(dst,&o,8);
         }
         return 0;
     }

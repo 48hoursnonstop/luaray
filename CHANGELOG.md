@@ -12,6 +12,14 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.135.0-dev
+
+Added native ndarray `item` and `fill`, with logical flat/coordinate indexing,
+detached precision-preserving scalars, scalar packing before writes and alias
+capture. Fixed shared datetime year/month calendar casts, defined source wrap
+behavior and temporal text limits. Added maintained native/Lua tests and
+English/Spanish guides for element access and filling.
+
 ## 0.134.0-dev
 
 Added `array_equal`, `array_equiv`, `isclose` and `allclose` with source-derived

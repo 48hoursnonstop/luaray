@@ -1,5 +1,5 @@
 local n=require('luaray_core')
-assert(n._version=='0.134.0-dev')
+assert(n._version=='0.135.0-dev')
 local function near(a,b,tol)
  tol=tol or 1e-5
  if type(a)=='table' then

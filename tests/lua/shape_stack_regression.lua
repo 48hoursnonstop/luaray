@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.134.0-dev')
+assert(np._version=='0.135.0-dev')
 local function same(a,b)
  if type(b)=='table' then assert(type(a)=='table' and #a==#b) for i=1,#b do same(a[i],b[i]) end
  else assert(a==b,tostring(a)..' ~= '..tostring(b)) end

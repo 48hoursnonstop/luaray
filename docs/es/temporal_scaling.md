@@ -109,6 +109,11 @@ está permitido. uint64 puede participar en aritmética aunque no en la firma de
 comparación. NaT se propaga. Si sumar/restar desborda, se conservan los elementos
 y bloques de máscara completados antes del error; no se garantiza atomicidad.
 
+Desde **0.135.0-dev**, los casts datetime con años/meses pasan por el calendario
+en lugar de usar promedios de duración. Las referencias directas cubren años
+negativos, límites bisiestos, multiplicadores y reglas de desbordamiento entero
+de la referencia. Los casts de duración conservan sus reglas de unidades promedio.
+
 ## Compatibilidad
 
 El escalado flotante existe desde **0.113.0-dev** y la multiplicación entera desde

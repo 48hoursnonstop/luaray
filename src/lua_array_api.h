@@ -6,6 +6,7 @@
  * their userdata is rooted on the Lua stack. push takes ownership; legacy
  * conversion roots its result on the stack. Calls raise ordinary Lua errors. */
 ln_array *ln_lua_test_array(lua_State *L,int index);
+const ln_dtype *ln_lua_temporal_scalar_dtype(lua_State *L,int index);
 ln_array *ln_lua_legacy_array(lua_State *L,int index,const ln_dtype *dtype);
 int ln_lua_push_array(lua_State *L,ln_array *array);
 int ln_lua_push_scalar_or_array(lua_State *L,ln_array *array);

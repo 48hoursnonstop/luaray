@@ -24,6 +24,8 @@ La interpolación lineal aprobó **1 531 casos /137 255 comprobaciones**, con37 
 
 Igualdad, tolerancias y núcleo temporal aprobaron **27 384 casos /1 186 383 comprobaciones exactas**:8 482 de igualdad,4 478 de tolerancias y14 424 temporales. Las48 comprobaciones Lua permanentes y la nueva prueba C verifican formas, broadcasting, promoción débil/tipada, NaN/NaT, identidad, escritura independiente, umbrales de precisión extendida, offsets enteros, máscaras y escrituras completadas antes de desbordar. Los valores extendidos se serializan sin pasar por float64; se normaliza el padding x87. No se certifican objetos de avisos/estado de error ni todas las ABI flotantes.
 
+Elementos, relleno y casts de calendario aprobaron **25 314 casos /645 992 comprobaciones exactas**:11 813 de item,10 801 de fill y2 700 de casts. Las51 comprobaciones Lua permanentes y la nueva prueba C incluyen índices C lógicos, coordenadas, valores separados sin pérdida, GC, memoria no alineada, alias escalares, booleanos, vacíos, NaT, conversiones escalares temporales y límites de calendario. La representación Lua de item conserva valores/unidades y usa ndarrays de rango cero cuando el número nativo no cabe en un escalar Lua.
+
 La auditoría dirigida ASan/UBSan aprobó con **38 unidades C y una C++**, 20 suites
 nativas y 78 suites Lua. Las otras dependencias no estaban completamente
 instrumentadas y la detección de fugas estaba desactivada. No certifica todos
@@ -49,14 +51,14 @@ Los generadores recientes usan NumPy 2.5.3; los anteriores conservan su atribuci
 NumPy 2.3.5.
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 385 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 387 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.134.0-dev** aprobó **56 suites nativas**, **104 suites Lua**, siete ejemplos
-y 150 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.135.0-dev** aprobó **57 suites nativas**, **105 suites Lua**, siete ejemplos
+y 158 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -96,6 +98,8 @@ Los ángulos de fase aprobaron **3 212 casos /307 602 comprobaciones**, con22 co
 La interpolación lineal aprobó **1 531 casos /137 255 comprobaciones**, con37 comprobaciones Lua permanentes. Incluye salidas reales/complejas, consultas escalares/vacías, conversiones, límites, mallas periódicas, vistas, no finitos y búsqueda con estimación previa. De ellos,68 casos con empates periódicos usan el kernel NumPy tras su quicksort genérico portable;12 difieren de la ruta CPU predeterminada y no se declaran equivalentes. Tolerancia absoluta más relativa2e-12; error observado cero contra la referencia declarada. Metadatos y estados de entrada/memoria exactos.
 
 Igualdad, tolerancias y núcleo temporal aprobaron **27 384 casos /1 186 383 comprobaciones exactas**:8 482 de igualdad,4 478 de tolerancias y14 424 temporales. Las48 comprobaciones Lua permanentes y la nueva prueba C verifican formas, broadcasting, promoción débil/tipada, NaN/NaT, identidad, escritura independiente, umbrales de precisión extendida, offsets enteros, máscaras y escrituras completadas antes de desbordar. Los valores extendidos se serializan sin pasar por float64; se normaliza el padding x87. No se certifican objetos de avisos/estado de error ni todas las ABI flotantes.
+
+Elementos, relleno y casts de calendario aprobaron **25 314 casos /645 992 comprobaciones exactas**:11 813 de item,10 801 de fill y2 700 de casts. Las51 comprobaciones Lua permanentes y la nueva prueba C incluyen índices C lógicos, coordenadas, valores separados sin pérdida, GC, memoria no alineada, alias escalares, booleanos, vacíos, NaT, conversiones escalares temporales y límites de calendario. La representación Lua de item conserva valores/unidades y usa ndarrays de rango cero cuando el número nativo no cabe en un escalar Lua.
 
 La auditoría dirigida ASan/UBSan instrumentó `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`
 `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi` y `ln_datetime`, además de la prueba nativa de matrices y el runner Lua. Aprobaron

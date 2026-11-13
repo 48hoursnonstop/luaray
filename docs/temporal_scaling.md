@@ -107,6 +107,11 @@ comparison signature is unsupported. NaT propagates. If addition/subtraction
 overflows, completed elements and mask runs are preserved before the error;
 the operation is not atomic.
 
+Since **0.135.0-dev**, datetime casts involving years/months pass through the
+calendar rather than average duration scaling. Negative years, leap boundaries,
+metadata multipliers and source integer wrap rules are covered by direct
+conversion references. Duration casts keep their separate average-unit rules.
+
 ## Compatibility
 
 Floating scaling has been available since **0.113.0-dev**; integer multiplication

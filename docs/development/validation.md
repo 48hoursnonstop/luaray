@@ -40,13 +40,13 @@ retain their original NumPy 2.3.5 attribution.
 
 `compatibility/current.json` records the release-specific behavioral evidence.
 `compatibility/api_inventory.json` records runtime availability. The latter
-reports 388 of 675 scoped names as available and classifies all available APIs
+reports 390 of 675 scoped names as available and classifies all available APIs
 as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.136.0-dev** passed **58 native suites**, **106 Lua suites**, seven public
-examples and 166 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
+LuaRay **0.137.0-dev** passed **59 native suites**, **107 Lua suites**, seven public
+examples and 174 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
 passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
 metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
@@ -90,7 +90,9 @@ Elements, filling and calendar casts passed **26, 844 cases /684, 401 exact chec
 
 Buffer construction passed **17,290 cases /229,717 exact checks** covering raw bytes, dtype, shape, strides, ranges, errors, sharing and write-through states. The 48 permanent Lua checks and new native test include GC, creating-coroutine collection, final release, immutable sources, alignment and overlapping external owners. Expanded instrumentation exposed and helped fix an earlier scalar-assignment temporary that was too small for complex256.
 
-The directed ASan/UBSan run instrumented `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, plus the Lua runner and four native harnesses. All maintained suites and all 27 cumulative reference corpora passed. Other dependencies were not fully instrumented; leak detection was disabled. Packaging verifies the executable-source fingerprint.
+Flags passed **12,510 cases /1,684,290 exact checks** covering layout, ownership, aliases, bits, root/view permissions, alignment, snapshots and failure rollback. The 46 permanent Lua checks and new native test include array retention and logical permissions of roots whose original headers are no longer exposed. `uic`/WRITEBACKIFCOPY remains unimplemented.
+
+The directed ASan/UBSan run instrumented `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, plus the Lua runner and five native harnesses. All maintained suites and all 28 cumulative reference corpora passed. Other dependencies were not fully instrumented; leak detection was disabled. Packaging verifies the executable-source fingerprint.
 
 ## Release integrity
 

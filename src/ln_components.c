@@ -15,7 +15,7 @@ ln_array *ln_component_part(const ln_array *a,int imaginary,ln_error *err)
         if(!imaginary)return ln_array_view(a,a->nd,a->dimensions,a->strides,a->data,err);
         int fortran=(a->flags&LN_ARRAY_F_CONTIGUOUS)&&!(a->flags&LN_ARRAY_C_CONTIGUOUS);
         ln_array *out=ln_array_new(a->nd,a->dimensions,a->descr,fortran,1,err);
-        if(out)out->flags&=~LN_ARRAY_WRITEABLE;
+        if(out)ln_array_setflags(out,0,-1,err);
         return out;
     }
     const ln_dtype *dt=NULL;

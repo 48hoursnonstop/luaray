@@ -43,6 +43,8 @@ extern int lua_next(lua_State *L, int idx);
 extern void lua_setfield(lua_State *L, int idx, const char *k);
 extern void lua_createtable(lua_State *L, int narr, int nrec);
 extern void *lua_newuserdatauv(lua_State *L, size_t sz, int nuvalue);
+extern int lua_getiuservalue(lua_State *L,int index,int n);
+extern int lua_setiuservalue(lua_State *L,int index,int n);
 extern int lua_getmetatable(lua_State *L, int objindex);
 extern int lua_setmetatable(lua_State *L, int objindex);
 extern void lua_pushnil(lua_State *L);

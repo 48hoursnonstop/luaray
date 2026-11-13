@@ -1,15 +1,15 @@
 {
   "upstream": "NumPy 2.5.3",
-  "lua_version": "0.136.0-dev",
+  "lua_version": "0.137.0-dev",
   "scope": "Public callable names in numpy/fft/linalg/random __all__, ndarray/Generator/ufunc public methods. Aliases counted separately; not constants, properties, all submodules or dtype loop combinations.",
   "interpretation": "Availability is observed at runtime; every available callable remains partial. This inventory alone verifies no behavior or full compatibility. Release-specific original fixtures provide separate behavioral evidence.",
   "complete_apis_declared": 0,
   "groups": {
     "numpy": {
       "scoped_names": 462,
-      "available_callables": 253,
+      "available_callables": 254,
       "not_applicable_to_lua": 0,
-      "missing_callables": 209
+      "missing_callables": 208
     },
     "numpy.fft": {
       "scoped_names": 18,
@@ -25,9 +25,9 @@
     },
     "numpy.ndarray": {
       "scoped_names": 53,
-      "available_callables": 42,
+      "available_callables": 43,
       "not_applicable_to_lua": 0,
-      "missing_callables": 11
+      "missing_callables": 10
     },
     "numpy.random": {
       "scoped_names": 60,
@@ -3286,9 +3286,9 @@
         "isfortran"
       ],
       "upstream_kind": "callable",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -5191,9 +5191,9 @@
         "setflags"
       ],
       "upstream_kind": "method",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {

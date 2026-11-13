@@ -162,6 +162,9 @@ typedef struct ln_buffer {
     size_t nbytes;
     size_t refs;
     int readonly;
+    /* Last logical permission of the owning root; retained after its header
+     * is freed so surviving views preserve base-permission decisions. */
+    int root_writeable;
     ln_buffer_release release;
     void *context;
 } ln_buffer;
@@ -255,6 +258,9 @@ ln_array *ln_array_from_array_buffer(const ln_array *source,const ln_dtype *dtyp
     ln_intp count,ln_intp offset,ln_error *err);
 /* Conservative physical-byte overlap, independent of storage-owner identity. */
 int ln_arrays_may_overlap(const ln_array *a,const ln_array *b);
+/* -1 leaves an option unchanged; 0/1 clear/set. Unsupported writeback-if-copy
+ * state is not introduced by this interface. */
+int ln_array_setflags(ln_array *a,int write,int align,ln_error *err);
 
 ln_array *ln_array_new(int nd, const ln_intp *dims, const ln_dtype_descr *dtype,
                        int fortran, int zeroed, ln_error *err);

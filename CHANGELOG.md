@@ -12,6 +12,15 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.137.0-dev
+
+Added ndarray flag objects, write/alignment `setflags` and `isfortran`. Retained
+logical root permissions across view lifetimes, distinguished existing writable
+views from later re-enabling, and preserved alignment rollback on failed write
+changes. Flag objects retain their arrays and source snapshot semantics. Added
+native/Lua regressions and English/Spanish guides; writeback-if-copy mutation
+remains explicitly unsupported.
+
 ## 0.136.0-dev
 
 Added genuine zero-copy `frombuffer` for binary Lua strings and C-contiguous

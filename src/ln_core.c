@@ -599,7 +599,7 @@ static ln_buffer *buffer_new(size_t nbytes, int zeroed) {
     size_t alloc = nbytes ? nbytes : 1;
     b->ptr = zeroed ? (char *)calloc(1,alloc) : (char *)malloc(alloc);
     if (!b->ptr) { free(b); return NULL; }
-    b->nbytes = alloc; b->refs = 1; b->release=release_allocation; return b;
+    b->nbytes = alloc; b->refs = 1; b->release=release_allocation; b->root_writeable=1; return b;
 }
 static void buffer_incref(ln_buffer *b){ if(b) b->refs++; }
 static void buffer_decref(ln_buffer *b){ if(b && --b->refs==0){ if(b->release)b->release(b->ptr,b->context); free(b);} }
@@ -664,7 +664,7 @@ ln_array *ln_array_from_buffer(void *data,size_t nbytes,const ln_dtype *dtype,
     if(!data){seterr(err,"external buffer pointer must not be NULL, including empty storage");return NULL;}
     ln_buffer *owner=calloc(1,sizeof(*owner));
     if(!owner){seterr(err,"out of memory");return NULL;}
-    owner->ptr=data;owner->nbytes=nbytes;owner->refs=1;owner->readonly=!writeable;
+    owner->ptr=data;owner->nbytes=nbytes;owner->refs=1;owner->readonly=!writeable;owner->root_writeable=!!writeable;
     ln_array base={0};base.data=data;base.descr=dtype;base.owner=owner;
     base.flags=writeable?LN_ARRAY_WRITEABLE:0;
     ln_intp stride=(ln_intp)dtype->elsize;
@@ -707,6 +707,31 @@ int ln_arrays_may_overlap(const ln_array *a,const ln_array *b)
     uintptr_t al,ah,bl,bh;
     if(physical_bounds(a,&al,&ah)<0||physical_bounds(b,&bl,&bh)<0)return 1;
     return al<bh&&bl<ah;
+}
+
+/* methods.c:array_setflags and common.c:_IsWriteable. Basic view chains
+ * collapse to their storage root. Existing writable views keep their flags
+ * when a root is locked; re-enabling a locked view consults the root. */
+int ln_array_setflags(ln_array *a,int write,int align,ln_error *err)
+{
+    if(!a||write< -1||write>1||align< -1||align>1){seterr(err,"invalid flag options");return -1;}
+    int previous=a->flags;
+    if(align>=0){
+        if(align){
+            ln_array actual=*a;ln_update_contiguous_flags(&actual);
+            if(!(actual.flags&LN_ARRAY_ALIGNED)){seterr(err,"cannot mark misaligned storage aligned");return -1;}
+            a->flags|=LN_ARRAY_ALIGNED;
+        }else a->flags&=~LN_ARRAY_ALIGNED;
+    }
+    if(write==1){
+        if(!a->owner||a->owner->readonly||
+           (!(a->flags&LN_ARRAY_OWNDATA)&&!a->owner->root_writeable)){
+            a->flags=previous;seterr(err,"cannot make array writeable with a read-only storage base");return -1;
+        }
+        a->flags|=LN_ARRAY_WRITEABLE;
+    }else if(write==0)a->flags&=~LN_ARRAY_WRITEABLE;
+    if(write>=0&&(a->flags&LN_ARRAY_OWNDATA)&&a->owner)a->owner->root_writeable=write;
+    return 0;
 }
 
 ln_array *ln_array_index_axis0(const ln_array *base, ln_intp lua_index, ln_error *err) {

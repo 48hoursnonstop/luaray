@@ -9,4 +9,5 @@ require("luaray.interpolation")(lr)
 require("luaray.comparison")(lr)
 require("luaray.requirements")(lr)
 require("luaray.index_grids")(lr)
+require("luaray.iteration")(lr)
 return lr

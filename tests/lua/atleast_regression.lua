@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.150.0-dev')
+assert(np._version=='0.151.0-dev')
 local function equal(x,y)assert(x==y,tostring(x)..' ~= '..tostring(y))end
 local empty=np.atleast_1d()
 equal(#empty,0)

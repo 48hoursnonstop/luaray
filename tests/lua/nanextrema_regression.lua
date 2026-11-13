@@ -1,5 +1,5 @@
 local n = require('luaray_core')
-assert(n._version == '0.150.0-dev')
+assert(n._version == '0.151.0-dev')
 local function near(x,y)
  if x~=x and y~=y then return end
  assert(x==y, tostring(x)..' != '..tostring(y))

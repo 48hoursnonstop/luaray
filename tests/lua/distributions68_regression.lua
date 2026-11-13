@@ -1,5 +1,5 @@
 local np=require("luaray_core")
-assert(np._version=="0.150.0-dev")
+assert(np._version=="0.151.0-dev")
 local r=np.random.default_rng(42)
 local a=r:multinomial(20,{0.2,0.3,0.5},{2,3})
 assert(a.dtype=="int64" and #a.shape==3)

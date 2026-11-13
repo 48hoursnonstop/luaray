@@ -14,6 +14,18 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.151.0-dev
+
+Added lazy ndindex iteration over one-based Lua coordinate snapshots with
+C-order traversal, independent iterator/shape state, scalar/zero/Boolean shape
+semantics and checked dimension arguments. No Cartesian product count or eager
+axis allocation is needed; logical rank is independent of ndarray rank limits.
+
+Validated 1,254 NumPy 2.5.3 cases / 39,746 checks and 91 permanent Lua checks.
+Reference coordinates are normalized to Lua positions; large products compare
+bounded prefixes only. Native-only tests exercise huge lazy dimensions without
+attempting unsafe upstream range allocation. Added executable EN/ES guides.
+
 ## 0.150.0-dev
 
 Added fromfunction: builds dense coordinate views, invokes a Lua callable once

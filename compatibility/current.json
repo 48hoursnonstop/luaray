@@ -1,11 +1,11 @@
 {
-  "version": "0.150.0-dev",
+  "version": "0.151.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
   "new_reference_cases": {
-    "fromfunction": 2160
+    "ndindex": 1254
   },
-  "new_lua_regression_checks": 103,
+  "new_lua_regression_checks": 91,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -13,19 +13,20 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.fromfunction": "implemented_partial"
+    "numpy.ndindex": "implemented_partial"
   },
   "evidence": [
-    "lua/luaray/index_grids.lua",
-    "tests/lua/fromfunction_regression.lua",
-    "docs/fromfunction.md",
-    "docs/es/fromfunction.md",
+    "lua/luaray/iteration.lua",
+    "lua/luaray.lua",
+    "tests/lua/ndindex_regression.lua",
+    "docs/iteration.md",
+    "docs/es/iteration.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 407,
-    "missing_bindings": 267,
+    "available_callables": 408,
+    "missing_bindings": 266,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -168,14 +169,17 @@
     "ix_ retains numeric input values and typed-empty dtypes, converts ordinary empty sequences to intp and Boolean vectors to existing one-based nonzero locations. Reshape views preserve sharing and lifetime; downstream indexing still requires valid index dtypes/values.",
     "argwhere uses logical nonzero locations in one-based coordinate rows, with source scalar shapes (1,0)/(0,0). Nil follows false-scalar truth; generic object/structured/StringDType arrays remain unavailable. Full nested coercions and all host ABIs are uncertified.",
     "fromfunction creates dense grids and invokes a Lua callable once; all callback results are forwarded without coercion. Default coordinate dtype float64; only dtype is an options key. Dense grid rank limits and dtype restrictions apply before the callback.",
-    "Extra Lua parameters follow coordinates and preserve nil arity. Python keyword forwarding uses Lua positional/context-table conventions; foreign like/array protocols and all callback/host ABI interactions remain uncertified."
+    "Extra Lua parameters follow coordinates and preserve nil arity. Python keyword forwarding uses Lua positional/context-table conventions; foreign like/array protocols and all callback/host ABI interactions remain uncertified.",
+    "ndindex is a lazy Lua coordinate iterator with copied shape, independent snapshots and C order. Unlike ndarray, logical iterator rank is not capped at 64; source NumPy2.5.3 uses itertools.product. Huge logical dimensions do not materialize ranges or a total product counter.",
+    "Only Lua integer/Boolean dimensions or dense dimension tables are accepted. Python shape/__index__ protocols and integers beyond Lua range remain unsupported; Python iterator/StopIteration objects map to Lua closure/nil exhaustion.",
+    "Large cross-product references compare bounded prefixes. Huge individual source ranges were not allocated; native lazy behavior was tested separately, not claimed as identical resource-limit behavior."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "361aab5b630dfad5071216b99d2e6a4e0eaacc11e43a0491d3699dee59b4b2d5",
-      "files": 354
+      "sha256": "178fa3e4e6fdcae18fca9ba1cc7435954ac16d86ca7709ff7f6af68b677d8d5e",
+      "files": 356
     },
-    "version": "0.150.0-dev",
+    "version": "0.151.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -241,15 +245,17 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.150.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.151.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact callback invocation/argument/return counts, numerical payloads, dtype/shape/strides/flags, identity, sharing and captured mutation/error states. Python scale/shift keyword context is mapped to trailing Lua parameters; source tuple results are compared as Lua multiple returns. Results are not coerced by the implementation. Longdouble omits ABI padding.",
-  "new_reference_checks": 1172364,
-  "new_reference_exclusions": {},
+  "new_check_semantics": "Exact C-order coordinate sequence/prefixes, constructor acceptance, independent yielded table snapshots, exhaustion and retained state. Source tuples become independent Lua coordinate tables and 26,626 values are shifted to one-based positions. Large Cartesian products compare bounded prefixes, not exhaustive iteration.",
+  "new_reference_checks": 39746,
+  "new_reference_exclusions": {
+    "huge_individual_axis_ranges": "upstream eager pool allocation not attempted; native-only lazy prefix regressions use math.maxinteger dimensions"
+  },
   "new_reference_language_adaptations": {
-    "callback_context": "trailing Lua parameters replace Python keyword forwarding",
-    "tuple_results": "Lua multiple returns; nil positions/count preserved",
-    "callables": "Lua/C functions or Lua __call objects",
-    "coordinate_data": "NumPy zero-based values unchanged"
+    "coordinate_values_shifted": 26626,
+    "tuple_coordinates": "independent Lua tables",
+    "iteration": "Lua generic-for closure; nil exhaustion",
+    "Boolean_dimensions": "zero/one, matching reference range semantics"
   }
 }

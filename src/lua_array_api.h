@@ -2,10 +2,12 @@
 #define LUARAY_LUA_ARRAY_API_H
 #include "ln_core.h"
 #include "lua_compat.h"
+#include "ln_ufunc.h"
 /* Internal binding boundary: borrowed native pointers remain valid while
  * their userdata is rooted on the Lua stack. push takes ownership; legacy
  * conversion roots its result on the stack. Calls raise ordinary Lua errors. */
 ln_array *ln_lua_test_array(lua_State *L,int index);
+int ln_lua_operand(lua_State *L,int index,ln_ufunc_operand *operand);
 /* Array buffers are borrowed; string-backed byte storage is rooted on stack. */
 ln_array *ln_lua_buffer_storage(lua_State *L,int index);
 const ln_dtype *ln_lua_test_dtype(lua_State *L,int index);

@@ -29,6 +29,7 @@ LUA_TESTS = $(wildcard tests/lua/*_regression.lua) tests/lua/smoke.lua \
 EXTRA_ln_ufunc_loops = -fwrapv
 EXTRA_ln_dot = -fwrapv
 EXTRA_ln_unary_math = -ffp-contract=off
+EXTRA_ln_arange = -ffp-contract=off
 
 .PHONY: all test full-test native-test lua-test examples reference-test clean
 all: $(BUILD)/luaray_core.so

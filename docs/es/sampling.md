@@ -143,3 +143,5 @@ todos los tipos/conteos/bases, endian numérico no nativo, advertencias/subclase
 excepciones ni todo redondeo/cast específico del hardware. Se conservan diferencias
 y estados bloqueados anteriores. La disponibilidad del inventario no equivale
 a un porcentaje global de finalización.
+
+Para un intervalo con paso numérico, consulta [arange](./arange.md).

@@ -12,6 +12,18 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.142.0-dev
+
+Expanded arange from the legacy stop-only helper to native numeric scalar
+start/stop/step ranges, preserving legacy integer-stop/positional-dtype conversion
+and adding descriptor and option-table controls. Supports numeric/Boolean/complex output with source
+initial scalar conversion, effective typed increments, integer wrap and complex
+length rules. Typed ndarray and temporal range arguments remain pending.
+
+Validated 12,901 NumPy 2.5.3 cases / 129,151 exact checks and 125 permanent Lua
+checks plus native regressions. Extended-precision padding bytes are excluded;
+significant numeric payloads are checked exactly. Added executable EN/ES guides.
+
 ## 0.141.0-dev
 
 Added the native `ndarray` constructor with owned allocation or retained C/F

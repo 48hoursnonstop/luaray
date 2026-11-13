@@ -149,3 +149,5 @@ fidelity, every dtype/count/base combination, non-native numeric endian and ever
 hardware-specific rounding/cast behavior are not certified. Earlier blocked
 states and explicit differences remain separate. Name availability in the API
 inventory is not an overall completion percentage.
+
+For a numeric interval specified by step, see [arange](./arange.md).

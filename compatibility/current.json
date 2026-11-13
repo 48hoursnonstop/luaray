@@ -1,9 +1,9 @@
 {
-  "version": "0.141.0-dev",
+  "version": "0.142.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
-  "new_reference_cases": 24204,
-  "new_lua_regression_checks": 62,
+  "new_reference_cases": 12901,
+  "new_lua_regression_checks": 125,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -11,16 +11,15 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.ndarray": "implemented_partial"
+    "numpy.arange": "implemented_partial"
   },
   "evidence": [
-    "src/ln_constructor.c",
-    "src/lua_constructor.c",
-    "src/lua_buffers.c",
+    "src/ln_arange.c",
+    "src/lua_arange.c",
     "src/lua_array_api.h",
-    "tests/native/test_constructor141_core.c",
-    "tests/lua/constructor_regression.lua",
-    "docs/ndarray.md",
+    "tests/native/test_arange142_core.c",
+    "tests/lua/arange_regression.lua",
+    "docs/arange.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
@@ -139,14 +138,18 @@
     "Unsized string joins resolve from descriptors without inspecting contents; one same-class input retains its Unicode endian while common-instance combination normalizes. Sampling final casts resolve the source calculation formatting width.",
     "ndarray constructor accepts documented dense integer shape/layout and scalar dtype descriptors; retained Lua string or C/F-contiguous ndarray buffers only. No Python arbitrary buffer/subclass/foreign-array protocols.",
     "ndarray deliberately rejects unsafe or unverified upstream states: negative/excessive buffer offsets, inferred-stride footprints outside actual storage, zero-width inference, empty external buffers with nonempty payloads and overflowing element counts. The 2420 skipped reference parameter states are not compatibility passes. Native/Lua regressions directly test safety rejection.",
-    "Owned zero-byte ndarray allocations reset strides, while buffer views retain them. S0/U0 retain zero width here; existing empty constructors normalize widths. Constructor contiguity flags preserve upstream default-versus-explicit stride distinctions."
+    "Owned zero-byte ndarray allocations reset strides, while buffer views retain them. S0/U0 retain zero width here; existing empty constructors normalize widths. Constructor contiguity flags preserve upstream default-versus-explicit stride distinctions.",
+    "arange numeric scalar start/stop/step supports Lua Boolean/integer/float/complex and existing native numeric output dtypes. Typed ndarray and temporal range arguments, foreign numeric/like/device protocols and Python integers outside Lua integer range remain unsupported.",
+    "Legacy integer stop plus positional dtype preserves per-index conversion, including arbitrary-length Boolean ranges, raw temporal ticks and empty string descriptors. Options tables select the new NumPy constructor contract.",
+    "arange computes source length and first two scalar conversions, then typed-delta native filling with integer wrap. Boolean output has at most two elements. Complex scalar arithmetic uses binary64 components; complex input with noncomplex output is rejected.",
+    "The arange reference corpus excludes 138 oversized or outside-Lua-integer parameter cases. Longdouble padding bytes are omitted explicitly; significant bytes remain exact. Full host ABI, floating warning/error policy and all oversized allocations are not certified."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "013b12f1e15846a6e70316ee147616a655d2b7cde5ba24a3fec037b071552ae7",
-      "files": 329
+      "sha256": "1957059aea80021bae0fbc5888aa7f1c4f0c0d685c1445cf33b732f8c2da0c81",
+      "files": 335
     },
-    "version": "0.141.0-dev",
+    "version": "0.142.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -181,7 +184,9 @@
       "lua_bytes",
       "ln_sampling",
       "ln_constructor",
-      "lua_constructor"
+      "lua_constructor",
+      "ln_arange",
+      "lua_arange"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -192,15 +197,16 @@
       "tests/native/test_flags137_core.c",
       "tests/native/test_creation107_core.c",
       "tests/native/test_dtype140_core.c",
-      "tests/native/test_constructor141_core.c"
+      "tests/native/test_constructor141_core.c",
+      "tests/native/test_arange142_core.c"
     ],
     "all_maintained_tests": "passed",
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.141.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.142.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact constructor acceptance, shape, strides, scalar dtype typestr, flags, nbytes, raw logical bytes, sharing and write-through backing bytes. String body alignment at widths above eight bytes is host allocation dependent and omitted; array and owned alignment remain exact. No uninitialized allocation values are read: successful owned arrays are initialized before inspecting their payload.",
-  "new_reference_checks": 240870,
-  "constructor_upstream_states_not_executed": 2420
+  "new_check_semantics": "Legacy integer-stop/positional-dtype references compare NumPy arange followed by astype; new options/start-stop calls compare the direct NumPy constructor. Exact acceptance, dtype typestr, shape/strides, flags, nbytes, writable result and significant numeric bytes. On the tested little-endian x86 longdouble ABI, each 16-byte component has ten significant bytes checked and six padding bytes omitted. No floating tolerance is substituted for payload comparisons.",
+  "new_reference_checks": 129151,
+  "range_inputs_outside_reference_scope": 138
 }

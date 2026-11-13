@@ -1,6 +1,6 @@
 {
   "upstream": "NumPy 2.5.3",
-  "lua_version": "0.141.0-dev",
+  "lua_version": "0.142.0-dev",
   "scope": "Public callable names in numpy/fft/linalg/random __all__, ndarray/Generator/ufunc public methods. Aliases counted separately; not constants, properties, all submodules or dtype loop combinations.",
   "interpretation": "Availability is observed at runtime; every available callable remains partial. This inventory alone verifies no behavior or full compatibility. Release-specific original fixtures provide separate behavioral evidence.",
   "complete_apis_declared": 0,

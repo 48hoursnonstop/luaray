@@ -14,6 +14,18 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.152.0-dev
+
+Added apply_along_axis with shared one-dimensional callback views, C-order
+invocation, first-result dtype/shape allocation, result-axis insertion and
+broadcast assignment. Supports trailing Lua parameters including nil, callable
+objects, read-only inputs and unchanged callback errors with prior writes retained.
+
+Validated 60,768 NumPy 2.5.3 cases / 1,226,968 checks and 191 permanent Lua checks.
+Reference axes use one-based Lua positions and keyword parameters map to Lua
+arguments. Added executable English/Spanish guides; foreign subclasses and full
+NumPy scalar classes remain unsupported.
+
 ## 0.151.0-dev
 
 Added lazy ndindex iteration over one-based Lua coordinate snapshots with

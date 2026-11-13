@@ -272,3 +272,22 @@ ln_datetime_iso8601_strlen(int local, ln_datetime_unit base)
     if(base>=LN_FR_h)len+=local?5:1;
     return len+1;
 }
+
+/* NumPy scalartypes.c.src datetime/timedelta scalar str, used by scalar
+ * assignment to fixed-width text rather than the distinct ndarray cast. */
+int ln_datetime_scalar_string(int64_t value,const ln_dtype *dtype,char *out,size_t length,ln_error *err)
+{
+    const ln_datetime_meta *meta=ln_datetime_metadata(dtype);
+    if(!meta||!out||!length){dtserr(err,"invalid temporal scalar text arguments",NULL,0);return -1;}
+    if(dtype->kind=='M')return ln_datetime_format_iso8601(value,meta,meta->base,0,LN_DT_TZ_NAIVE,0,LN_DT_CAST_SAFE,out,length,err);
+    static const char *units[]={"years","months","weeks","<invalid>","days","hours","minutes","seconds","milliseconds","microseconds","nanoseconds","picoseconds","femtoseconds","attoseconds","generic time units"};
+    if(meta->base<0||meta->base>LN_FR_GENERIC){dtserr(err,"invalid temporal scalar metadata",NULL,0);return -1;}
+    int written;
+    if(value==LN_DATETIME_NAT)written=snprintf(out,length,"NaT");
+    else{
+        uint64_t bits=(uint64_t)value*(uint64_t)meta->num;int64_t ticks;memcpy(&ticks,&bits,8);
+        written=snprintf(out,length,"%lld %s",(long long)ticks,units[meta->base]);
+    }
+    if(written<0||(size_t)written>=length){dtserr(err,"temporal scalar text buffer is too small",NULL,0);return -1;}
+    return 0;
+}

@@ -20,6 +20,9 @@ int ln_lua_fail(lua_State *L,ln_error *err);
 int ln_lua_shape(lua_State *L,int index,ln_intp *dims,int *nd);
 const ln_dtype *ln_lua_creation_target(lua_State *L,int source_index,const ln_array *array,const ln_dtype *dtype,ln_error *err);
 void ln_lua_copyto_unsafe(lua_State *L,int destination,int source);
+/* Assign an ordinary equal-shape sequence progressively; 0 means the caller
+ * must use the temporary/broadcast path. Shape errors precede mutation. */
+int ln_lua_assign_exact_sequence(lua_State *L,int index,ln_array *destination);
 /* Typed arrays are borrowed unchanged for the caller's native casting path.
  * Ordinary Lua sequences/scalars are converted directly with assignment bounds
  * checks and rooted on the stack, preserving Python scalar/ndarray distinctions. */

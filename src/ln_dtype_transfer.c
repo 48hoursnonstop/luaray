@@ -537,20 +537,6 @@ format_numeric_ascii(const char *src, const ln_dtype *dt,
     return n;
 }
 
-static const char *
-timedelta_unit_word(ln_datetime_unit u)
-{
-    switch(u){
-        case LN_FR_Y:return "years"; case LN_FR_M:return "months";
-        case LN_FR_W:return "weeks"; case LN_FR_D:return "days";
-        case LN_FR_h:return "hours"; case LN_FR_m:return "minutes";
-        case LN_FR_s:return "seconds"; case LN_FR_ms:return "milliseconds";
-        case LN_FR_us:return "microseconds"; case LN_FR_ns:return "nanoseconds";
-        case LN_FR_ps:return "picoseconds"; case LN_FR_fs:return "femtoseconds";
-        case LN_FR_as:return "attoseconds"; default:return "generic time units";
-    }
-}
-
 static int
 format_temporal_ascii(const char *src, const ln_dtype *dt,
                       char *buf, size_t cap, ln_error *err)
@@ -563,11 +549,8 @@ format_temporal_ascii(const char *src, const ln_dtype *dt,
         if(ln_datetime_format_iso8601(v,m,m->base,0,LN_DT_TZ_NAIVE,0,LN_DT_CAST_UNSAFE,buf,cap,err)<0)return -1;
         return (int)strlen(buf);
     }
-    /* NumPy timedelta scalar str() first multiplies the descriptor multiplier
-     * into the displayed integer, then appends the canonical plural unit. */
-    uint64_t bits=(uint64_t)v*(uint64_t)m->num;int64_t scaled;memcpy(&scaled,&bits,8);
-    int n=snprintf(buf,cap,"%lld %s",(long long)scaled,timedelta_unit_word(m->base));
-    if(n<0||(size_t)n>=cap){set_transfer_error(err,"formatted string buffer too small");return -1;}
+    if(ln_datetime_scalar_string(v,dt,buf,cap,err)<0)return -1;
+    int n=(int)strlen(buf);
     /* The pinned legacy timedelta-to-string cast produces at most 21
      * characters, including when the destination string dtype is wider. */
     if(n>21){buf[21]='\0';n=21;}

@@ -1,6 +1,7 @@
 #include "ln_bytes.h"
 #include "ln_layout.h"
 #include "ln_creation.h"
+#include "ln_write.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -140,4 +141,28 @@ ln_array *ln_bytes_swap_copy(const ln_array *a,ln_error *err)
     ln_array *result=ln_creation_convert(a,NULL,'A',1,-1,NULL,err);if(!result)return NULL;
     if(ln_bytes_swap_inplace(result,err)<0){ln_array_free(result);return NULL;}
     return result;
+}
+
+/* methods.c:PyArray_GetField retains shape/strides and offsets each item. */
+ln_array *ln_bytes_field(const ln_array *a,const ln_dtype *dtype,ln_intp offset,ln_error *err)
+{
+    if(!a||!a->descr||!dtype){fail(err,"getfield requires an array and dtype",LN_ERROR_TYPE);return NULL;}
+    if(offset<0||dtype->elsize>a->descr->elsize||
+       (uintmax_t)offset>a->descr->elsize-dtype->elsize){
+        fail(err,"field dtype plus offset exceeds the original item",LN_ERROR_VALUE);return NULL;
+    }
+    /* Empty arrays can have a valid field offset beyond their one-byte backing
+     * allocation. Form its address without out-of-allocation pointer arithmetic;
+     * zero-count views never dereference it. */
+    char *data=(char*)((uintptr_t)a->data+(uintptr_t)offset);
+    ln_array *field=ln_array_view(a,a->nd,a->dimensions,a->strides,data,err);
+    if(field){field->descr=dtype;ln_update_contiguous_flags(field);}
+    return field;
+}
+int ln_bytes_setfield(ln_array *a,const ln_array *value,const ln_dtype *dtype,ln_intp offset,ln_error *err)
+{
+    if(!a||!(a->flags&LN_ARRAY_WRITEABLE))return fail(err,"assignment destination is read-only",LN_ERROR_VALUE);
+    ln_array *field=ln_bytes_field(a,dtype,offset,err);if(!field)return -1;
+    int result=ln_array_copyto(field,value,NULL,1,LN_UNSAFE_CASTING,err);
+    ln_array_free(field);return result;
 }

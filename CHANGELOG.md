@@ -14,6 +14,19 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.147.0-dev
+
+Added native per-item getfield/setfield views and writes with retained shape,
+strides and storage ownership, checked byte offsets, broadcasting and alias
+handling. Ordinary sequences retain CopyObject rank limits and partial-prefix
+writes on equal-shape packing failures. Typed arrays keep unsafe array casts.
+
+Preserved temporal scalar packing separately from array casting, including
+signed item/bounds rules, date text truncation and duration cast width limits.
+Shared full temporal scalar text formatting with the existing cast subsystem.
+Validated 233,460 NumPy 2.5.3 cases / 2,680,078 exact checks, 104 permanent Lua
+checks and native regressions. Added executable English/Spanish field guides.
+
 ## 0.146.0-dev
 
 Added native `ndarray:byteswap` with independent ANYORDER copies or in-place

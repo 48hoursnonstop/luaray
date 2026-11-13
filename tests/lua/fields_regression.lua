@@ -1,0 +1,50 @@
+local lr=require('luaray')
+local checks=0
+local function eq(a,b)
+    checks=checks+1
+    if type(b)=='table' then
+        assert(type(a)=='table' and #a==#b)
+        for i=1,#b do eq(a[i],b[i]) end
+    else assert(a==b,tostring(a)..' ~= '..tostring(b)) end
+end
+local function fails(f)checks=checks+1;assert(not pcall(f))end
+local a=lr.zeros({2,3},'uint64')
+local f=a:getfield(lr.dtype('uint16'),1)
+eq(f.shape,{2,3});eq(f.strides,a.strides);eq(f.flags.aligned,false)
+eq(f.flags.owndata,false);eq(lr.shares_memory(a,f),true)
+eq(a:setfield({1,2,3},'uint16',1),nil);eq(f:tolist(),{{1,2,3},{1,2,3}})
+f[1]=9;eq(a:getfield('uint16',1):tolist()[1][1],9)
+a=nil;collectgarbage('collect');eq(f:tolist()[1][1],9)
+f:setfield(7,'uint8');eq(f:getfield('uint8'):tolist(),{{7,7,7},{7,7,7}})
+a=lr.zeros({3},'uint64')
+f=a:getfield('uint8');fails(function()a:resize({4})end)
+fails(function()a:setfield({1,257,2},'uint8')end);eq(f:tolist(),{1,0,0})
+a:setfield(lr.array({1,257,2},'int32'),'uint8');eq(f:tolist(),{1,1,2})
+a=lr.zeros({2,3},'uint64');f=a:getfield('uint8')
+fails(function()a:setfield({1,257,2},'uint8')end);eq(f:tolist(),{{0,0,0},{0,0,0}})
+fails(function()a:setfield({{1,257,2},{3,4,5}},'uint8')end);eq(f:tolist(),{{1,0,0},{0,0,0}})
+fails(function()a:setfield({{2},{3,4}},'uint8')end);eq(f:tolist(),{{1,0,0},{0,0,0}})
+a=lr.zeros({},'uint64')
+fails(function()a:setfield({1},'uint8')end)
+a:setfield(lr.array({1},'int32'),'uint8');eq(a:getfield('uint8'):tolist(),1)
+a:setfield(lr.timedelta64(3,'h'),'S2');eq(a:getfield('S2'):tolist(),'3 ')
+a:setfield(lr.datetime64(3,'D'),'U1');eq(a:getfield('U1'):tolist(),'1')
+fails(function()a:setfield(lr.datetime64(3,'D'),'int32')end)
+a:setfield(lr.array(lr.datetime64(3,'D')),'int32');eq(a:getfield('int32'):tolist(),3)
+a:setfield(lr.datetime64(3,'ns'),'int8');eq(a:getfield('int8'):tolist(),3)
+fails(function()a:setfield(lr.datetime64(257,'ns'),'int8')end)
+a:setfield(lr.array(lr.datetime64(257,'ns')),'int8');eq(a:getfield('int8'):tolist(),1)
+a:setflags(false);eq(a:getfield('uint8').flags.writeable,false)
+fails(function()a:setfield(1,'uint8')end)
+local empty=lr.zeros({0},'uint64');eq(empty:getfield('uint8',7).size,0)
+local z=lr.zeros({2},'uint64'):getfield('S0',8);eq(z.itemsize,0);eq(z.shape,{2})
+local scalar=lr.zeros({},'float64');eq(scalar:getfield(nil).dtype,'float64')
+scalar:setfield(2,nil);eq(scalar:tolist(),2)
+for _,offset in ipairs({-1,8,1.5,'1',2^31,-2^31-1}) do
+    fails(function()scalar:getfield('uint8',offset)end)
+    fails(function()scalar:setfield(1,'uint8',offset)end)
+end
+fails(function()scalar:getfield()end);fails(function()scalar:getfield('uint8',0,1)end)
+fails(function()scalar:setfield(1)end);fails(function()scalar:setfield(1,'uint8',0,1)end)
+fails(function()scalar:getfield('complex128')end)
+print('fields regression: '..checks..' checks passed')

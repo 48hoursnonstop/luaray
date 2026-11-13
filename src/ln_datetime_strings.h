@@ -47,6 +47,8 @@ int ln_datetime_format_iso8601(int64_t value, const ln_datetime_meta *meta,
                                ln_datetime_string_casting casting,
                                char *out, size_t outlen, ln_error *err);
 
+int ln_datetime_scalar_string(int64_t value,const ln_dtype *dtype,char *out,size_t length,ln_error *err);
+
 int ln_datetime_iso8601_strlen(int local, ln_datetime_unit base);
 
 #ifdef __cplusplus

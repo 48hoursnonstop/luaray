@@ -50,3 +50,5 @@ serialización de archivos. La [referencia inglesa](../byte_views.md) detalla
 el alcance; todas las APIs continúan clasificadas como parciales.
 
 [Intercambiar bytes](byteswap.md) explica la modificación del almacenamiento sin cambiar el dtype.
+
+[Campos por elemento](fields.md) cubre vistas y escrituras en una región de bytes de cada elemento.

@@ -82,3 +82,5 @@ pickle/file serialization is implied. Runtime availability remains partial;
 see compatibility records and [validation results](development/validation.md) for executed checks.
 
 [Swapping bytes](byteswap.md) describes payload mutation without changing the dtype.
+
+[Per-item fields](fields.md) covers views and writes inside each element’s byte region.

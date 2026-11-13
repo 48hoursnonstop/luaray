@@ -12,6 +12,14 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.138.0-dev
+
+Added `require` for C/F layout, alignment, writeability and storage ownership,
+preserving suitable input identity and copying when needed. Fixed shared array
+creation so dtype-changing ANYORDER conversions retain axis order separately
+from same-dtype ANYORDER copies. Added regression and differential evidence for
+immutable/unaligned buffers and English/Spanish memory-requirement guides.
+
 ## 0.137.0-dev
 
 Added ndarray flag objects, write/alignment `setflags` and `isfortran`. Retained

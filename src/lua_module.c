@@ -8083,7 +8083,7 @@ int luaopen_luaray_core(lua_State*L){
     for(int i=0;names[i];i++){lua_pushstring(L,names[i]);lua_setfield(L,-2,names[i]);}
     push_index_token(L,LN_INDEX_NEWAXIS);lua_setfield(L,-2,"newaxis");
     push_index_token(L,LN_INDEX_ELLIPSIS);lua_setfield(L,-2,"ellipsis");
-    lua_pushstring(L,"0.137.0-dev");lua_setfield(L,-2,"_version");
+    lua_pushstring(L,"0.138.0-dev");lua_setfield(L,-2,"_version");
     lua_pushstring(L,"286e698f1dcf601648b165f48485ceaeec9c6231");lua_setfield(L,-2,"_numpy_upstream_commit");
     return 1;
 }

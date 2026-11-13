@@ -53,6 +53,11 @@ int main(void)
     int64_t nat=LN_DATETIME_NAT;
     assert(ln_cast_strided_numeric((char *)&nat,0,ln_dtype_by_name("int64"),date->data,0,date->descr,1,&err)==0);
     assert(((int64_t *)date->data)[0]==LN_DATETIME_NAT);
+    ln_array *expanded=ln_array_view(a,2,(ln_intp[]){2,3},(ln_intp[]){0,4},a->data,&err);assert(expanded);
+    out=ln_creation_convert(expanded,f32,'A',-1,0,&identity,&err);assert(out);
+    assert(out->strides[0]==4&&out->strides[1]==8&&((float*)out->data)[5]==2);ln_array_free(out);
+    out=ln_creation_convert(expanded,NULL,'A',1,0,&identity,&err);assert(out);
+    assert(out->strides[0]==12&&out->strides[1]==4);ln_array_free(out);ln_array_free(expanded);
     ln_array_free(date);ln_array_free(f);ln_array_free(a);
     puts("creation107 native core: passed");return 0;
 }

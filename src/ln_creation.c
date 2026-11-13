@@ -83,7 +83,10 @@ ln_array *ln_creation_convert(const ln_array *input,const ln_dtype *dtype,
     if(copy==0&&needs_copy)return creation_bad(err,"unable to avoid a copy while creating an array as requested");
     ln_array *out;
     if(needs_copy) {
-        out=ln_creation_new_like(input,dtype,order,-1,NULL,err);if(!out)return NULL;
+        /* FromArray defaults dtype-changing ANYORDER transfers to KEEPORDER;
+         * same-dtype copy shortcuts retain the requested ANYORDER behavior. */
+        char allocation_order=order=='A'&&!same?'K':order;
+        out=ln_creation_new_like(input,dtype,allocation_order,-1,NULL,err);if(!out)return NULL;
         if(ln_array_copyto(out,input,NULL,1,LN_UNSAFE_CASTING,err)<0){ln_array_free(out);return NULL;}
     }
     else {

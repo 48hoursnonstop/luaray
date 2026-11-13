@@ -1,11 +1,11 @@
 {
-  "version": "0.137.0-dev",
+  "version": "0.138.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
   "new_reference_cases": {
-    "flags_and_permissions": 12510
+    "requirements_and_creation": 18430
   },
-  "new_lua_regression_checks": 46,
+  "new_lua_regression_checks": 36,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -13,23 +13,24 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.ndarray.setflags": "implemented_partial",
-    "numpy.isfortran": "implemented_partial"
+    "numpy.require": "implemented_partial",
+    "numpy.array": "implemented_partial",
+    "numpy.asarray": "implemented_partial",
+    "numpy.asanyarray": "implemented_partial"
   },
   "evidence": [
-    "src/lua_flags.c",
-    "src/ln_core.c",
-    "src/ln_core.h",
-    "src/ln_components.c",
-    "tests/native/test_flags137_core.c",
-    "tests/lua/flags_regression.lua",
-    "docs/flags.md",
+    "lua/luaray/requirements.lua",
+    "lua/luaray.lua",
+    "src/ln_creation.c",
+    "tests/native/test_creation107_core.c",
+    "tests/lua/requirements_regression.lua",
+    "docs/requirements.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 390,
-    "missing_bindings": 284,
+    "available_callables": 391,
+    "missing_bindings": 283,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -130,14 +131,16 @@
     "Expanded instrumentation found and fixed an earlier scalar-assignment stack buffer that was too small for complex256; the final audit includes ln_core and the dedicated regression. Other dependencies remain only partially instrumented.",
     "setflags supports write/align as optional strict Boolean positional values or Lua options. WRITEBACKIFCOPY/uic mutation and its Python base-detachment/writeback protocol remain unsupported; the engine never exposes that flag as active.",
     "Flags objects retain source snapshot semantics and retain their referenced array; attributes and string mapping keys share one Lua namespace. Python flag-object warning/subclass/truth-conversion protocols and exact text representation are not reproduced.",
-    "Logical root write permission is stored with the storage owner for surviving views. Native integrations must use ln_array_setflags for logical permission changes rather than directly clearing an owning root flag. Physical readonly storage cannot be unlocked."
+    "Logical root write permission is stored with the storage owner for surviving views. Native integrations must use ln_array_setflags for logical permission changes rather than directly clearing an owning root flag. Physical readonly storage cannot be unlocked.",
+    "require accepts nil/false/empty requirements, character strings or dense Lua string sequences; arbitrary Python dictionaries/iterators, like and subclass protocols are unsupported. E is satisfied by the sole native Lua array class.",
+    "Dtype-changing ANYORDER creation transfers preserve KEEPORDER axis layout, while same-dtype ANYORDER copy shortcuts remain distinct. This targeted correction does not certify every array creation/cast/foreign-dispatch case."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "df2f771e882a5331bf107223ac0e387503e6f02bd8b83df7555fc6b3035b95fe",
-      "files": 312
+      "sha256": "0c1fbab10509dc0508fbd14d8c8b6c44e0d698582ec0227f2be3023570c54a77",
+      "files": 314
     },
-    "version": "0.137.0-dev",
+    "version": "0.138.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -162,7 +165,8 @@
       "ln_take",
       "ln_choose",
       "lua_flags",
-      "ln_components"
+      "ln_components",
+      "ln_creation"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -170,14 +174,15 @@
       "tests/native/test_comparison134_core.c",
       "tests/native/test_elements135_core.c",
       "tests/native/test_buffer136_core.c",
-      "tests/native/test_flags137_core.c"
+      "tests/native/test_flags137_core.c",
+      "tests/native/test_creation107_core.c"
     ],
     "all_maintained_tests": "passed",
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.137.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.138.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact flag fields, mapping aliases, bitmask, layout, ownership, state transitions, root/view permissions, metadata, snapshot behavior and rollback. Permanent tests additionally retain arrays through flag objects and storage roots through view GC.",
-  "new_reference_checks": 1684290
+  "new_check_semantics": "Exact accepted values, dtype, shape, strides, identity, flags, sharing and source/backing states after actual writes. Includes immutable and physically unaligned buffers, manual flags, zero-dimensional/raw inputs, order conflicts and dtype-changing ANYORDER versus same-dtype copy behavior.",
+  "new_reference_checks": 1116960
 }

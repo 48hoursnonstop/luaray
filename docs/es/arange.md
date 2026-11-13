@@ -26,6 +26,10 @@ complejo selecciona complex128. Un paso cero es un error, aunque start y stop
 sean iguales. Se rechazan longitudes no finitas o excesivas antes de reservar.
 Una longitud negativa produce un array vacío.
 
+Desde **0.143.0-dev**, también se aceptan argumentos ndarray numéricos de rango
+cero. Su aritmética conserva el dtype de entrada antes de convertir al dtype
+de salida; las reglas específicas se describen más abajo.
+
 ## Seleccionar el dtype de salida
 
 ```lua
@@ -102,15 +106,71 @@ intuitivos. Los cálculos escalares complejos usan componentes binary64. Los
 pasos complejos infinitos conservan la recuperación de ceros con signo del
 original; las longitudes NaN inválidas producen errores.
 
+## Argumentos tipados de rango cero
+
+```lua
+local bound = lr.array(3, "float32")
+bound:setflags(false)
+local range = lr.arange(bound)
+assert(range.dtype == "float64" and range.size == 3 and range[3] == 2)
+assert(not bound.flags.writeable and not lr.shares_memory(range, bound))
+```
+
+Los arrays deben tener rango cero; se rechaza un vector de un solo elemento.
+Se admiten fuentes de solo lectura y desalineadas: permanecen intactas y el
+resultado tiene memoria independiente. La inferencia parte del entero de
+índices nativo y promociona las entradas. Float32 produce float64 por defecto;
+longdouble conserva su clase más amplia. La aritmética intermedia sigue el
+dtype de entrada, incluidos el wrap entero y la precisión half.
+
+```lua
+local typed_start = lr.array(256, "int64")
+local one = lr.arange(typed_start, 257, 1, {dtype="uint8"})
+assert(one.size == 1 and one[1] == 0)
+assert(not pcall(function()
+  lr.arange(typed_start, 258, 1, {dtype="uint8"})
+end))
+assert(typed_start:tolist() == 256)
+```
+
+El original distingue el array inicial del escalar obtenido al sumar start y
+step. La primera conversión a entero comprueba los límites nativos y después
+reduce el ancho; el escalar siguiente comprueba los límites del dtype de salida.
+Así, el ejemplo de un elemento hace wrap a cero, pero un segundo elemento
+produciría un error. La suma se evalúa incluso si basta un elemento; el segundo
+valor solo se convierte a la salida cuando se necesita.
+
+La conversión escalar también puede cambiar la precisión: un array int64 inicial
+convertido a longdouble pasa por binary64; un array longdouble conserva sus
+bits significativos. Esto difiere de convertir explícitamente el array entero
+a longdouble antes de usarlo como argumento del rango.
+
+```lua
+local narrow_complex = lr.array(lr.complex(3, -3), "complex64")
+local wide_complex = lr.array(lr.complex(3, -3), "complex128")
+assert(lr.arange(0, narrow_complex, 1).size == 3)
+assert(lr.arange(0, wide_complex, 1).size == 0)
+assert(lr.arange(0, wide_complex, 1, {dtype="float64"}).size == 3)
+```
+
+El escalar obtenido de aritmética complex128 participa en la regla de longitud
+compleja; complex64 y complex256 convierten la parte real para obtenerla. Una
+salida no compleja también usa esa conversión para resultados tipados. Los arrays
+complex64/complex128 iniciales rechazan la conversión escalar real o entera
+normal; longdouble utiliza una ruta distinta. Estas reglas reproducen el código
+de referencia y no definen un intervalo complejo general. No se reproducen ni
+certifican las políticas de advertencias flotantes.
+
 ## Compatibilidad y verificación
 
-La interfaz numérica escalar tiene compatibilidad parcial con NumPy 2.5.3.
-Todavía no admite argumentos ndarray tipados, rangos datetime/timedelta ni
+La interfaz numérica tiene compatibilidad parcial con NumPy 2.5.3.
+Todavía no admite rangos datetime/timedelta ni
 protocolos Python de tipos externos, `like` o dispositivos. Los enteros Python
 fuera del rango Lua no son representables; las diferencias y sumas iniciales
 internas usan aritmética más amplia y comprobada.
 
-La interfaz nativa `ln_array_arange` recibe tres escalares `ln_ufunc_operand` y
+La interfaz nativa `ln_array_arange` recibe tres valores `ln_ufunc_operand`,
+incluidos arrays numéricos de rango cero, y
 un descriptor de salida opcional. Devuelve un array con memoria propia o un
 error; no modifica las entradas prestadas. El relleno se ejecuta en código nativo.
 

@@ -47,7 +47,7 @@ for _,call in ipairs({
  function()lr.arange(1,2,3,4,5)end,
  function()lr.arange(1,2,3,4)end,
  function()lr.arange({1,2})end,
- function()lr.arange(lr.array(3))end,
+ function()lr.arange(lr.array({3}))end,
  function()lr.arange(0,3,0)end,
  function()lr.arange(0,0,-0.0)end,
  function()lr.arange(0,3,0/0)end,

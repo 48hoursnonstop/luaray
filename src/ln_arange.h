@@ -4,8 +4,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* Native scalar range. Accepts weak Boolean/integer/real/complex operands.
- * A NULL dtype infers at least int64. Array/temporal protocols are separate. */
+/* Native scalar range. Accepts weak Boolean/integer/real/complex operands and
+ * numeric rank-zero arrays. A NULL dtype infers at least the native index
+ * integer type. Temporal range construction is a separate protocol. */
 ln_array *ln_array_arange(const ln_ufunc_operand *start,
     const ln_ufunc_operand *stop,const ln_ufunc_operand *step,
     const ln_dtype *dtype,ln_error *err);

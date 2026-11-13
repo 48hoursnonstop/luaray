@@ -12,6 +12,19 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.143.0-dev
+
+Extended arange to numeric rank-zero array arguments. Native dtype promotion
+and arithmetic preserve the source distinctions between original arrays and
+computed scalars, including initial packing bounds, intermediate precision and
+complex length selection. Read-only and unaligned inputs stay unchanged;
+results own independent writable storage. Temporal ranges remain pending.
+
+Validated 17,508 NumPy 2.5.3 cases / 250,603 exact checks, 35 new permanent Lua
+checks and native regressions. Significant longdouble bytes are exact; padding
+is canonicalized in input fixtures and omitted from value comparisons. Added
+executable English/Spanish documentation for typed range arguments.
+
 ## 0.142.0-dev
 
 Expanded arange from the legacy stop-only helper to native numeric scalar

@@ -57,8 +57,8 @@ el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.142.0-dev** aprobó **62 suites nativas**, **112 suites Lua**, siete ejemplos
-y 218 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.143.0-dev** aprobó **63 suites nativas**, **113 suites Lua**, siete ejemplos
+y 224 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -115,7 +115,9 @@ El constructor ndarray aprobó **24 204 casos /240 870 comprobaciones exactas** 
 
 Los rangos arange numéricos aprobaron **12 901 casos /129 151 comprobaciones exactas**, más 125 comprobaciones Lua permanentes y una prueba C. Se comparan bytes significativos, conversión inicial, incrementos efectivos, wrap, longitudes complejas, errores y metadatos. Se excluyeron 138 entradas excesivas o fuera del dominio entero Lua. En el ABI x86 probado se comprueban los diez bytes significativos de cada componente longdouble y se omiten seis de padding. La regeneración fue exacta y pasó una prueba C++ de cabecera/enlace. Los argumentos ndarray y rangos temporales siguen pendientes.
 
-La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, además del runner Lua y nueve pruebas nativas. Aprobaron todas las suites mantenidas y los 36 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
+Los argumentos tipados de rango cero para arange aprobaron **17 508 casos /250 603 comprobaciones exactas**, 35 comprobaciones Lua nuevas y una prueba C. Las fuentes de solo lectura/desalineadas conservan datos y permisos; se prueban precisión intermedia, conversión inicial, límites enteros y selección de longitud compleja. Se excluyeron 56 reservas excesivas y 70 errores de construcción de argumentos antes de ejecutar arange. El padding longdouble se pone a cero en las entradas de fixtures y se omite al comparar; sus diez bytes significativos se comprueban exactamente. La regeneración fue exacta y pasó la prueba C++ de cabecera/enlace. Los rangos temporales siguen pendientes.
+
+La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, además del runner Lua y diez pruebas nativas. Aprobaron todas las suites mantenidas y los 37 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
 
 ## Integridad de las entregas
 

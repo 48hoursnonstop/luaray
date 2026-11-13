@@ -1,9 +1,9 @@
 {
-  "version": "0.142.0-dev",
+  "version": "0.143.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
-  "new_reference_cases": 12901,
-  "new_lua_regression_checks": 125,
+  "new_reference_cases": 17508,
+  "new_lua_regression_checks": 35,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -15,9 +15,9 @@
   },
   "evidence": [
     "src/ln_arange.c",
-    "src/lua_arange.c",
-    "src/lua_array_api.h",
-    "tests/native/test_arange142_core.c",
+    "src/ln_arange.h",
+    "tests/native/test_arange143_core.c",
+    "tests/lua/arange_arrays_regression.lua",
     "tests/lua/arange_regression.lua",
     "docs/arange.md",
     "compatibility/numpy-source.sha256"
@@ -139,17 +139,20 @@
     "ndarray constructor accepts documented dense integer shape/layout and scalar dtype descriptors; retained Lua string or C/F-contiguous ndarray buffers only. No Python arbitrary buffer/subclass/foreign-array protocols.",
     "ndarray deliberately rejects unsafe or unverified upstream states: negative/excessive buffer offsets, inferred-stride footprints outside actual storage, zero-width inference, empty external buffers with nonempty payloads and overflowing element counts. The 2420 skipped reference parameter states are not compatibility passes. Native/Lua regressions directly test safety rejection.",
     "Owned zero-byte ndarray allocations reset strides, while buffer views retain them. S0/U0 retain zero width here; existing empty constructors normalize widths. Constructor contiguity flags preserve upstream default-versus-explicit stride distinctions.",
-    "arange numeric scalar start/stop/step supports Lua Boolean/integer/float/complex and existing native numeric output dtypes. Typed ndarray and temporal range arguments, foreign numeric/like/device protocols and Python integers outside Lua integer range remain unsupported.",
+    "arange numeric inputs accept Lua Boolean/integer/float/complex and numeric rank-zero arrays, with existing native numeric output dtypes. Higher-rank arguments, temporal range construction, foreign numeric/like/device protocols and Python integers outside Lua integer range remain unsupported.",
     "Legacy integer stop plus positional dtype preserves per-index conversion, including arbitrary-length Boolean ranges, raw temporal ticks and empty string descriptors. Options tables select the new NumPy constructor contract.",
-    "arange computes source length and first two scalar conversions, then typed-delta native filling with integer wrap. Boolean output has at most two elements. Complex scalar arithmetic uses binary64 components; complex input with noncomplex output is rejected.",
-    "The arange reference corpus excludes 138 oversized or outside-Lua-integer parameter cases. Longdouble padding bytes are omitted explicitly; significant bytes remain exact. Full host ABI, floating warning/error policy and all oversized allocations are not certified."
+    "Lua-scalar arange computes source length and first two scalar conversions, then typed-delta filling with integer wrap. The new Boolean constructor has at most two elements. Lua complex scalar inputs require complex output; typed arithmetic follows its separate source scalar conversion rules.",
+    "The 0.142 scalar arange reference corpus excludes 138 oversized or outside-Lua-integer parameter cases. Longdouble padding bytes are omitted explicitly; significant bytes remain exact. Full host ABI, floating warning/error policy and all oversized allocations are not certified.",
+    "Typed arange uses native weak/array arithmetic and preserves original-array versus computed-scalar packing. Intermediate precision, integer wrap, default output promotion and complex128 versus complex64/complex256 length conversion follow the verified source cases. This does not certify every operand/value/ABI combination.",
+    "Original complex64/complex128 arrays reject ordinary real/integer scalar conversion; longdouble conversion has a separate source path. Numeric warning/error configuration and warning messages remain uncertified.",
+    "The new reference corpus excludes 56 oversized allocations and 70 rejected source-array constructions before arange execution. These are not compatibility passes. Longdouble padding is canonicalized in fixture initializers and omitted from numerical comparisons."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "1957059aea80021bae0fbc5888aa7f1c4f0c0d685c1445cf33b732f8c2da0c81",
-      "files": 335
+      "sha256": "2a3420b70350884737b2b98be46a927ec837536c2823804734b87910fd173481",
+      "files": 337
     },
-    "version": "0.142.0-dev",
+    "version": "0.143.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -198,15 +201,19 @@
       "tests/native/test_creation107_core.c",
       "tests/native/test_dtype140_core.c",
       "tests/native/test_constructor141_core.c",
-      "tests/native/test_arange142_core.c"
+      "tests/native/test_arange142_core.c",
+      "tests/native/test_arange143_core.c"
     ],
     "all_maintained_tests": "passed",
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.142.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.143.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Legacy integer-stop/positional-dtype references compare NumPy arange followed by astype; new options/start-stop calls compare the direct NumPy constructor. Exact acceptance, dtype typestr, shape/strides, flags, nbytes, writable result and significant numeric bytes. On the tested little-endian x86 longdouble ABI, each 16-byte component has ten significant bytes checked and six padding bytes omitted. No floating tolerance is substituted for payload comparisons.",
-  "new_reference_checks": 129151,
-  "range_inputs_outside_reference_scope": 138
+  "new_check_semantics": "Direct NumPy 2.5.3 arange comparisons with numeric rank-zero ndarray inputs. Exact acceptance, dtype typestr, shape/strides, flags, nbytes, significant numeric bytes and source payload/write permissions after independent output writes. Six x86 longdouble padding bytes per component are canonicalized to zero in input fixtures and omitted in comparisons; ten significant bytes remain exactly checked.",
+  "new_reference_checks": 250603,
+  "new_reference_exclusions": {
+    "oversized_allocations": 56,
+    "argument_array_construction_errors": 70
+  }
 }

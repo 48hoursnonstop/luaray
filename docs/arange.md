@@ -26,6 +26,10 @@ a complex argument selects complex128. A zero step raises an error, including
 when start equals stop. Nonfinite or excessive lengths are rejected before
 allocation. Negative lengths produce an empty array.
 
+From **0.143.0-dev**, numeric rank-zero ndarray arguments also work. Their
+arithmetic preserves the input dtype before the result is converted to the
+requested output dtype; the array-specific rules are described below.
+
 ## Select the output dtype
 
 ```lua
@@ -100,16 +104,72 @@ ordinary rule even with complex output. This can produce unintuitive empty
 ranges. Scalar complex calculations use binary64 components. Infinite complex
 steps retain the source's signed-zero recovery; invalid NaN lengths raise errors.
 
+## Typed rank-zero arguments
+
+```lua
+local bound = lr.array(3, "float32")
+bound:setflags(false)
+local range = lr.arange(bound)
+assert(range.dtype == "float64" and range.size == 3 and range[3] == 2)
+assert(not bound.flags.writeable and not lr.shares_memory(range, bound))
+```
+
+Arrays must have rank zero; a one-element vector is rejected. Read-only and
+unaligned sources are supported, remain unchanged and do not become owners of
+the output. Dtype inference starts with the native index integer and promotes
+across all inputs. For example, float32 input yields float64 output by default,
+while longdouble input retains its wider output class. Intermediate arithmetic
+still follows the input dtype, including integer wrap and half precision.
+
+```lua
+local typed_start = lr.array(256, "int64")
+local one = lr.arange(typed_start, 257, 1, {dtype="uint8"})
+assert(one.size == 1 and one[1] == 0)
+assert(not pcall(function()
+  lr.arange(typed_start, 258, 1, {dtype="uint8"})
+end))
+assert(typed_start:tolist() == 256)
+```
+
+Upstream distinguishes an original array from the scalar produced by adding
+start and step. The first array-to-integer conversion checks native conversion
+bounds and then narrows; the next computed scalar checks the output bounds.
+Thus the one-element example wraps to zero, while a second element would raise.
+The constructor evaluates start-plus-step even when only one element is needed,
+but packs the second value only when it will be used.
+
+Scalar conversion can also change precision: an original int64 array converted
+to longdouble goes through binary64, while a longdouble array retains its
+significant bits. This source behavior differs from explicitly casting an
+integer array to longdouble before using it as a range argument.
+
+```lua
+local narrow_complex = lr.array(lr.complex(3, -3), "complex64")
+local wide_complex = lr.array(lr.complex(3, -3), "complex128")
+assert(lr.arange(0, narrow_complex, 1).size == 3)
+assert(lr.arange(0, wide_complex, 1).size == 0)
+assert(lr.arange(0, wide_complex, 1, {dtype="float64"}).size == 3)
+```
+
+The upstream scalar resulting from complex128 arithmetic participates in the
+complex length rule; complex64 and complex256 arithmetic uses the real-part
+length conversion instead. A noncomplex output also uses that conversion for
+typed results. Original complex64/complex128 arrays reject ordinary real or
+integer scalar conversion; longdouble uses a separate conversion path. These
+rules reproduce the pinned source and do not define a general complex interval.
+Floating warning policies are not reproduced or certified.
+
 ## Compatibility and verification
 
-The numeric scalar interface has partial NumPy 2.5.3 compatibility. Typed ndarray
-arguments, datetime/timedelta ranges, foreign numeric and Python `like`/device
+The numeric interface has partial NumPy 2.5.3 compatibility. Datetime/timedelta
+ranges, foreign numeric and Python `like`/device
 protocols are not supported by this interface yet. Python arbitrary-precision
 integer arguments outside Lua's integer range are not representable; internal
 integer differences and initial sums use checked wider arithmetic.
 
 The native boundary is `ln_array_arange`, taking three scalar
-`ln_ufunc_operand` values and an optional output descriptor. It returns an owned
+`ln_ufunc_operand` values, including numeric rank-zero arrays, and an optional
+output descriptor. It returns an owned
 array or an error; borrowed inputs are not modified. Filling runs in native code.
 
 References check acceptance, dtype, layout, flags, writable independence and raw

@@ -6,4 +6,5 @@ require("luaray.gradient")(lr)
 require("luaray.integration")(lr)
 require("luaray.phase")(lr)
 require("luaray.interpolation")(lr)
+require("luaray.comparison")(lr)
 return lr

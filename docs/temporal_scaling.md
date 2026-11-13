@@ -91,6 +91,22 @@ different suffix values and sometimes different overflow messages. LuaRay preser
 unwritten output cells. Those cases compare only the defined prefix and metadata;
 full compatibility for the undefined suffix is not claimed.
 
+## Integer offsets and partial writes
+
+```lua
+local dates = lr.array({0, 1}, "datetime64[D]")
+local shifted = lr.add(dates, 2)
+assert(lr.astype(shifted, "int64")[2] == 3)
+```
+
+Since **0.134.0-dev**, integer addition/subtraction uses ticks of the temporal
+unit. Boolean, signed and unsigned integers are supported in arithmetic. Addition
+accepts both orders; integer minus datetime is rejected, while integer minus
+timedelta is supported. Uint64 can participate in arithmetic even though its
+comparison signature is unsupported. NaT propagates. If addition/subtraction
+overflows, completed elements and mask runs are preserved before the error;
+the operation is not atomic.
+
 ## Compatibility
 
 Floating scaling has been available since **0.113.0-dev**; integer multiplication

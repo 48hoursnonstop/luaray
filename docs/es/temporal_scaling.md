@@ -94,6 +94,21 @@ repetidas produjeron sufijos distintos y, en ocasiones, mensajes de error distin
 LuaRay conserva las celdas que no ha escrito. En esos casos se comparan el prefijo
 definido y los metadatos; no se declara compatibilidad completa del sufijo indefinido.
 
+## Desplazamientos enteros y escrituras parciales
+
+```lua
+local dates = lr.array({0, 1}, "datetime64[D]")
+local shifted = lr.add(dates, 2)
+assert(lr.astype(shifted, "int64")[2] == 3)
+```
+
+Desde **0.134.0-dev**, sumar/restar enteros usa ticks de la unidad temporal.
+Se admiten booleanos, enteros con signo y sin signo en aritmética. La suma admite
+ambos órdenes; entero menos datetime se rechaza, mientras entero menos timedelta
+está permitido. uint64 puede participar en aritmética aunque no en la firma de
+comparación. NaT se propaga. Si sumar/restar desborda, se conservan los elementos
+y bloques de máscara completados antes del error; no se garantiza atomicidad.
+
 ## Compatibilidad
 
 El escalado flotante existe desde **0.113.0-dev** y la multiplicación entera desde

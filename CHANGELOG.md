@@ -12,6 +12,14 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.134.0-dev
+
+Added `array_equal`, `array_equiv`, `isclose` and `allclose` with source-derived
+shape, broadcasting, scalar promotion and NaN rules. Added temporal isnan/isinf,
+integer offset arithmetic/comparisons and preservation of completed overflow
+writes. Added native/Lua regressions, exact extended-precision reference inputs
+and executable English/Spanish equality guides.
+
 ## 0.133.0-dev
 
 Added Lua-native `interp` with real/complex samples, guess-assisted searching,

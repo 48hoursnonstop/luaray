@@ -64,3 +64,16 @@ nombres iguales. Actualiza el menú en `.vitepress/config.mts` al añadir págin
 Usa enlaces Markdown relativos entre páginas y ejecuta los ejemplos Lua nuevos.
 Los archivos generados y `node_modules` se ignoran; GitHub Actions publica el
 sitio en GitHub Pages.
+
+## Orden de implementación
+
+El trabajo sigue las dependencias de NumPy desde el núcleo hacia fuera. Primero
+se completan el modelo de ndarray y dtype, la precisión escalar, propiedad de
+memoria, vistas y escritura, creación, indexación y reglas de conversión. Después
+se amplían iteración por ejes, reducciones y métodos ufunc, operaciones numéricas
+y estadísticas. Las funciones especializadas de álgebra lineal, FFT, aleatoriedad
+y formatos de archivo se completan sobre esas bases verificadas.
+
+La presencia de una función no implica compatibilidad completa. Cada bloque debe
+preservar sus estados observables y probarse antes de ampliar la superficie.
+Las necesidades de una aplicación externa no sustituyen este orden del núcleo.

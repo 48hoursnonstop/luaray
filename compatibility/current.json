@@ -1,11 +1,13 @@
 {
-  "version": "0.133.0-dev",
+  "version": "0.134.0-dev",
   "upstream_source": "NumPy 2.5.3",
-  "new_oracle": "NumPy2.5.3 interpolation kernels; 68 ambiguous periodic grids use its portable generic quicksort rather than CPU-specific unstable tie order",
+  "new_oracle": "NumPy2.5.3",
   "new_reference_cases": {
-    "linear_interpolation": 1531
+    "equality": 8482,
+    "closeness": 4478,
+    "temporal_core": 14424
   },
-  "new_lua_regression_checks": 37,
+  "new_lua_regression_checks": 48,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -13,18 +15,35 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.interp": "implemented_partial"
+    "numpy.array_equal": "implemented_partial",
+    "numpy.array_equiv": "implemented_partial",
+    "numpy.isclose": "implemented_partial",
+    "numpy.allclose": "implemented_partial",
+    "numpy.add": "implemented_partial",
+    "numpy.subtract": "implemented_partial",
+    "numpy.equal": "implemented_partial",
+    "numpy.not_equal": "implemented_partial",
+    "numpy.less": "implemented_partial",
+    "numpy.less_equal": "implemented_partial",
+    "numpy.greater": "implemented_partial",
+    "numpy.greater_equal": "implemented_partial",
+    "numpy.isnan": "implemented_partial",
+    "numpy.isinf": "implemented_partial"
   },
   "evidence": [
-    "lua/luaray/interpolation.lua",
-    "tests/lua/interpolation_regression.lua",
-    "docs/interpolation.md",
+    "lua/luaray/comparison.lua",
+    "src/ln_datetime.c",
+    "src/ln_ufunc.c",
+    "tests/native/test_comparison134_core.c",
+    "tests/lua/comparison_regression.lua",
+    "docs/comparison.md",
+    "docs/temporal_scaling.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 381,
-    "missing_bindings": 293,
+    "available_callables": 385,
+    "missing_bindings": 289,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -111,10 +130,14 @@
     "Angle relative budgets are half2e-3,float32 3e-6,wider2e-12. Observed max absolute1.52587890625e-05 and relative1.4020190897517e-07; exact signed zeros are separate.",
     "Interp uses a Lua options table and typed rank-zero scalar results. Query/sample conversion differs with and without period as in the source. Scalar periods are restricted to real Lua numbers or real rank-zero arrays.",
     "Interpolation sorting follows the existing portable NumPy-derived quicksort.68 new ambiguous periodic cases use the NumPy kernel after generic portable quicksort;12 differ from the default CPU-optimized wheel. CPU-specific unstable tie ordering is not certified.",
-    "Interp numeric references allow absolute+relative2e-12, with zero observed error against the declared reference. Object/structured/foreign protocols, complete warning/scalar classes and all CPU implementations remain unsupported."
+    "Interp numeric references allow absolute+relative2e-12, with zero observed error against the declared reference. Object/structured/foreign protocols, complete warning/scalar classes and all CPU implementations remain unsupported.",
+    "Equality/closeness use Lua options tables and Boolean equal_nan. Array_equal and array_equiv return Lua Booleans; isclose scalar results remain typed rank-zero arrays. Full foreign/subclass/Python scalar/warning/error-state protocols are not reproduced.",
+    "Array rich equality handles known absent dtype-family signatures separately from execution or metadata errors; incompatible calendar/fixed duration comparison still raises. Signed-integer no-NaN fast paths exclude timedelta despite its integer-subtype classification.",
+    "Temporal add/subtract and predicates use the native iterator. Integer offsets preserve units; unsigned64 arithmetic is allowed but duration/unsigned64 comparison remains unsupported as in the pinned source. Failed arithmetic preserves completed prefix/mask-run writes.",
+    "New extended-precision reference inputs normalize x87 padding and retain all value bits. Other host floating ABIs and all nondefault rounding/error-state modes remain uncertified."
   ],
   "sanitizers": {
-    "version": "0.133.0-dev",
+    "version": "0.134.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_join",
@@ -131,19 +154,15 @@
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
-      "tests/native/test_matrix_core.c"
+      "tests/native/test_matrix_core.c",
+      "tests/native/test_comparison134_core.c"
     ],
     "all_maintained_tests": "passed",
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.133.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.134.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Results use absolute+relative2e-12, observed errors zero. Exact dtype, shape, strides, writable independence and input/backing states. Twelve default-CPU sort differences remain explicitly outside equivalence.",
-  "new_reference_checks": 137255,
-  "periodic_sort_reference": {
-    "portable_generic_quicksort_cases": 68,
-    "default_CPU_sort_result_differences": 12,
-    "contract": "Repeated normalized coordinates use portable NumPy generic quicksort, not CPU-specific unstable tie order. All68 compare against the actual NumPy interpolation kernel after portable ordering."
-  }
+  "new_check_semantics": "Exact Boolean equality/closeness results, dtype, shape, strides, writable independent outputs and input states; exact temporal ticks, masks, output identity and defined completed writes after overflow. Extended floating input value bits preserved through byte views.",
+  "new_reference_checks": 1186383
 }

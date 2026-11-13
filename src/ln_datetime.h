@@ -41,6 +41,7 @@ void ln_timedelta_positive_loop(char **args,const ln_intp *dimensions,const ln_i
 void ln_timedelta_absolute_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,void *data);
 void ln_timedelta_sign_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,void *data);
 void ln_datetime_isnat_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,void *data);
+void ln_datetime_isinf_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,void *data);
 void ln_datetime_isfinite_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,void *data);
 const char *ln_datetime_unit_name(ln_datetime_unit unit);
 

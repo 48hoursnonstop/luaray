@@ -82,7 +82,11 @@ resolve_time_binary_descrs(const ln_ufunc *u,const ln_ufunc_loop *method,
                            const ln_dtype_descr **descrs,ln_error *err)
 {
     (void)u;
-    const ln_dtype_descr *common=ln_common_dtype_descr(inputs[0]->descr,inputs[1]->descr);
+    const ln_dtype_descr *a=inputs[0]->descr,*b=inputs[1]->descr;
+    const ln_dtype_descr *common;
+    if(is_time_dtype(a)&&(b->kind=='b'||b->kind=='i'||b->kind=='u'))common=a;
+    else if(is_time_dtype(b)&&(a->kind=='b'||a->kind=='i'||a->kind=='u'))common=b;
+    else common=ln_common_dtype_descr(a,b);
     if(!common){ufunc_error(err,"cannot resolve common datetime metadata");return -1;}
     const ln_datetime_meta *meta=ln_datetime_metadata(common);
     if(!meta){ufunc_error(err,"datetime ufunc resolved non-time metadata");return -1;}
@@ -124,9 +128,13 @@ validate_datetime_arithmetic(char **args,const ln_intp *dimensions,const ln_intp
         if(subtract){if((b>0&&a<INT64_MIN+b)||(b<0&&a>INT64_MAX+b))ov=1;else r=a-b;}
         else{if((b>0&&a>INT64_MAX-b)||(b<0&&a<INT64_MIN-b))ov=1;else r=a+b;}
 #endif
-        if(ov||r==LN_DATETIME_NAT){ufunc_error(err,subtract?"Overflow in datetime64/timedelta64 subtraction":"Overflow in datetime64/timedelta64 addition");return -1;}
+        if(ov||r==LN_DATETIME_NAT){
+            ufunc_error(err,subtract?"Overflow in datetime64/timedelta64 subtraction":"Overflow in datetime64/timedelta64 addition");
+            if(err)err->kind=LN_ERROR_OVERFLOW;
+            return -(int)i-2;
+        }
     }
-    return 0;
+    return 1;
 }
 
 static int
@@ -274,14 +282,30 @@ static int resolve_add(const ln_ufunc*u,const ln_array*const*i,const ln_ufunc_lo
         *r=m;return 0;
     }
     if(is_time_dtype(i[0]->descr)||is_time_dtype(i[1]->descr)){
-        if(!is_time_dtype(i[0]->descr)||!is_time_dtype(i[1]->descr)){ufunc_error(e,"datetime/timedelta addition requires time operands");return -1;}
+        const ln_dtype *a=i[0]->descr,*b=i[1]->descr;
+        const ln_dtype *time=is_time_dtype(a)?a:b;
+        const ln_dtype *integer=time==a?b:a;
+        if(integer->kind=='b'||integer->kind=='i'||integer->kind=='u'){
+            const ln_dtype *duration=ln_datetime_default_dtype(1);
+            const ln_ufunc_loop *m=time==a?find_loop_2(u,time,duration):find_loop_2(u,duration,time);
+            if(m){*r=m;return 0;}
+        }
+        if(!is_time_dtype(a)||!is_time_dtype(b)){ufunc_error(e,"datetime/timedelta addition requires time or integer operands");return -1;}
         const ln_ufunc_loop*m=find_loop_2(u,i[0]->descr,i[1]->descr);if(!m){ufunc_error(e,"ufunc 'add' has no matching datetime signature");return -1;}*r=m;return 0;
     }
     return resolve_uniform_binary_common(u,i,r,e,0,0);
 }
 static int resolve_subtract(const ln_ufunc*u,const ln_array*const*i,const ln_ufunc_loop**r,ln_error*e){
     if(is_time_dtype(i[0]->descr)||is_time_dtype(i[1]->descr)){
-        if(!is_time_dtype(i[0]->descr)||!is_time_dtype(i[1]->descr)){ufunc_error(e,"datetime/timedelta subtraction requires time operands");return -1;}
+        const ln_dtype *a=i[0]->descr,*b=i[1]->descr;
+        const ln_dtype *time=is_time_dtype(a)?a:b;
+        const ln_dtype *integer=time==a?b:a;
+        if((time==a||time->kind=='m')&&(integer->kind=='b'||integer->kind=='i'||integer->kind=='u')){
+            const ln_dtype *duration=ln_datetime_default_dtype(1);
+            const ln_ufunc_loop *m=time==a?find_loop_2(u,time,duration):find_loop_2(u,duration,time);
+            if(m){*r=m;return 0;}
+        }
+        if(!is_time_dtype(a)||!is_time_dtype(b)){ufunc_error(e,"datetime/timedelta subtraction requires supported time or integer operands");return -1;}
         const ln_ufunc_loop*m=find_loop_2(u,i[0]->descr,i[1]->descr);if(!m){ufunc_error(e,"ufunc 'subtract' has no matching datetime signature");return -1;}*r=m;return 0;
     }
     return resolve_uniform_binary_common(u,i,r,e,1,0);
@@ -351,6 +375,12 @@ resolve_comparison(const ln_ufunc *u,const ln_array *const *inputs,
         ufunc_error(err,"string comparison loop resolution failed");return -1;
     }
     if(is_time_dtype(a)||is_time_dtype(b)){
+        const ln_dtype *time=a->kind=='m'?a:b->kind=='m'?b:NULL;
+        const ln_dtype *integer=time==(a)?b:a;
+        if(time&&(integer->kind=='b'||integer->kind=='i'||(integer->kind=='u'&&integer->elsize<8))){
+            const ln_ufunc_loop *tm=find_loop_2(u,time,time);
+            if(tm){*resolved=tm;return 0;}
+        }
         if(!is_time_dtype(a)||!is_time_dtype(b)||a->cls!=b->cls){ufunc_error(err,"datetime and timedelta cannot be compared to each other");return -1;}
         const ln_ufunc_loop *tm=find_loop_2(u,a,b);if(!tm){ufunc_error(err,"comparison has no matching datetime signature");return -1;}*resolved=tm;return 0;
     }
@@ -657,8 +687,8 @@ init_registry(void)
             unary_loops[i][n].loop=i==0?ln_timedelta_negative_loop:i==1?ln_timedelta_absolute_loop:i==2?ln_timedelta_positive_loop:ln_timedelta_sign_loop;
             unary_loops[i][n].resolve_descrs=resolve_time_unary_descrs;++n;
         }
-        if(i==7){
-            const ln_dtype_class *tc[2]={M,m};for(int k=0;k<2;++k){unary_loops[i][n].classes[0]=tc[k];unary_loops[i][n].classes[1]=bo;unary_loops[i][n].loop=ln_datetime_isfinite_loop;unary_loops[i][n].resolve_descrs=resolve_time_unary_descrs;++n;}
+        if(i==5||i==6||i==7){
+            const ln_dtype_class *tc[2]={M,m};for(int k=0;k<2;++k){unary_loops[i][n].classes[0]=tc[k];unary_loops[i][n].classes[1]=bo;unary_loops[i][n].loop=i==5?ln_datetime_isnat_loop:i==6?ln_datetime_isinf_loop:ln_datetime_isfinite_loop;unary_loops[i][n].resolve_descrs=resolve_time_unary_descrs;++n;}
         }
         append_ufunc(unames[i],1,1,unary_loops[i],n,resolve_unary_exact);
     }
@@ -711,6 +741,9 @@ materialize_weak_operand(const ln_ufunc *u,const ln_ufunc_operand *operand,
      * resolved, rather than overflowing or rounding in the strong input dtype. */
     if(op==LN_OP_LOGICAL_AND||op==LN_OP_LOGICAL_OR||op==LN_OP_LOGICAL_XOR){
         dt=ln_dtype_by_num(LN_BOOL);
+    }else if(is_time_dtype(strong->descr)&&(op==LN_OP_ADD||op==LN_OP_SUBTRACT||(op>=LN_OP_EQUAL&&op<=LN_OP_GREATER_EQUAL))&&
+            (operand->kind==LN_UFUNC_WEAK_INT||operand->kind==LN_UFUNC_WEAK_BOOL)){
+        dt=ln_dtype_by_name("int64");
     }else if(strong->descr->kind=='m'&&op==LN_OP_TRUE_DIVIDE&&operand->kind==LN_UFUNC_WEAK_BOOL){
         dt=ln_dtype_by_num(LN_BOOL);
     }else if(strong->descr->kind=='m'&&(op==LN_OP_MULTIPLY||op==LN_OP_TRUE_DIVIDE)&&

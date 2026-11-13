@@ -40,13 +40,13 @@ retain their original NumPy 2.3.5 attribution.
 
 `compatibility/current.json` records the release-specific behavioral evidence.
 `compatibility/api_inventory.json` records runtime availability. The latter
-reports 381 of 675 scoped names as available and classifies all available APIs
+reports 385 of 675 scoped names as available and classifies all available APIs
 as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.133.0-dev** passed **55 native suites**, **103 Lua suites**, seven public
-examples and 140 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
+LuaRay **0.134.0-dev** passed **56 native suites**, **104 Lua suites**, seven public
+examples and 150 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
 passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
 metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
@@ -84,9 +84,11 @@ Phase angles passed **3,212 cases /307,602 checks**, with22 permanent Lua checks
 
 Linear interpolation passed **1,531 cases /137,255 checks**, with37 permanent Lua checks. Scope includes real/complex results, scalar/empty queries, conversions, boundaries, periodic grids, views, nonfinite values and guess-assisted search. Of these,68 tied periodic cases use the NumPy kernel after its generic portable quicksort;12 differ from its default CPU path and are not declared equivalent. The absolute+relative budget is2e-12, with zero observed error against the declared reference; metadata and input/backing states compare exactly.
 
+Equality, closeness and temporal core passed **27,384 cases /1,186,383 exact checks**:8,482 equality,4,478 closeness and14,424 temporal cases. The48 permanent Lua checks and new native test exercise shapes, broadcasting, weak/typed promotion, NaN/NaT, identity, writable independence, extended-precision thresholds, integer offsets, masks and completed writes before overflow. Extended inputs avoid float64 serialization and normalize x87 padding. Warning/error-state objects and all floating ABIs are not certified.
+
 The directed ASan/UBSan run instrumented `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`,
-`lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi` and `ln_datetime`, plus the native matrix test and Lua runner. All maintained tests
-and all twenty cumulative matrix corpora passed. Other native dependencies were not fully
+`lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi` and `ln_datetime`, plus the native matrix/comparison tests and Lua runner. All maintained tests
+and all twenty-three cumulative matrix corpora passed. Other native dependencies were not fully
 instrumented; leak detection was disabled. This is a directed audit, not an
 all-dependency memory-safety certification.
 

@@ -64,3 +64,15 @@ filenames. Update the topic navigation in `.vitepress/config.mts` when adding a
 page. Use relative Markdown links between source pages. GitHub Actions builds
 the site and publishes the generated artifact to GitHub Pages; output and
 `node_modules` are never tracked.
+
+## Implementation order
+
+Work follows NumPy's dependencies from the core outward. First complete the
+ndarray/DType model, scalar precision, memory ownership, views and writes,
+creation, indexing and casting rules. Then expand axis iteration, reductions and
+ufunc methods, numerical operations and statistics. Specialized linear algebra,
+FFT, random functionality and file formats build on those verified foundations.
+
+API presence does not establish complete compatibility. Each block must preserve
+its observable states and pass execution checks before broadening the surface.
+The needs of an external application do not replace this core dependency order.

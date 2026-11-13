@@ -249,3 +249,10 @@ void ln_timedelta_absolute_loop(char **args,const ln_intp *dimensions,const ln_i
 void ln_timedelta_sign_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,void *data){(void)data;for(ln_intp i=0;i<dimensions[0];++i){int64_t a=load64(args[0]+i*steps[0]);double q=a==LN_DATETIME_NAT?NAN:(a>0?1.0:(a<0?-1.0:0.0));memcpy(args[1]+i*steps[1],&q,8);}}
 void ln_datetime_isnat_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,void *data){(void)data;for(ln_intp i=0;i<dimensions[0];++i){uint8_t q=(uint8_t)(load64(args[0]+i*steps[0])==LN_DATETIME_NAT);memcpy(args[1]+i*steps[1],&q,1);}}
 void ln_datetime_isfinite_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,void *data){(void)data;for(ln_intp i=0;i<dimensions[0];++i){uint8_t q=(uint8_t)(load64(args[0]+i*steps[0])!=LN_DATETIME_NAT);memcpy(args[1]+i*steps[1],&q,1);}}
+
+/* NumPy datetime/timedelta isinf is False even for the NaT sentinel. */
+void ln_datetime_isinf_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,void *data)
+{
+    (void)data;
+    for(ln_intp i=0;i<dimensions[0];++i){uint8_t value=0;memcpy(args[1]+i*steps[1],&value,1);}
+}

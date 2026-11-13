@@ -1,11 +1,13 @@
 {
-  "version": "0.148.0-dev",
+  "version": "0.149.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
   "new_reference_cases": {
-    "conjugation_methods": 28140
+    "indices": 1344,
+    "ix_": 2539,
+    "argwhere": 2180
   },
-  "new_lua_regression_checks": 82,
+  "new_lua_regression_checks": 150,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -13,22 +15,22 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.ndarray.conj": "implemented_partial",
-    "numpy.ndarray.conjugate": "implemented_partial"
+    "numpy.indices": "implemented_partial",
+    "numpy.ix_": "implemented_partial",
+    "numpy.argwhere": "implemented_partial"
   },
   "evidence": [
-    "src/lua_components.c",
-    "src/lua_components.h",
-    "src/lua_module.c",
-    "tests/lua/conjugate_method_regression.lua",
-    "docs/components.md",
-    "docs/es/components.md",
+    "lua/luaray/index_grids.lua",
+    "lua/luaray.lua",
+    "tests/lua/index_grids_regression.lua",
+    "docs/index_grids.md",
+    "docs/es/index_grids.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 403,
-    "missing_bindings": 271,
+    "available_callables": 406,
+    "missing_bindings": 268,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -166,14 +168,17 @@
     "Empty field offsets form integer addresses without out-of-allocation pointer arithmetic or dereference; zero-width field views retain original widths and the audited source memory-query convention.",
     "ndarray conj/conjugate return the original real numeric userdata or execute native conjugation for complex input. Optional output uses same-kind real assignment or the complex ufunc path; foreign protocols, subclasses and all host ABIs remain uncertified.",
     "The conjugation method accepts an output ndarray directly or an out options table. Other ufunc controls are not exposed by this method. String and temporal inputs are rejected.",
-    "Complex rank-zero method results without output follow LuaRay unary typed-array returns. Twenty-four reference scalars were normalized explicitly; their numerical bytes/dtypes are exact while ownership/writeability/post-write checks target the declared Lua representation."
+    "Complex rank-zero method results without output follow LuaRay unary typed-array returns. Twenty-four reference scalars were normalized explicitly; their numerical bytes/dtypes are exact while ownership/writeability/post-write checks target the declared Lua representation.",
+    "indices accepts dense integer Lua dimension tables, descriptor/string dtype and strict Boolean sparse options; dense output adds an axis (63 dimension inputs), sparse permits 64. Source sparse negative-stop/reshape and unused-dtype rank-zero behavior are retained. Foreign shape objects/protocols remain unsupported.",
+    "ix_ retains numeric input values and typed-empty dtypes, converts ordinary empty sequences to intp and Boolean vectors to existing one-based nonzero locations. Reshape views preserve sharing and lifetime; downstream indexing still requires valid index dtypes/values.",
+    "argwhere uses logical nonzero locations in one-based coordinate rows, with source scalar shapes (1,0)/(0,0). Nil follows false-scalar truth; generic object/structured/StringDType arrays remain unavailable. Full nested coercions and all host ABIs are uncertified."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "077a8919b02b1ecd9cb66812409a0018e3b5132f99e6d023cd84e3b0771eace0",
-      "files": 351
+      "sha256": "8d94143045635f40332a73189b1d76528fa489a784a0eb5cf3eb1956a759c788",
+      "files": 353
     },
-    "version": "0.148.0-dev",
+    "version": "0.149.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -239,13 +244,16 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.148.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.149.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact numerical bytes/dtypes and metadata within the declared Lua return adaptation, source/output identity, sharing, initialized input/output/base states and actual post-write values. Longdouble omits ABI padding. Twenty-four NumPy scalar results are explicitly normalized to owned writable rank-zero ndarrays before representation/flag/post-write comparison, following the established Lua unary convention; scalar-object parity is not claimed.",
-  "new_reference_checks": 340632,
+  "new_check_semantics": "Exact grid values, dtypes, shapes/strides/flags, sharing, actual writes and full input/base states. Numerical indices grids preserve NumPy zero-based data. Boolean ix_ positions and argwhere locations are normalized to existing one-based Lua indices; metadata remains directly compared. Tuple outputs become Lua tables. Longdouble omits ABI padding.",
+  "new_reference_checks": 474263,
   "new_reference_exclusions": {},
-  "new_reference_return_adaptations": {
-    "complex_rank_zero_scalar_results_normalized": 24,
-    "Lua_convention": "owned writable typed rank-zero ndarray"
+  "new_reference_language_adaptations": {
+    "boolean_ix_coordinate_axes_normalized": 438,
+    "argwhere_coordinate_values_shifted": 13671,
+    "argwhere_nil": "false scalar; missing argument remains an error",
+    "tuple_outputs": "Lua tables",
+    "indices_numeric_grid_values": "unchanged zero-based NumPy data"
   }
 }

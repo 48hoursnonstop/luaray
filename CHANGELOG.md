@@ -14,6 +14,18 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.149.0-dev
+
+Added indices, ix_ and argwhere through the native range, layout, assignment
+and nonzero engines with a Lua orchestration module. Includes dense/sparse
+coordinate grids, retained mesh views, Boolean selection positions, grouped
+nonzero locations, scalar/nil behavior and checked high-rank shapes.
+
+Coordinate grid data retains NumPy's zero origin. Boolean mesh and argwhere
+locations retain LuaRay's one-based index convention with explicit reference
+normalization. Validated 6,063 NumPy 2.5.3 cases / 474,263 checks and 150 permanent
+Lua checks. Added executable English/Spanish coordinate/indexing guides.
+
 ## 0.148.0-dev
 
 Added ndarray conj/conjugate methods: real numeric input retains identity,

@@ -22,12 +22,7 @@ static char order_arg(lua_State *L,int index)
     return order;
 }
 static const ln_dtype *dtype_arg(lua_State *L,int index)
-{
-    size_t length;const char *s=luaL_checklstring(L,index,&length);
-    const ln_dtype *dtype=strlen(s)==length?ln_dtype_by_name(s):NULL;
-    if(!dtype)luaL_error(L,"unsupported creation dtype");
-    return dtype;
-}
+{return ln_lua_check_dtype(L,index);}
 static void parse_options(lua_State *L,int kind,int first,int argc,creation_options *out)
 {
     memset(out,0,sizeof(*out));out->order=kind==METHOD_COPY||kind==FULL||kind>=EMPTY?'C':kind==ASCONTIGUOUS?'C':kind==ASFORTRAN?'F':'K';

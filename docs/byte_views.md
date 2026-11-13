@@ -75,7 +75,7 @@ independently constructed long-double values may have different padding bytes
 without differing mathematically. Complete ABI portability, SIMD/FP status,
 all downstream unaligned algorithms and foreign-memory providers remain pending.
 
-Lua accepts dtype strings, not Python ndarray subtype/type arguments. Object,
+Lua accepts dtype strings or [native descriptors](dtypes.md), without Python ndarray subtype/type arguments. Object,
 structured/subarray/void and variable-width StringDType arrays remain unavailable,
 as does non-native numeric endian. Fixed Unicode endian is retained. No Python
 pickle/file serialization is implied. Runtime availability remains partial;

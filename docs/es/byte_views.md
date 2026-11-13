@@ -43,7 +43,7 @@ reducciones desalineadas. Los bytes congelados corresponden al ABI x86-64
 little-endian; no se certifican todos los ABI ni algoritmos consumidores.
 El padding de longdouble puede diferir entre valores construidos por separado.
 
-La interfaz acepta nombres de dtype, no subclases Python. Objetos, tipos
+La interfaz acepta nombres de dtype o [descriptores nativos](dtypes.md), sin subclases Python. Objetos, tipos
 estructurados/subarray/void, StringDType variable y endian numérico no nativo
 siguen pendientes. Se conserva el endian de Unicode fijo. No se añade pickle ni
 serialización de archivos. La [referencia inglesa](../byte_views.md) detalla

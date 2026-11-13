@@ -1,4 +1,5 @@
 #include "ln_join.h"
+#include "ln_string.h"
 
 #include <inttypes.h>
 #include <limits.h>
@@ -143,6 +144,21 @@ ln_array *ln_join_arrays(const ln_array *const *arrays, size_t count,
         }
     }
     if (!stack) shape[flat ? 0 : axis] = cumulative;
+    /* convert_datatype.c:FindConcatenationDescriptor resolves an unsized
+     * string request through its class, never by inspecting input contents.
+     * One same-class input retains its descriptor; combining instances uses
+     * the class common-instance slot (including Unicode endian normalization). */
+    if(!out&&dtype&&ln_string_is_dtype(dtype)&&!dtype->elsize){
+        resolved=NULL;
+        for(size_t j=0;j<count;++j){
+            const ln_dtype *source=arrays[j]->descr,*current=source;
+            if(source->cls!=dtype->cls)
+                current=ln_string_make_dtype(dtype->kind=='U',ln_legacy_string_width_for_dtype(source),'=',err);
+            if(!current)return NULL;
+            resolved=resolved?ln_common_dtype_descr(resolved,current):current;
+            if(!resolved){join_error(err,"input descriptors have no common string instance");return NULL;}
+        }
+    }
     if (out) {
         if (!(out->flags & LN_ARRAY_WRITEABLE)) {
             join_error(err, "output array is read-only"); return NULL;

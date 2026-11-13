@@ -221,6 +221,21 @@ int ln_datetime_can_cast_same_kind(const ln_datetime_meta*s,const ln_datetime_me
 
 static inline int64_t load64(const char *p){int64_t v;memcpy(&v,p,8);return v;}
 static inline void store64(char *p,int64_t v){memcpy(p,&v,8);}
+int ln_datetime_add_checked(int64_t a,int64_t b,int64_t *out,ln_error *err)
+{
+    if(a==LN_DATETIME_NAT||b==LN_DATETIME_NAT){*out=LN_DATETIME_NAT;return 0;}
+    int64_t result=0;
+#if defined(__GNUC__)
+    int overflow=__builtin_add_overflow(a,b,&result);
+#else
+    int overflow=(b>0&&a>INT64_MAX-b)||(b<0&&a<INT64_MIN-b);
+    if(!overflow)result=a+b;
+#endif
+    if(overflow||result==LN_DATETIME_NAT){
+        dterr(err,"Overflow in timedelta64 addition");if(err)err->kind=LN_ERROR_OVERFLOW;return -1;
+    }
+    *out=result;return 0;
+}
 void ln_datetime_add_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,void *data){
     (void)data;for(ln_intp i=0;i<dimensions[0];++i){int64_t a=load64(args[0]+i*steps[0]),b=load64(args[1]+i*steps[1]);int64_t r=(a==LN_DATETIME_NAT||b==LN_DATETIME_NAT)?LN_DATETIME_NAT:(int64_t)((uint64_t)a+(uint64_t)b);store64(args[2]+i*steps[2],r);}}
 void ln_datetime_subtract_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,void *data){

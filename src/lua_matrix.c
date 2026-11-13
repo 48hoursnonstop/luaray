@@ -68,10 +68,7 @@ int ln_lua_diagflat(lua_State *L){return diag(L,1);}
 static const ln_dtype *dtype(lua_State *L,int index)
 {
     if(lua_type(L,index)==LUA_TNIL||lua_type(L,index)==LUA_TNONE)return NULL;
-    size_t length=0;const char *name=lua_type(L,index)==LUA_TSTRING?lua_tolstring(L,index,&length):NULL;
-    const ln_dtype *result=name&&strlen(name)==length?ln_dtype_by_name(name):NULL;
-    if(!result)luaL_error(L,"unsupported matrix dtype");
-    return result;
+    return ln_lua_check_dtype(L,index);
 }
 int ln_lua_trace(lua_State *L)
 {

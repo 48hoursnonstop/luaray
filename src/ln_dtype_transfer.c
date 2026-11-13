@@ -249,7 +249,8 @@ ln_dtype_cast_safety(const ln_dtype_descr *from, const ln_dtype_descr *to)
         if (from->type_num == to->type_num) {
             size_t fs=from->elsize, ts=to->elsize;
             /* Unsized destination is adapted to the input descriptor. */
-            if (ts==0) return LN_NO_CASTING;
+            if (ts==0) return from->type_num==LN_UNICODE&&from->byteorder!=to->byteorder?
+                LN_EQUIV_CASTING:LN_NO_CASTING;
             if (fs < ts) return LN_SAFE_CASTING;
             if (fs > ts) return LN_SAME_KIND_CASTING;
             if (from->type_num == LN_UNICODE && from->byteorder != to->byteorder)
@@ -291,7 +292,7 @@ ln_dtype_cast_safety(const ln_dtype_descr *from, const ln_dtype_descr *to)
             return from->byteorder == to->byteorder ? LN_NO_CASTING : LN_EQUIV_CASTING;
         }
         if (from->kind == to->kind && from->elsize == to->elsize)
-            return LN_EQUIV_CASTING;
+            return from->byteorder==to->byteorder?LN_NO_CASTING:LN_EQUIV_CASTING;
         if (numeric_can_cast_safely(from,to)) return LN_SAFE_CASTING;
         int fo=numeric_kind_order(from->kind), toord=numeric_kind_order(to->kind);
         if (fo>=0 && toord>=0 && fo<=toord) return LN_SAME_KIND_CASTING;

@@ -26,10 +26,7 @@ int ln_lua_frombuffer(lua_State *L)
     if(argc<1||argc>4)return luaL_error(L,"frombuffer expects storage, optional dtype, count and byte offset");
     const ln_dtype *dtype=ln_dtype_by_num(LN_DOUBLE);
     if(argc>=2&&lua_type(L,2)!=LUA_TNIL){
-        if(lua_type(L,2)!=LUA_TSTRING)return luaL_error(L,"buffer dtype must be a supported dtype string");
-        size_t length;const char *name=lua_tolstring(L,2,&length);
-        dtype=strlen(name)==length?ln_dtype_by_name(name):NULL;
-        if(!dtype)return luaL_error(L,"unsupported buffer dtype");
+        dtype=ln_lua_check_dtype(L,2);
     }
     ln_intp count=integer_option(L,3,-1),offset=integer_option(L,4,0);ln_error error={0};
     ln_array *source=ln_lua_test_array(L,1),*result;

@@ -68,7 +68,7 @@ static void init_classes(void) {
     bytes0.cls=&bytes_cls; bytes0.type_num=LN_STRING; bytes0.name="|S0"; bytes0.kind='S';
     bytes0.byteorder='|'; bytes0.elsize=0; bytes0.alignment=1;
     unicode0.cls=&unicode_cls; unicode0.type_num=LN_UNICODE; unicode0.name="<U0"; unicode0.kind='U';
-    unicode0.byteorder=host_little()?'<':'>'; unicode0.elsize=0; unicode0.alignment=4;
+    unicode0.byteorder=host_little()?'<':'>'; unicode0.flags=LN_DTYPE_NEEDS_INIT; unicode0.elsize=0; unicode0.alignment=4;
     ready=1;
 }
 
@@ -128,6 +128,7 @@ const ln_dtype_descr *ln_string_make_dtype(int unicode_kind, size_t nchars,
     n->descr.cls=unicode_kind?&unicode_cls:&bytes_cls;
     n->descr.type_num=unicode_kind?LN_UNICODE:LN_STRING;
     n->descr.kind=unicode_kind?'U':'S'; n->descr.byteorder=byteorder;
+    n->descr.flags=unicode_kind?LN_DTYPE_NEEDS_INIT:0;
     n->descr.elsize=unicode_kind?nchars*4:nchars; n->descr.alignment=unicode_kind?4:1;
     if(unicode_kind) snprintf(n->name,sizeof(n->name),"%cU%zu",byteorder,nchars);
     else snprintf(n->name,sizeof(n->name),"|S%zu",nchars);

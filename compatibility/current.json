@@ -1,11 +1,14 @@
 {
-  "version": "0.139.0-dev",
+  "version": "0.140.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
   "new_reference_cases": {
-    "metadata_queries": 892
+    "dtype_properties_and_relations": 1208,
+    "descriptor_inputs": 2790,
+    "reduction_selection_and_durations": 7680,
+    "unsized_join_resolution": 720
   },
-  "new_lua_regression_checks": 35,
+  "new_lua_regression_checks": 64,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -13,21 +16,41 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.shape": "implemented_partial",
-    "numpy.ndim": "implemented_partial",
-    "numpy.size": "implemented_partial"
+    "numpy.dtype": "implemented_partial",
+    "numpy.can_cast": "implemented_partial",
+    "numpy.issubdtype": "implemented_partial",
+    "numpy.promote_types": "implemented_partial",
+    "numpy.result_type": "implemented_partial",
+    "numpy.array": "implemented_partial",
+    "numpy.empty": "implemented_partial",
+    "numpy.concatenate": "implemented_partial",
+    "numpy.linspace": "implemented_partial",
+    "numpy.sum": "implemented_partial",
+    "numpy.mean": "implemented_partial",
+    "numpy.cumsum": "implemented_partial",
+    "numpy.ndarray.astype": "implemented_partial",
+    "numpy.ndarray.view": "implemented_partial"
   },
   "evidence": [
-    "src/lua_metadata.c",
+    "src/ln_dtype_info.c",
+    "src/lua_dtype.c",
+    "src/ln_core.c",
+    "src/ln_datetime.c",
+    "src/ln_string.c",
+    "src/ln_dtype_transfer.c",
+    "src/ln_join.c",
+    "src/ln_sampling.c",
     "src/lua_array_api.h",
-    "tests/lua/metadata_regression.lua",
-    "docs/metadata.md",
+    "tests/native/test_dtype140_core.c",
+    "tests/lua/dtype_regression.lua",
+    "docs/dtypes.md",
+    "docs/temporal_scaling.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 394,
-    "missing_bindings": 280,
+    "available_callables": 395,
+    "missing_bindings": 279,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -47,7 +70,7 @@
     "Creation uses Lua options and copy=if_needed to express copy=None; foreign array protocols, device/like dispatch, general subclasses, ndarray-valued shapes and full positional signatures are unsupported",
     "Nested Lua sequences containing ndarrays or temporal scalar userdata are not fully implemented; subok is validated but only the native array class exists",
     "Historical LuaRay np.astype/ndarray:astype numeric-to-generic-datetime rejection remains as an explicit partial compatibility contract; creation uses a separate source-derived raw-array cast path",
-    "Empty constructor values are uninitialized; tests compare metadata then perform actual writes before inspecting values",
+    "Non-Unicode empty-constructor data remains uninitialized; Unicode allocations now honor NEEDS_INIT and zero their code points.",
     "Unary operations return typed zero-dimensional arrays for Lua scalars; this is a Lua return-type adaptation",
     "Only out/where unary options are supported; complete dtype/casting/order/subok/device, ufunc object methods, warning and floating status protocols remain incomplete",
     "Integer reciprocal-zero explicitly follows audited x86 NumPy loops; other ABI and nondefault rounding-mode behavior need separate verification",
@@ -132,14 +155,19 @@
     "require accepts nil/false/empty requirements, character strings or dense Lua string sequences; arbitrary Python dictionaries/iterators, like and subclass protocols are unsupported. E is satisfied by the sole native Lua array class.",
     "Dtype-changing ANYORDER creation transfers preserve KEEPORDER axis layout, while same-dtype ANYORDER copy shortcuts remain distinct. This targeted correction does not certify every array creation/cast/foreign-dispatch case.",
     "shape/ndim/size read native ndarray metadata directly; other supported Lua values use existing native creation/discovery, so nested ndarray/foreign/object/nil scalar and protocol limitations remain. Shapes are fresh Lua sequences, not Python tuples.",
-    "size accepts one strict Lua integer axis, positive from one or negative from the end; zero and unsupported axis protocols raise. No Python shape/ndim/size attribute dispatch is implemented."
+    "size accepts one strict Lua integer axis, positive from one or negative from the end; zero and unsupported axis protocols raise. No Python shape/ndim/size attribute dispatch is implemented.",
+    "dtype exposes immutable native scalar descriptors and the documented fields only. Python scalar classes/ctypes/foreign/structured/subarray/object/void/StringDType protocols, align/copy/metadata constructor options, type/isbuiltin/newbyteorder and other unlisted properties are unsupported. array.dtype and promotion results retain existing Lua strings.",
+    "Core dtype readers accept descriptors; some legacy readers including random-generator controls still require strings. Native character/width/endian forms are supported within the existing scalar-kind scope. Non-native numeric/temporal formats remain blocked. The old float->float32 alias was corrected to NumPy float64; use float32 or f for single precision.",
+    "Reduction dtype controls select general classes and reject width/endian/time details before empty shortcuts. Legacy ndarray cumulative adapters discard concrete metadata. Legacy timedelta/string addition selection quirks are preserved for verified cases.",
+    "Duration sum/mean/accumulate/reduceat preserve units, propagate selected NaT, use truncating integer means and checked addition including reserved-NaT overflow. Masks and initial values are tested; every out/alias/cross-unit/post-error output state is not certified.",
+    "Unsized string joins resolve from descriptors without inspecting contents; one same-class input retains its Unicode endian while common-instance combination normalizes. Sampling final casts resolve the source calculation formatting width."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "5da4041fc929eb22f8dd017d7a538e78cf262b272720dea2ed76652b0b08aaa2",
-      "files": 317
+      "sha256": "8e1ea1cce1fd4b31dd7b70974bf20b7c1137e92580b61b58bf481e14cdb35e36",
+      "files": 323
     },
-    "version": "0.139.0-dev",
+    "version": "0.140.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -166,7 +194,13 @@
       "lua_flags",
       "ln_components",
       "ln_creation",
-      "lua_metadata"
+      "lua_metadata",
+      "ln_dtype_info",
+      "lua_dtype",
+      "ln_string",
+      "lua_creation",
+      "lua_bytes",
+      "ln_sampling"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -175,14 +209,15 @@
       "tests/native/test_elements135_core.c",
       "tests/native/test_buffer136_core.c",
       "tests/native/test_flags137_core.c",
-      "tests/native/test_creation107_core.c"
+      "tests/native/test_creation107_core.c",
+      "tests/native/test_dtype140_core.c"
     ],
     "all_maintained_tests": "passed",
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.139.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.140.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact shape/rank/total and axis size, accepted/rejected axes, source and backing states. Covers rank64, scalars, empty/ragged Lua sequences and huge metadata-only broadcast views. Array inputs are queried directly without data conversion.",
-  "new_reference_checks": 50182
+  "new_check_semantics": "Exact descriptor fields/equivalence, type selection, dtype/shape/strides, acceptance, string widths and source/backing states; duration ticks compare as exact integer strings. Numeric typed samples use relative2e-3 for half,3e-6 for float32/complex64,2e-12 for wider values; zero is exact. Reducer float32/complex64 uses relative3e-6, wider2e-12; remaining values are exact. Full dtype protocol and output-error mutation parity remain uncertified.",
+  "new_reference_checks": 294470
 }

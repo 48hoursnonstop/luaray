@@ -10,6 +10,7 @@
 #include "lua_buffers.h"
 #include "lua_flags.h"
 #include "lua_metadata.h"
+#include "lua_dtype.h"
 #include "ln_creation.h"
 #include "ln_clip.h"
 static int np_clip(lua_State *L);
@@ -1933,8 +1934,7 @@ read_casting_arg(lua_State *L,int idx,ln_casting def,ln_casting *out)
 
 static int np_astype(lua_State*L){
     lua_array*a=check_array(L,1);
-    const char*name=luaL_checklstring(L,2,NULL);
-    const ln_dtype*dt=ln_dtype_by_name(name);
+    const ln_dtype*dt=ln_lua_check_dtype(L,2);
     if(!dt)return luaL_error(L,"unsupported dtype");
     ln_casting casting;
     if(read_casting_arg_ex(L,3,LN_UNSAFE_CASTING,&casting,1))return 0;
@@ -1979,11 +1979,10 @@ static int np_can_cast(lua_State *L){
     lua_datetime_scalar *ds=test_datetime_scalar(L,1);
     if(a)from=a->a->descr;
     else if(ds)from=ds->descr;
-    else if(lua_type(L,1)==LUA_TSTRING)from=ln_dtype_by_name(lua_tostring(L,1));
+    else if(ln_lua_test_dtype(L,1)||lua_type(L,1)==LUA_TSTRING)from=ln_lua_check_dtype(L,1);
     else return luaL_error(L,"can_cast does not accept untyped Lua scalars; pass a dtype name or ndarray");
     if(!from)return luaL_error(L,"unsupported source dtype");
-    if(lua_type(L,2)!=LUA_TSTRING)return luaL_error(L,"destination must be a dtype name");
-    to=ln_dtype_by_name(lua_tostring(L,2));if(!to)return luaL_error(L,"unsupported destination dtype");
+    to=ln_lua_check_dtype(L,2);
     ln_casting casting;if(read_casting_arg(L,3,LN_SAFE_CASTING,&casting))return 0;
     lua_pushboolean(L,ln_dtype_can_cast(from,to,casting));return 1;
 }
@@ -1992,10 +1991,8 @@ static int np_can_cast(lua_State *L){
  * strong; native Lua numeric/boolean/complex values are NEP 50 weak scalars.
  * We deliberately keep the host-independent promotion rules in ln_core.c. */
 static int np_promote_types(lua_State *L) {
-    if(lua_type(L,1)!=LUA_TSTRING || lua_type(L,2)!=LUA_TSTRING)
-        return luaL_error(L,"promote_types expects two dtype names");
-    const ln_dtype *a=ln_dtype_by_name(lua_tostring(L,1));
-    const ln_dtype *b=ln_dtype_by_name(lua_tostring(L,2));
+    const ln_dtype *a=ln_lua_check_dtype(L,1);
+    const ln_dtype *b=ln_lua_check_dtype(L,2);
     if(!a || !b)return luaL_error(L,"unsupported dtype in promote_types");
     const ln_dtype *out=ln_promote_dtype(a,b);
     if(!out)return luaL_error(L,"the input dtypes have no common dtype");
@@ -2108,12 +2105,14 @@ static unsigned subtype_mask_for_dtype(const ln_dtype *dt){
 }
 
 static int np_issubdtype(lua_State *L){
-    if(lua_gettop(L)!=2 || lua_type(L,1)!=LUA_TSTRING || lua_type(L,2)!=LUA_TSTRING)
-        return luaL_error(L,"issubdtype expects two dtype or scalar-class names");
-    const char *left=lua_tostring(L,1),*right=lua_tostring(L,2);
-    unsigned lc=subtype_mask_for_category(left),rc=subtype_mask_for_category(right);
-    const ln_dtype *ld=lc?NULL:ln_dtype_by_name(left);
-    const ln_dtype *rd=rc?NULL:ln_dtype_by_name(right);
+    if(lua_gettop(L)!=2)return luaL_error(L,"issubdtype expects two dtypes or scalar-class names");
+    const ln_dtype *ld=ln_lua_test_dtype(L,1),*rd=ln_lua_test_dtype(L,2);
+    if((!ld&&lua_type(L,1)!=LUA_TSTRING)||(!rd&&lua_type(L,2)!=LUA_TSTRING))
+        return luaL_error(L,"issubdtype expects dtypes or scalar-class names");
+    const char *left=ld?ld->name:lua_tostring(L,1),*right=rd?rd->name:lua_tostring(L,2);
+    unsigned lc=ld?0:subtype_mask_for_category(left),rc=rd?0:subtype_mask_for_category(right);
+    if(!ld&&!lc)ld=ln_lua_check_dtype(L,1);
+    if(!rd&&!rc)rd=ln_lua_check_dtype(L,2);
     if((!lc&&!ld)||(!rc&&!rd))return luaL_error(L,"unsupported dtype or scalar-class name");
     int yes=0;
     if(rc){unsigned bits=lc?lc:subtype_mask_for_dtype(ld);
@@ -2171,8 +2170,8 @@ static int np_result_type(lua_State *L) {
         lua_datetime_scalar *ds=test_datetime_scalar(L,i);
         if(u)current=u->a->descr;
         else if(ds)current=ds->descr;
-        else if(lua_type(L,i)==LUA_TSTRING) {
-            current=ln_dtype_by_name(lua_tostring(L,i));
+        else if(ln_lua_test_dtype(L,i)||lua_type(L,i)==LUA_TSTRING) {
+            current=ln_lua_check_dtype(L,i);
             if(!current)return luaL_error(L,"unsupported dtype in result_type");
         }
         else {
@@ -2221,7 +2220,7 @@ static int lua_scalar_string_value(lua_State *L,int idx,const char **out,size_t 
 
 static int fill_table(lua_State*L,int idx,ln_array*a,int depth,ln_intp*indices){idx=lua_absindex(L,idx);if(depth==a->nd){int t=lua_type(L,idx);ln_error e={0};lua_datetime_scalar*ds=test_datetime_scalar(L,idx);if(ds){if(!(a->descr->kind=='M'||a->descr->kind=='m'))return luaL_error(L,"datetime scalar requires datetime/timedelta destination dtype");int64_t v=ds->value;if(ds->descr!=a->descr){if(ln_datetime_cast_value(v,ln_datetime_metadata(ds->descr),ln_datetime_metadata(a->descr),&v,&e)<0)return fail(L,&e);}return ln_array_set_number(a,indices,0,v,1,&e)<0?fail(L,&e):0;}lua_complex*z=test_complex(L,idx);if(ln_string_is_dtype(a->descr)&&(z||t==LUA_TBOOLEAN||t==LUA_TNUMBER||t==LUA_TSTRING)){const char*ss=NULL;size_t nn=0;int pop=0;if(lua_scalar_string_value(L,idx,&ss,&nn,&pop))return 1;int rc=ln_array_pack_string(a,indices,ss,nn,&e);if(pop)lua_pop(L,1);return rc<0?fail(L,&e):0;}if(z)return ln_array_pack_complex(a,indices,z->real,z->imag,&e)<0?fail(L,&e):0;if(t==LUA_TBOOLEAN){int64_t v=lua_toboolean(L,idx);return ln_array_pack_number(a,indices,0,v,1,&e)<0?fail(L,&e):0;}if(t==LUA_TNUMBER){int isint=lua_isinteger(L,idx);int ok=0;double d=lua_tonumberx(L,idx,&ok);int64_t iv=isint?(int64_t)lua_tointegerx(L,idx,NULL):0;if(!ok)return luaL_error(L,"array element is not numeric");return ln_array_pack_number(a,indices,d,iv,isint,&e)<0?fail(L,&e):0;}if(t==LUA_TSTRING && ln_string_is_dtype(a->descr)){size_t nn=0;const char*ss=lua_tolstring(L,idx,&nn);return ln_array_pack_string(a,indices,ss,nn,&e)<0?fail(L,&e):0;}if(t==LUA_TSTRING && a->descr->type_num==LN_DATETIME){const char*ss=lua_tostring(L,idx);const ln_dtype_descr*pd=NULL;int64_t vv=0;int tz=0;if(ln_datetime_parse_iso8601(ss,a->descr,&pd,&vv,&tz,&e)<0)return fail(L,&e);return ln_array_pack_number(a,indices,0,vv,1,&e)<0?fail(L,&e):0;}return luaL_error(L,"array element type unsupported");}if(lua_type(L,idx)!=LUA_TTABLE)return luaL_error(L,"inhomogeneous array shape");size_t n=lua_rawlen(L,idx);if((ln_intp)n!=a->dimensions[depth])return luaL_error(L,"inhomogeneous array shape");for(size_t i=1;i<=n;i++){indices[depth]=(ln_intp)i-1;lua_geti(L,idx,(lua_Integer)i);if(fill_table(L,-1,a,depth+1,indices)){lua_pop(L,1);return 1;}lua_pop(L,1);}return 0;}
 
-static const ln_dtype* dtype_arg(lua_State*L,int idx,const ln_dtype*def){if(lua_gettop(L)<idx||lua_type(L,idx)==LUA_TNIL)return def;const char*s=lua_tostring(L,idx);if(!s)return NULL;return ln_dtype_by_name(s);}
+static const ln_dtype* dtype_arg(lua_State*L,int idx,const ln_dtype*def){if(lua_gettop(L)<idx||lua_type(L,idx)==LUA_TNIL)return def;return ln_lua_check_dtype(L,idx);}
 
 static int infer_temporal_descr(lua_State *L,int idx,int timedelta,const ln_dtype_descr **acc){
     idx=lua_absindex(L,idx);int t=lua_type(L,idx);
@@ -2369,8 +2368,7 @@ join_function(lua_State *L, int stack)
         lua_pop(L,1);
         lua_getfield(L,options_index,"dtype");
         if(lua_type(L,-1)!=LUA_TNIL) {
-            const char *name=luaL_checklstring(L,-1,NULL);
-            dtype=ln_dtype_by_name(name);
+            dtype=ln_lua_check_dtype(L,-1);
             if(!dtype)return luaL_error(L,"unsupported output dtype");
         }
         lua_pop(L,1);
@@ -2411,8 +2409,7 @@ static int shape_stack_function(lua_State *L, ln_stack_kind kind) {
     if(nargs==2 && lua_type(L,2)==LUA_TTABLE) {
         lua_getfield(L,2,"dtype");
         if(lua_type(L,-1)!=LUA_TNIL) {
-            const char *name=luaL_checklstring(L,-1,NULL);
-            dtype=ln_dtype_by_name(name);
+            dtype=ln_lua_check_dtype(L,-1);
             if(!dtype)return luaL_error(L,"unsupported output dtype");
         }
         lua_pop(L,1);
@@ -2984,7 +2981,7 @@ parse_reduction_options_table(lua_State *L,int idx,int nd,ln_reduce_op op,reduct
     lua_pop(L,1);
 
     lua_getfield(L,idx,"dtype");
-    if(lua_type(L,-1)!=LUA_TNIL){const char*name=lua_tostring(L,-1);opts->dtype=name?ln_dtype_by_name(name):NULL;if(!opts->dtype){lua_pop(L,1);return luaL_error(L,"unsupported dtype");}}
+    if(lua_type(L,-1)!=LUA_TNIL){opts->dtype=ln_lua_check_dtype(L,-1);if(!opts->dtype){lua_pop(L,1);return luaL_error(L,"unsupported dtype");}}
     lua_pop(L,1);
 
     lua_getfield(L,idx,"out");
@@ -3523,7 +3520,7 @@ parse_accumulate_options_table(lua_State *L,int idx,int nd,accumulate_call_optio
     }
     lua_pop(L,1);
     lua_getfield(L,idx,"dtype");
-    if(lua_type(L,-1)!=LUA_TNIL){const char*name=lua_tostring(L,-1);opts->dtype=name?ln_dtype_by_name(name):NULL;if(!opts->dtype){lua_pop(L,1);return luaL_error(L,"unsupported dtype");}}
+    if(lua_type(L,-1)!=LUA_TNIL){opts->dtype=ln_lua_check_dtype(L,-1);if(!opts->dtype){lua_pop(L,1);return luaL_error(L,"unsupported dtype");}}
     lua_pop(L,1);
     lua_getfield(L,idx,"out");
     if(lua_type(L,-1)!=LUA_TNIL){opts->out=test_array(L,-1);if(!opts->out){lua_pop(L,1);return luaL_error(L,"out must be an ndarray or nil");}}
@@ -3608,8 +3605,7 @@ static int cumulative_function(lua_State *L, ln_reduce_op op, int omit_nan) {
         lua_pop(L,1);
         lua_getfield(L,oi,"dtype");
         if(lua_type(L,-1)!=LUA_TNIL) {
-            const char *name=lua_tostring(L,-1);
-            opts.dtype=name?ln_dtype_by_name(name):NULL;
+            opts.dtype=ln_lua_check_dtype(L,-1);
             if(!opts.dtype){lua_pop(L,1);return luaL_error(L,"unsupported dtype");}
         }
         lua_pop(L,1);
@@ -3620,6 +3616,9 @@ static int cumulative_function(lua_State *L, ln_reduce_op op, int omit_nan) {
         }
         lua_pop(L,1);
     }
+    /* ndarray cumsum/cumprod pass a legacy type number, discarding concrete
+     * width/unit/endian metadata. Direct ufunc accumulate retains its checks. */
+    if(opts.dtype)opts.dtype=ln_dtype_default_descr(opts.dtype->cls);
     ln_array *flat=NULL, *clean=NULL;
     const ln_array *input=u->a;
     if(flatten || u->a->nd==0) {
@@ -3673,8 +3672,7 @@ parse_reduceat_options_table(lua_State *L,int idx,int nd,reduceat_call_options *
     lua_pop(L,1);
     lua_getfield(L,idx,"dtype");
     if(lua_type(L,-1)!=LUA_TNIL){
-        const char*name=lua_tostring(L,-1);
-        opts->dtype=name?ln_dtype_by_name(name):NULL;
+        opts->dtype=ln_lua_check_dtype(L,-1);
         if(!opts->dtype){lua_pop(L,1);return luaL_error(L,"unsupported dtype");}
     }
     lua_pop(L,1);
@@ -4236,10 +4234,10 @@ static int np_linalg_trace(lua_State *L){
     if(lua_gettop(L)>=2&&lua_type(L,2)!=LUA_TNIL){
         if(lua_type(L,2)==LUA_TTABLE){
             lua_getfield(L,2,"offset");if(lua_type(L,-1)!=LUA_TNIL)offset=(ln_intp)luaL_checkinteger(L,-1);lua_pop(L,1);
-            lua_getfield(L,2,"dtype");if(lua_type(L,-1)!=LUA_TNIL){const char*s=lua_tostring(L,-1);dt=s?ln_dtype_by_name(s):NULL;if(!dt){lua_pop(L,1);return luaL_error(L,"unsupported dtype");}}lua_pop(L,1);
+            lua_getfield(L,2,"dtype");if(lua_type(L,-1)!=LUA_TNIL){dt=ln_lua_check_dtype(L,-1);if(!dt){lua_pop(L,1);return luaL_error(L,"unsupported dtype");}}lua_pop(L,1);
         }else offset=(ln_intp)luaL_checkinteger(L,2);
     }
-    if(lua_gettop(L)>=3&&lua_type(L,3)!=LUA_TNIL){const char*s=lua_tostring(L,3);dt=s?ln_dtype_by_name(s):NULL;if(!dt)return luaL_error(L,"unsupported dtype");}
+    if(lua_gettop(L)>=3&&lua_type(L,3)!=LUA_TNIL){dt=ln_lua_check_dtype(L,3);if(!dt)return luaL_error(L,"unsupported dtype");}
     ln_error e={0};ln_array*r=ln_linalg_trace(a->a,offset,dt,&e);if(!r)return fail(L,&e);return push_linalg_array_or_scalar(L,r);
 }
 
@@ -7749,7 +7747,7 @@ static int sampling_function(lua_State *L,int kind) {
         lua_getfield(L,options,"axis");
         if(lua_type(L,-1)!=LUA_TNIL){if(!lua_isinteger(L,-1))return luaL_error(L,"sampling axis must be an integer");raw_axis=lua_tointegerx(L,-1,NULL);}lua_pop(L,1);
         lua_getfield(L,options,"dtype");
-        if(lua_type(L,-1)!=LUA_TNIL){output_dtype=ln_dtype_by_name(luaL_checklstring(L,-1,NULL));if(!output_dtype)return luaL_error(L,"unsupported sampling dtype");}lua_pop(L,1);
+        if(lua_type(L,-1)!=LUA_TNIL){output_dtype=ln_lua_check_dtype(L,-1);if(!output_dtype)return luaL_error(L,"unsupported sampling dtype");}lua_pop(L,1);
     }
     if(npos) {
         if(lua_type(L,npos)==LUA_TBOOLEAN)count=lua_toboolean(L,npos);
@@ -8033,7 +8031,7 @@ void ln_lua_copyto_unsafe(lua_State *L,int destination,int source){
     if(lua_pcall(L,3,0,0)!=LUA_OK)luaL_error(L,"array fill: %s",lua_tostring(L,-1));
 }
 
-static const luaL_Reg module_funcs[]={{"shape",ln_lua_shape_query},{"ndim",ln_lua_ndim_query},{"size",ln_lua_size_query},{"isfortran",ln_lua_isfortran},{"frombuffer",ln_lua_frombuffer},{"tensordot",ln_lua_tensordot},{"kron",ln_lua_kron},{"fill_diagonal",ln_lua_fill_diagonal},{"tril_indices",ln_lua_tril_indices},{"triu_indices",ln_lua_triu_indices},{"tril_indices_from",ln_lua_tril_indices_from},{"triu_indices_from",ln_lua_triu_indices_from},{"diag_indices",ln_lua_diag_indices},{"diag_indices_from",ln_lua_diag_indices_from},{"eye",ln_lua_eye},{"identity",ln_lua_identity},{"vander",ln_lua_vander},{"tri",ln_lua_tri},{"tril",ln_lua_tril},{"triu",ln_lua_triu},{"trace",ln_lua_trace},{"diagonal",ln_lua_diagonal},{"diag",ln_lua_diag},{"diagflat",ln_lua_diagflat},{"complex",complex_ctor},{"datetime64",np_datetime64},{"timedelta64",np_timedelta64},{"datetime_as_string",np_datetime_as_string},{"array",np_array},{"append",np_append},{"delete",np_delete},{"insert",np_insert},{"concatenate",np_concatenate},{"stack",np_stack},{"hstack",np_hstack},{"vstack",np_vstack},{"row_stack",np_vstack},{"dstack",np_dstack},{"column_stack",np_column_stack},{"split",np_split},{"array_split",np_array_split},{"hsplit",np_hsplit},{"vsplit",np_vsplit},{"dsplit",np_dsplit},{"astype",np_astype},{"shares_memory",np_shares_memory},{"may_share_memory",np_may_share_memory},{"copyto",np_copyto},{"putmask",np_putmask},{"put",np_put},{"take",np_take},{"choose",np_choose},{"nonzero",np_nonzero},{"flatnonzero",np_flatnonzero},{"compress",np_compress},{"extract",np_extract},{"where",np_where},{"select",np_select},{"take_along_axis",np_take_along_axis},{"put_along_axis",np_put_along_axis},{"place",np_place},{"can_cast",np_can_cast},{"promote_types",np_promote_types},{"result_type",np_result_type},{"min_scalar_type",np_min_scalar_type},{"issubdtype",np_issubdtype},{"zeros",np_zeros},{"ones",np_ones},{"empty",np_empty},{"arange",np_arange},{"linspace",np_linspace},{"logspace",np_logspace},{"geomspace",np_geomspace},{"mean",np_mean},{"average",np_average},{"var",np_var},{"std",np_std},{"cumsum",np_cumsum},{"cumprod",np_cumprod},{"nancumsum",np_nancumsum},{"nancumprod",np_nancumprod},{"nansum",np_nansum},{"nanprod",np_nanprod},{"nanmean",np_nanmean},{"nanvar",np_nanvar},{"nanstd",np_nanstd},{"min",np_amin},{"amin",np_amin},{"max",np_amax},{"amax",np_amax},{"argmin",np_argmin},{"argmax",np_argmax},{"nanmin",np_nanmin},{"nanmax",np_nanmax},{"nanargmin",np_nanargmin},{"nanargmax",np_nanargmax},{"ptp",np_ptp},{"median",np_median},{"quantile",np_quantile},{"percentile",np_percentile},{"nanmedian",np_nanmedian},{"nanquantile",np_nanquantile},{"nanpercentile",np_nanpercentile},{"sum",np_sum},{"prod",np_prod},{"any",np_any},{"all",np_all},{"count_nonzero",np_count_nonzero},{"add",np_add},{"subtract",np_subtract},{"multiply",np_multiply},{"true_divide",np_true_divide},{"divide",np_true_divide},{"equal",np_equal},{"not_equal",np_not_equal},{"less",np_less},{"less_equal",np_less_equal},{"greater",np_greater},{"greater_equal",np_greater_equal},{"logical_and",np_logical_and},{"logical_or",np_logical_or},{"logical_xor",np_logical_xor},{"maximum",np_maximum},{"minimum",np_minimum},{"floor_divide",np_floor_divide},{"remainder",np_remainder},{"mod",np_remainder},{"power",np_power},{"fmod",np_fmod},{"float_power",np_float_power},{"bitwise_and",np_bitwise_and},{"bitwise_or",np_bitwise_or},{"bitwise_xor",np_bitwise_xor},{"fmax",np_fmax},{"fmin",np_fmin},{"copysign",np_copysign},{"negative",np_negative},{"absolute",np_absolute},{"abs",np_absolute},{"positive",np_positive},{"sign",np_sign},{"logical_not",np_logical_not},{"isnan",np_isnan},{"isinf",np_isinf},{"isfinite",np_isfinite},{"isnat",np_isnat},{"signbit",np_signbit},{"sqrt",np_sqrt},{"exp",np_exp},{"log",np_log},{"sin",np_sin},{"floor",np_floor},{"ceil",np_ceil},{"trunc",np_trunc},{"rint",np_rint},{"fabs",np_fabs},{"conjugate",np_conjugate},{"square",np_square},{"reciprocal",np_reciprocal},{"degrees",np_degrees},{"radians",np_radians},{"conj",np_conj},{"rad2deg",np_rad2deg},{"deg2rad",np_deg2rad},{"cos",np_cos},{"tan",np_tan},{"sinh",np_sinh},{"cosh",np_cosh},{"tanh",np_tanh},{"exp2",np_exp2},{"log2",np_log2},{"log10",np_log10},{"expm1",np_expm1},{"log1p",np_log1p},{"cbrt",np_cbrt},{"arcsin",np_arcsin},{"asin",np_arcsin},{"arccos",np_arccos},{"acos",np_arccos},{"arctan",np_arctan},{"atan",np_arctan},{"arcsinh",np_arcsinh},{"asinh",np_arcsinh},{"arccosh",np_arccosh},{"acosh",np_arccosh},{"arctanh",np_arctanh},{"atanh",np_arctanh},{"arctan2",np_arctan2},{"atan2",np_arctan2},{"hypot",np_hypot},{"frexp",np_frexp},{"modf",np_modf},{"divmod",np_divmod},{"ldexp",np_ldexp},{"matmul",np_matmul},{"dot",np_dot},{"inner",np_inner},{"outer",np_outer},{"sort",np_sort},{"argsort",np_argsort},{"partition",np_partition},{"argpartition",np_argpartition},{"searchsorted",np_searchsorted},{"add_accumulate",np_add_accumulate},{"multiply_accumulate",np_multiply_accumulate},{"add_reduceat",np_add_reduceat},{"multiply_reduceat",np_multiply_reduceat},{"isreal",ln_lua_isreal},{"iscomplex",ln_lua_iscomplex},{"isrealobj",ln_lua_isrealobj},{"iscomplexobj",ln_lua_iscomplexobj},{"real_if_close",ln_lua_real_if_close},{"cross",ln_lua_cross},{"meshgrid",ln_lua_meshgrid},{"clip",np_clip},{"round",ln_lua_round},{"around",ln_lua_round},{"real",ln_lua_real},{"imag",ln_lua_imag},{"ravel",ln_lua_layout_ravel},{"reshape",np_reshape},{"transpose",np_transpose},{"swapaxes",np_swapaxes},{"moveaxis",np_moveaxis},{"expand_dims",np_expand_dims},{"squeeze",np_squeeze},{"flip",np_flip},{"flipud",np_flipud},{"fliplr",np_fliplr},{"rot90",np_rot90},{"atleast_1d",np_atleast_1d},{"atleast_2d",np_atleast_2d},{"atleast_3d",np_atleast_3d},{"broadcast_to",np_broadcast_to},{"broadcast_arrays",np_broadcast_arrays},{"broadcast_shapes",np_broadcast_shapes},{"tile",np_tile},{"roll",np_roll},{"rollaxis",np_rollaxis},{"repeat",np_repeat_elements},{"repeat_elements",np_repeat_elements},{"slice",np_slice},{"s",np_slice},{NULL,NULL}};
+static const luaL_Reg module_funcs[]={{"dtype",ln_lua_dtype_constructor},{"shape",ln_lua_shape_query},{"ndim",ln_lua_ndim_query},{"size",ln_lua_size_query},{"isfortran",ln_lua_isfortran},{"frombuffer",ln_lua_frombuffer},{"tensordot",ln_lua_tensordot},{"kron",ln_lua_kron},{"fill_diagonal",ln_lua_fill_diagonal},{"tril_indices",ln_lua_tril_indices},{"triu_indices",ln_lua_triu_indices},{"tril_indices_from",ln_lua_tril_indices_from},{"triu_indices_from",ln_lua_triu_indices_from},{"diag_indices",ln_lua_diag_indices},{"diag_indices_from",ln_lua_diag_indices_from},{"eye",ln_lua_eye},{"identity",ln_lua_identity},{"vander",ln_lua_vander},{"tri",ln_lua_tri},{"tril",ln_lua_tril},{"triu",ln_lua_triu},{"trace",ln_lua_trace},{"diagonal",ln_lua_diagonal},{"diag",ln_lua_diag},{"diagflat",ln_lua_diagflat},{"complex",complex_ctor},{"datetime64",np_datetime64},{"timedelta64",np_timedelta64},{"datetime_as_string",np_datetime_as_string},{"array",np_array},{"append",np_append},{"delete",np_delete},{"insert",np_insert},{"concatenate",np_concatenate},{"stack",np_stack},{"hstack",np_hstack},{"vstack",np_vstack},{"row_stack",np_vstack},{"dstack",np_dstack},{"column_stack",np_column_stack},{"split",np_split},{"array_split",np_array_split},{"hsplit",np_hsplit},{"vsplit",np_vsplit},{"dsplit",np_dsplit},{"astype",np_astype},{"shares_memory",np_shares_memory},{"may_share_memory",np_may_share_memory},{"copyto",np_copyto},{"putmask",np_putmask},{"put",np_put},{"take",np_take},{"choose",np_choose},{"nonzero",np_nonzero},{"flatnonzero",np_flatnonzero},{"compress",np_compress},{"extract",np_extract},{"where",np_where},{"select",np_select},{"take_along_axis",np_take_along_axis},{"put_along_axis",np_put_along_axis},{"place",np_place},{"can_cast",np_can_cast},{"promote_types",np_promote_types},{"result_type",np_result_type},{"min_scalar_type",np_min_scalar_type},{"issubdtype",np_issubdtype},{"zeros",np_zeros},{"ones",np_ones},{"empty",np_empty},{"arange",np_arange},{"linspace",np_linspace},{"logspace",np_logspace},{"geomspace",np_geomspace},{"mean",np_mean},{"average",np_average},{"var",np_var},{"std",np_std},{"cumsum",np_cumsum},{"cumprod",np_cumprod},{"nancumsum",np_nancumsum},{"nancumprod",np_nancumprod},{"nansum",np_nansum},{"nanprod",np_nanprod},{"nanmean",np_nanmean},{"nanvar",np_nanvar},{"nanstd",np_nanstd},{"min",np_amin},{"amin",np_amin},{"max",np_amax},{"amax",np_amax},{"argmin",np_argmin},{"argmax",np_argmax},{"nanmin",np_nanmin},{"nanmax",np_nanmax},{"nanargmin",np_nanargmin},{"nanargmax",np_nanargmax},{"ptp",np_ptp},{"median",np_median},{"quantile",np_quantile},{"percentile",np_percentile},{"nanmedian",np_nanmedian},{"nanquantile",np_nanquantile},{"nanpercentile",np_nanpercentile},{"sum",np_sum},{"prod",np_prod},{"any",np_any},{"all",np_all},{"count_nonzero",np_count_nonzero},{"add",np_add},{"subtract",np_subtract},{"multiply",np_multiply},{"true_divide",np_true_divide},{"divide",np_true_divide},{"equal",np_equal},{"not_equal",np_not_equal},{"less",np_less},{"less_equal",np_less_equal},{"greater",np_greater},{"greater_equal",np_greater_equal},{"logical_and",np_logical_and},{"logical_or",np_logical_or},{"logical_xor",np_logical_xor},{"maximum",np_maximum},{"minimum",np_minimum},{"floor_divide",np_floor_divide},{"remainder",np_remainder},{"mod",np_remainder},{"power",np_power},{"fmod",np_fmod},{"float_power",np_float_power},{"bitwise_and",np_bitwise_and},{"bitwise_or",np_bitwise_or},{"bitwise_xor",np_bitwise_xor},{"fmax",np_fmax},{"fmin",np_fmin},{"copysign",np_copysign},{"negative",np_negative},{"absolute",np_absolute},{"abs",np_absolute},{"positive",np_positive},{"sign",np_sign},{"logical_not",np_logical_not},{"isnan",np_isnan},{"isinf",np_isinf},{"isfinite",np_isfinite},{"isnat",np_isnat},{"signbit",np_signbit},{"sqrt",np_sqrt},{"exp",np_exp},{"log",np_log},{"sin",np_sin},{"floor",np_floor},{"ceil",np_ceil},{"trunc",np_trunc},{"rint",np_rint},{"fabs",np_fabs},{"conjugate",np_conjugate},{"square",np_square},{"reciprocal",np_reciprocal},{"degrees",np_degrees},{"radians",np_radians},{"conj",np_conj},{"rad2deg",np_rad2deg},{"deg2rad",np_deg2rad},{"cos",np_cos},{"tan",np_tan},{"sinh",np_sinh},{"cosh",np_cosh},{"tanh",np_tanh},{"exp2",np_exp2},{"log2",np_log2},{"log10",np_log10},{"expm1",np_expm1},{"log1p",np_log1p},{"cbrt",np_cbrt},{"arcsin",np_arcsin},{"asin",np_arcsin},{"arccos",np_arccos},{"acos",np_arccos},{"arctan",np_arctan},{"atan",np_arctan},{"arcsinh",np_arcsinh},{"asinh",np_arcsinh},{"arccosh",np_arccosh},{"acosh",np_arccosh},{"arctanh",np_arctanh},{"atanh",np_arctanh},{"arctan2",np_arctan2},{"atan2",np_arctan2},{"hypot",np_hypot},{"frexp",np_frexp},{"modf",np_modf},{"divmod",np_divmod},{"ldexp",np_ldexp},{"matmul",np_matmul},{"dot",np_dot},{"inner",np_inner},{"outer",np_outer},{"sort",np_sort},{"argsort",np_argsort},{"partition",np_partition},{"argpartition",np_argpartition},{"searchsorted",np_searchsorted},{"add_accumulate",np_add_accumulate},{"multiply_accumulate",np_multiply_accumulate},{"add_reduceat",np_add_reduceat},{"multiply_reduceat",np_multiply_reduceat},{"isreal",ln_lua_isreal},{"iscomplex",ln_lua_iscomplex},{"isrealobj",ln_lua_isrealobj},{"iscomplexobj",ln_lua_iscomplexobj},{"real_if_close",ln_lua_real_if_close},{"cross",ln_lua_cross},{"meshgrid",ln_lua_meshgrid},{"clip",np_clip},{"round",ln_lua_round},{"around",ln_lua_round},{"real",ln_lua_real},{"imag",ln_lua_imag},{"ravel",ln_lua_layout_ravel},{"reshape",np_reshape},{"transpose",np_transpose},{"swapaxes",np_swapaxes},{"moveaxis",np_moveaxis},{"expand_dims",np_expand_dims},{"squeeze",np_squeeze},{"flip",np_flip},{"flipud",np_flipud},{"fliplr",np_fliplr},{"rot90",np_rot90},{"atleast_1d",np_atleast_1d},{"atleast_2d",np_atleast_2d},{"atleast_3d",np_atleast_3d},{"broadcast_to",np_broadcast_to},{"broadcast_arrays",np_broadcast_arrays},{"broadcast_shapes",np_broadcast_shapes},{"tile",np_tile},{"roll",np_roll},{"rollaxis",np_rollaxis},{"repeat",np_repeat_elements},{"repeat_elements",np_repeat_elements},{"slice",np_slice},{"s",np_slice},{NULL,NULL}};
 
 int luaopen_luaray_core(lua_State*L){
     if(luaL_newmetatable(L,GENERATOR_MT)){
@@ -8084,7 +8082,7 @@ int luaopen_luaray_core(lua_State*L){
     for(int i=0;names[i];i++){lua_pushstring(L,names[i]);lua_setfield(L,-2,names[i]);}
     push_index_token(L,LN_INDEX_NEWAXIS);lua_setfield(L,-2,"newaxis");
     push_index_token(L,LN_INDEX_ELLIPSIS);lua_setfield(L,-2,"ellipsis");
-    lua_pushstring(L,"0.139.0-dev");lua_setfield(L,-2,"_version");
+    lua_pushstring(L,"0.140.0-dev");lua_setfield(L,-2,"_version");
     lua_pushstring(L,"286e698f1dcf601648b165f48485ceaeec9c6231");lua_setfield(L,-2,"_numpy_upstream_commit");
     return 1;
 }

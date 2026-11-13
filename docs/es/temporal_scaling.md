@@ -123,3 +123,46 @@ escrituras previas al error y el límite de 8192 elementos del iterador. Siguen 
 certificar los escalares externos, la identidad de excepciones/advertencias Python,
 todas las disposiciones de buffers y la conversión flotante fuera de x86.
 Consulta la [verificación](development/validation.md).
+
+## Suma, media y acumulación de duraciones
+
+Las reducciones conservan la unidad de entrada. NaT se propaga en los valores
+seleccionados; una máscara puede excluirlo. La suma vacía es cero y la media
+vacía es NaT. La media divide ticks enteros truncando hacia cero. La adición
+comprobada falla al desbordar o alcanzar el tick reservado de NaT sin entradas NaT.
+
+```lua
+local lr = require("luaray")
+local duration_type = lr.dtype("timedelta64[D]")
+local durations = lr.array({1, 2, 3}, duration_type)
+assert(lr.astype(lr.array(lr.sum(durations)), "int64"):tolist() == 6)
+assert(lr.astype(lr.array(lr.mean(durations)), "int64"):tolist() == 2)
+assert(lr.astype(lr.cumsum(durations), "int64")[3] == 6)
+local with_nat = lr.array({math.mininteger, 1}, duration_type)
+assert(lr.sum(with_nat).isnat)
+```
+
+El dtype de una reducción selecciona una **clase general**, sin detalles de ancho,
+endian o unidad. Strings con ancho y unidades temporales específicas fallan,
+incluso en entradas vacías. El resolver heredado puede conservar el descriptor
+de duración original aunque se solicite otra clase general. `cumsum`/`cumprod`
+descartan detalles mediante su adaptador de número de tipo; accumulate/reduceat
+directos de ufunc conservan la comprobación estricta.
+
+```lua
+assert(not pcall(function() lr.sum(durations, {dtype = duration_type}) end))
+local cumulative = lr.cumsum(durations, {dtype = lr.dtype("timedelta64[h]")})
+assert(cumulative.dtype == "timedelta64[D]")
+assert(not pcall(function()
+  lr.add_accumulate(durations, {dtype = lr.dtype("timedelta64[h]")})
+end))
+assert(not pcall(function()
+  lr.sum(lr.array({math.maxinteger, 1}, duration_type))
+end))
+```
+
+No hay bucle para sumar datetimes absolutos ni multiplicar duraciones. Las
+reducciones de adición de strings también fallan según el resolver, incluso
+vacías. Se comprueban unidades, NaT, desbordamiento, máscaras, initial, dtypes
+generales/específicos, acumulaciones y reduceat. No se certifican todos los aliases,
+salidas de otra unidad ni estados de salida tras error; la compatibilidad es parcial.

@@ -3,6 +3,7 @@
 #include "ln_axis.h"
 #include "ln_write.h"
 #include "ln_half.h"
+#include "ln_string.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -45,6 +46,10 @@ static ln_array *difference(const ln_array *stop,const ln_array *start,
 }
 static ln_array *cast_copy(const ln_array *a,const ln_dtype *dtype,ln_error *err)
 {
+    if(ln_string_is_dtype(dtype)&&!dtype->elsize){
+        dtype=ln_string_make_dtype(dtype->kind=='U',ln_legacy_string_width_for_dtype(a->descr),dtype->byteorder,err);
+        if(!dtype)return NULL;
+    }
     ln_array *out=ln_array_new_keeporder(a,dtype,err);if(!out)return NULL;
     if(ln_array_copyto(out,a,NULL,1,LN_UNSAFE_CASTING,err)<0){ln_array_free(out);return NULL;}
     return out;

@@ -13,9 +13,7 @@ int ln_lua_bytes_view(lua_State *L)
     ln_array *a=input(L);const ln_dtype *dtype=NULL;
     if(lua_gettop(L)>2)return luaL_error(L,"view accepts one optional dtype");
     if(lua_type(L,2)!=LUA_TNONE&&lua_type(L,2)!=LUA_TNIL){
-        if(lua_type(L,2)!=LUA_TSTRING)return luaL_error(L,"view dtype must be a dtype string");
-        size_t length;const char *text=lua_tolstring(L,2,&length);
-        if(strlen(text)!=length||!(dtype=ln_dtype_by_name(text)))return luaL_error(L,"unsupported view dtype");
+        dtype=ln_lua_check_dtype(L,2);
     }
     ln_error err={0};ln_array *result=ln_bytes_view(a,dtype,&err);
     return result?ln_lua_push_array(L,result):ln_lua_fail(L,&err);

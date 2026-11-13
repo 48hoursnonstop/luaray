@@ -32,6 +32,7 @@ int ln_datetime_can_cast_same_kind(const ln_datetime_meta *src,const ln_datetime
         int timedelta);
 
 /* Host-neutral ports of NumPy's datetime/timedelta ufunc loops. */
+int ln_datetime_add_checked(int64_t a,int64_t b,int64_t *out,ln_error *err);
 void ln_datetime_add_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,void *data);
 void ln_datetime_subtract_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,void *data);
 void ln_datetime_compare_loop(char **args,const ln_intp *dimensions,const ln_intp *steps,void *data);

@@ -97,7 +97,7 @@ init_dtype_registry(void)
         DTYPE_DESCRS[i].type_num = s->type_num;
         DTYPE_DESCRS[i].name = s->name;
         DTYPE_DESCRS[i].kind = s->kind;
-        DTYPE_DESCRS[i].byteorder = '=';
+        DTYPE_DESCRS[i].byteorder = s->elsize==1?'|':'=';
         DTYPE_DESCRS[i].flags = 0;
         DTYPE_DESCRS[i].elsize = s->elsize;
         DTYPE_DESCRS[i].alignment = s->alignment;
@@ -136,7 +136,8 @@ const ln_dtype_descr *ln_dtype_by_name(const char *name) {
     for (size_t i = 0; i < NDTYPES; ++i)
         if (strcmp(DTYPE_DESCRS[i].name, name) == 0) return &DTYPE_DESCRS[i];
     if (strcmp(name, "double") == 0 || strcmp(name, "f8") == 0) return ln_dtype_by_num(LN_DOUBLE);
-    if (strcmp(name, "float") == 0 || strcmp(name, "f4") == 0) return ln_dtype_by_num(LN_FLOAT);
+    if (strcmp(name, "float") == 0) return ln_dtype_by_num(LN_DOUBLE);
+    if (strcmp(name, "f4") == 0) return ln_dtype_by_num(LN_FLOAT);
     if (strcmp(name, "half") == 0 || strcmp(name, "f2") == 0) return ln_dtype_by_num(LN_HALF);
     if (strcmp(name, "complex64") == 0 || strcmp(name, "c8") == 0) return ln_dtype_by_num(LN_CFLOAT);
     if (strcmp(name, "complex128") == 0 || strcmp(name, "complex") == 0 || strcmp(name, "c16") == 0) return ln_dtype_by_num(LN_CDOUBLE);
@@ -146,7 +147,51 @@ const ln_dtype_descr *ln_dtype_by_name(const char *name) {
     if (strcmp(name, "uint64") == 0 || strcmp(name, "u8") == 0)
         return sizeof(unsigned long) == 8 ? ln_dtype_by_num(LN_ULONG) : ln_dtype_by_num(LN_ULONGLONG);
     if (strcmp(name, "i4") == 0) return ln_dtype_by_num(LN_INT);
-    return NULL;
+    static const struct {const char *name;ln_dtype_num type;} aliases[]={
+        {"int",sizeof(intptr_t)==sizeof(long)?LN_LONG:LN_LONGLONG},
+        {"intp",sizeof(intptr_t)==sizeof(long)?LN_LONG:LN_LONGLONG},
+        {"uint",sizeof(uintptr_t)==sizeof(unsigned long)?LN_ULONG:LN_ULONGLONG},
+        {"uintp",sizeof(uintptr_t)==sizeof(unsigned long)?LN_ULONG:LN_ULONGLONG},
+        {"long",LN_LONG},{"ulong",LN_ULONG},{"short",LN_SHORT},{"ushort",LN_USHORT},
+        {"byte",LN_BYTE},{"ubyte",LN_UBYTE},{"single",LN_FLOAT},{"csingle",LN_CFLOAT},
+        {"cdouble",LN_CDOUBLE},{"bool_",LN_BOOL},{"longlong",LN_LONGLONG},{"ulonglong",LN_ULONGLONG}
+    };
+    for(size_t i=0;i<sizeof aliases/sizeof aliases[0];++i)if(!strcmp(name,aliases[i].name))return ln_dtype_by_num(aliases[i].type);
+    if(!strcmp(name,"float128")&&sizeof(long double)==16)return ln_dtype_by_num(LN_LONGDOUBLE);
+    if(!strcmp(name,"float96")&&sizeof(long double)==12)return ln_dtype_by_num(LN_LONGDOUBLE);
+    const char *format=name;char order=0;
+    if(*format=='<'||*format=='>'||*format=='='||*format=='|')order=*format++;
+    if(!*format)return NULL;
+    const ln_dtype *result=order?ln_datetime_parse_dtype(format,NULL):NULL;
+    if(result){ /* Native-prefixed temporal descriptors are resolved above. */
+    }else if(*format=='M'||*format=='m'){
+        result=format[1]?ln_datetime_parse_dtype(format,NULL):ln_datetime_default_dtype(*format=='m');
+    }else if(!format[1]){
+        switch(*format){
+          case '?':result=ln_dtype_by_num(LN_BOOL);break;
+          case 'b':result=ln_dtype_by_num(LN_BYTE);break;case 'B':result=ln_dtype_by_num(LN_UBYTE);break;
+          case 'h':result=ln_dtype_by_num(LN_SHORT);break;case 'H':result=ln_dtype_by_num(LN_USHORT);break;
+          case 'i':result=ln_dtype_by_num(LN_INT);break;case 'I':result=ln_dtype_by_num(LN_UINT);break;
+          case 'l':result=ln_dtype_by_num(LN_LONG);break;case 'L':result=ln_dtype_by_num(LN_ULONG);break;
+          case 'q':result=ln_dtype_by_num(LN_LONGLONG);break;case 'Q':result=ln_dtype_by_num(LN_ULONGLONG);break;
+          case 'p':case 'n':result=ln_dtype_by_name("intp");break;
+          case 'P':case 'N':result=ln_dtype_by_name("uintp");break;
+          case 'e':result=ln_dtype_by_num(LN_HALF);break;case 'f':result=ln_dtype_by_num(LN_FLOAT);break;
+          case 'd':result=ln_dtype_by_num(LN_DOUBLE);break;case 'g':result=ln_dtype_by_num(LN_LONGDOUBLE);break;
+          case 'F':result=ln_dtype_by_num(LN_CFLOAT);break;case 'D':result=ln_dtype_by_num(LN_CDOUBLE);break;
+          case 'G':result=ln_dtype_by_num(LN_CLONGDOUBLE);break;
+        }
+    }else if(format[1]>='0'&&format[1]<='9'){
+        size_t width=0;const char *digit=format+1;
+        for(;*digit>='0'&&*digit<='9';++digit){if(width>(SIZE_MAX-(size_t)(*digit-'0'))/10)return NULL;width=width*10+(size_t)(*digit-'0');}
+        if(*digit)return NULL;
+        for(size_t i=0;i<NDTYPES;++i)if(DTYPE_DESCRS[i].kind==*format&&DTYPE_DESCRS[i].elsize==width){result=&DTYPE_DESCRS[i];break;}
+    }
+    if(result&&order&&order!='='&&order!='|'&&result->elsize>1){
+        uint16_t one=1;char native=*(unsigned char*)&one?'<':'>';
+        if(order!=native)return NULL; /* Non-native numeric/temporal kernels remain unsupported. */
+    }
+    return result;
 }
 
 const ln_dtype_class *ln_dtype_class_by_name(const char *name) {
@@ -625,7 +670,7 @@ ln_array *ln_array_new(int nd, const ln_intp *dims, const ln_dtype_descr *dtype,
     if(is_zero)nbytes=0;
     if(nd>0) ln_array_fill_strides(a->strides,a->dimensions,nd,dtype->elsize,fortran?LN_ARRAY_F_CONTIGUOUS:LN_ARRAY_C_CONTIGUOUS,&a->flags);
     else a->flags|=LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS;
-    a->owner=buffer_new((size_t)nbytes,zeroed); if(!a->owner){ln_array_free(a);seterr(err,"out of memory");return NULL;}
+    a->owner=buffer_new((size_t)nbytes,zeroed||(dtype->flags&LN_DTYPE_NEEDS_INIT)); if(!a->owner){ln_array_free(a);seterr(err,"out of memory");return NULL;}
     a->data=a->owner->ptr;
     if(nbytes==0) for(int i=0;i<nd;i++) a->strides[i]=0; /* matches NumPy ctor */
     return a;
@@ -1739,6 +1784,35 @@ ln_unary_array_op_into(const ln_array *a, ln_array *out,
  * identities, where masking, and COPY_IF_OVERLAP-style temporary output are
  * kept in the native core.
  */
+static int reduction_dtype_details(const ln_dtype *dtype)
+{
+    if(!dtype)return 0;
+    if((dtype->kind=='S'||dtype->kind=='U')&&dtype->elsize)return 1;
+    const ln_datetime_meta *time=ln_datetime_metadata(dtype);
+    if(time&&(time->base!=LN_FR_GENERIC||time->num!=1))return 1;
+    uint16_t one=1;char native=*(unsigned char*)&one?'<':'>';
+    return (dtype->byteorder=='<'||dtype->byteorder=='>')&&dtype->byteorder!=native;
+}
+static ln_strided_binary_loop reduction_binary_loop(const ln_dtype *dtype,int multiply)
+{
+    if(!multiply&&dtype->kind=='m')return ln_datetime_add_loop;
+    return multiply?ln_get_multiply_loop(dtype->type_num):ln_get_add_loop(dtype->type_num);
+}
+
+static int reduction_apply_loop(ln_strided_binary_loop loop,char **args,
+    const ln_intp *dimensions,const ln_intp *steps,const ln_dtype *dtype,ln_error *err)
+{
+    if(dtype->kind!='m'){loop(args,dimensions,steps,NULL);return 0;}
+    /* Accumulators change after each element; validate sequentially rather
+     * than validating every pair against the original accumulator value. */
+    for(ln_intp i=0;i<dimensions[0];++i){
+        int64_t a,b,result;memcpy(&a,args[0]+i*steps[0],8);memcpy(&b,args[1]+i*steps[1],8);
+        if(ln_datetime_add_checked(a,b,&result,err)<0)return -1;
+        memcpy(args[2]+i*steps[2],&result,8);
+    }
+    return 0;
+}
+
 static const ln_dtype *
 default_add_multiply_reduce_dtype(const ln_dtype *src)
 {
@@ -1756,6 +1830,12 @@ static const ln_dtype *
 resolve_reduction_dtype(const ln_array *a, const ln_dtype *requested,
                         const ln_dtype *out_dtype, ln_reduce_op op)
 {
+    /* The pinned legacy datetime/string addition resolver consults the
+     * original operands, even when a general DType was requested. */
+    if(a->descr->kind=='m'||a->descr->kind=='M')return a->descr;
+    if(op!=LN_REDUCE_PROD&&!out_dtype&&(a->descr->kind=='S'||a->descr->kind=='U'))return a->descr;
+    if(requested&&requested->kind=='m'&&op!=LN_REDUCE_PROD&&
+       (a->descr->cls->flags&LN_DTYPE_CLASS_LEGACY_NUMERIC))return a->descr;
     if (requested) return requested;
     if (op == LN_REDUCE_MEAN) {
         /* _methods.py:_mean: integer and bool default to float64; inexact
@@ -1776,8 +1856,8 @@ reduce_stream_into(char *acc, const char *src, ln_intp src_stride,
 {
     if (count <= 0) return 0;
     ln_strided_binary_loop loop = multiply
-        ? ln_get_multiply_loop(reduce_dtype->type_num)
-        : ln_get_add_loop(reduce_dtype->type_num);
+        ? reduction_binary_loop(reduce_dtype,1)
+        : reduction_binary_loop(reduce_dtype,0);
     if (!loop) {
         seterr(err, "no reduction inner loop for dtype");
         return -1;
@@ -1789,7 +1869,7 @@ reduce_stream_into(char *acc, const char *src, ln_intp src_stride,
         char *args[3] = {acc, (char *)src, acc};
         ln_intp dimensions[1] = {count};
         ln_intp steps[3] = {0, src_stride, 0};
-        loop(args, dimensions, steps, NULL);
+        if(reduction_apply_loop(loop,args,dimensions,steps,reduce_dtype,err)<0)return -1;
         return 0;
     }
 
@@ -1805,7 +1885,7 @@ reduce_stream_into(char *acc, const char *src, ln_intp src_stride,
         char *args[3] = {acc, cast_buffer, acc};
         ln_intp dimensions[1] = {chunk};
         ln_intp steps[3] = {0, (ln_intp)reduce_dtype->elsize, 0};
-        loop(args, dimensions, steps, NULL);
+        if(reduction_apply_loop(loop,args,dimensions,steps,reduce_dtype,err)<0)return -1;
     }
     return 0;
 }
@@ -1981,6 +2061,7 @@ mean_divide_accumulator(char *p, const ln_dtype *dtype, ln_intp count)
 {
     if (count == 0) {
         switch (dtype->type_num) {
+            case LN_TIMEDELTA:{int64_t nat=LN_DATETIME_NAT;memcpy(p,&nat,8);return 0;}
             case LN_HALF: { ln_half h=LN_HALF_NAN; memcpy(p,&h,sizeof(h)); return 0; }
             case LN_FLOAT: *(float *)p = NAN; return 0;
             case LN_DOUBLE: *(double *)p = NAN; return 0;
@@ -2006,6 +2087,7 @@ mean_divide_accumulator(char *p, const ln_dtype *dtype, ln_intp count)
         }
     }
     switch (dtype->type_num) {
+        case LN_TIMEDELTA:{int64_t ticks;memcpy(&ticks,p,8);if(ticks!=LN_DATETIME_NAT)ticks/=count;memcpy(p,&ticks,8);return 0;}
         case LN_BOOL:
             /* bool true_divide cast back to bool preserves truth value. */
             return 0;
@@ -2125,9 +2207,11 @@ reduce_general_new(const ln_array *a, const uint8_t *axis_flags,
 {
     if (!a) { seterr(err, "invalid reduction input"); return NULL; }
     if (op == LN_REDUCE_MEAN) has_initial = 0;
+    if(reduction_dtype_details(requested_dtype)){seterr(err,"reduction dtype selects a class, not width, endian or time metadata");return NULL;}
     const ln_dtype *rdt = resolve_reduction_dtype(
             a, requested_dtype, out_dtype_for_resolution, op);
     if (!rdt) { seterr(err, "reduction dtype resolution failed"); return NULL; }
+    if(!reduction_binary_loop(rdt,op==LN_REDUCE_PROD)){seterr(err,"no reduction inner loop for dtype");return NULL;}
 
     int out_nd = 0;
     ln_intp out_dims[LN_MAXDIMS] = {0};
@@ -2220,8 +2304,8 @@ reduce_general_new(const ln_array *a, const uint8_t *axis_flags,
     }
     else {
         ln_strided_binary_loop loop = multiply
-            ? ln_get_multiply_loop(rdt->type_num)
-            : ln_get_add_loop(rdt->type_num);
+            ? reduction_binary_loop(rdt,1)
+            : reduction_binary_loop(rdt,0);
         if (!loop) { seterr(err, "no reduction inner loop for dtype"); goto fail_cast; }
         _Alignas(ln_clongdouble) unsigned char onebuf[32];
         if (rdt->elsize > sizeof(onebuf)) {
@@ -2259,7 +2343,7 @@ reduce_general_new(const ln_array *a, const uint8_t *axis_flags,
                 char *args[3] = {acc, (char *)vp, acc};
                 ln_intp dim1[1] = {1};
                 ln_intp steps[3] = {0, 0, 0};
-                loop(args, dim1, steps, NULL);
+                if(reduction_apply_loop(loop,args,dim1,steps,rdt,err)<0)goto fail_cast;
                 if (mean_counts) {
                     ln_intp linear = (ln_intp)((acc - out->data) / (ln_intp)rdt->elsize);
                     mean_counts[linear]++;
@@ -2361,8 +2445,12 @@ ln_reduce_into_ex(const ln_array *a, const uint8_t *axis_flags,
 
 static const ln_dtype *
 resolve_accumulate_dtype(const ln_array *a, const ln_dtype *requested,
-                         const ln_dtype *out_dtype)
+                         const ln_dtype *out_dtype,ln_reduce_op op)
 {
+    if(a->descr->kind=='m'||a->descr->kind=='M')return a->descr;
+    if(op==LN_REDUCE_SUM&&!out_dtype&&(a->descr->kind=='S'||a->descr->kind=='U'))return a->descr;
+    if(requested&&requested->kind=='m'&&op==LN_REDUCE_SUM&&
+       (a->descr->cls->flags&LN_DTYPE_CLASS_LEGACY_NUMERIC))return a->descr;
     if (requested) return requested;
     if (out_dtype) return ln_promote_dtype(a->descr, out_dtype);
     return default_add_multiply_reduce_dtype(a->descr);
@@ -2385,13 +2473,15 @@ accumulate_general_new(const ln_array *a, int axis, const ln_dtype *requested,
         seterr(err, "unsupported accumulate operation");
         return NULL;
     }
+    if(reduction_dtype_details(requested)){seterr(err,"accumulate/reduceat dtype selects a class, not metadata");return NULL;}
     const ln_dtype *dt = resolve_accumulate_dtype(a, requested,
-                                                   out_dtype_for_resolution);
+                                                   out_dtype_for_resolution,op);
     if (!dt) {
         seterr(err, "accumulate dtype resolution failed");
         return NULL;
     }
 
+    if(!reduction_binary_loop(dt,op==LN_REDUCE_PROD)){seterr(err,"no accumulate inner loop for dtype");return NULL;}
     ln_array *work = ln_array_new(a->nd, a->dimensions, dt, 0, 0, err);
     if (!work) return NULL;
     uint8_t no_reduce[LN_MAXDIMS] = {0};
@@ -2401,8 +2491,8 @@ accumulate_general_new(const ln_array *a, int axis, const ln_dtype *requested,
     if (axis_len == 0 || ln_array_size(work) == 0) return work;
 
     ln_strided_binary_loop loop = (op == LN_REDUCE_PROD)
-        ? ln_get_multiply_loop(dt->type_num)
-        : ln_get_add_loop(dt->type_num);
+        ? reduction_binary_loop(dt,1)
+        : reduction_binary_loop(dt,0);
     if (!loop) {
         ln_array_free(work);
         seterr(err, "no accumulate inner loop for dtype");
@@ -2462,7 +2552,7 @@ accumulate_general_new(const ln_array *a, int axis, const ln_dtype *requested,
             char *args[3] = {prev, (char *)vp, cur};
             ln_intp one[1] = {1};
             ln_intp steps[3] = {0, 0, 0};
-            loop(args, one, steps, NULL);
+            if(reduction_apply_loop(loop,args,one,steps,dt,err)<0){ln_array_free(work);return NULL;}
         }
         advance_index(outer_nd, outer_dims, ocoord);
     }
@@ -2526,8 +2616,9 @@ reduceat_general_new(const ln_array *a, const ln_intp *indices,
         }
     }
 
+    if(reduction_dtype_details(requested)){seterr(err,"accumulate/reduceat dtype selects a class, not metadata");return NULL;}
     const ln_dtype *dt = resolve_accumulate_dtype(a, requested,
-                                                   out_dtype_for_resolution);
+                                                   out_dtype_for_resolution,op);
     if (!dt) {
         seterr(err, "reduceat dtype resolution failed");
         return NULL;
@@ -2536,14 +2627,15 @@ reduceat_general_new(const ln_array *a, const ln_intp *indices,
     ln_intp out_dims[LN_MAXDIMS];
     memcpy(out_dims, a->dimensions, (size_t)a->nd * sizeof(ln_intp));
     out_dims[axis] = nindices;
+    if(!reduction_binary_loop(dt,op==LN_REDUCE_PROD)){seterr(err,"no reduceat inner loop for dtype");return NULL;}
     ln_array *work = ln_array_new(a->nd, out_dims, dt, 0, 0, err);
     if (!work) return NULL;
     reduceat_keeporder_strides(work, a, axis);
     if (ln_array_size(work) == 0) return work;
 
     ln_strided_binary_loop loop = (op == LN_REDUCE_PROD)
-        ? ln_get_multiply_loop(dt->type_num)
-        : ln_get_add_loop(dt->type_num);
+        ? reduction_binary_loop(dt,1)
+        : reduction_binary_loop(dt,0);
     if (!loop) {
         ln_array_free(work);
         seterr(err, "no reduceat inner loop for dtype");
@@ -2610,7 +2702,7 @@ reduceat_general_new(const ln_array *a, const ln_intp *indices,
                     char *args[3] = {dst, (char *)sp, dst};
                     ln_intp dims[1] = {remain};
                     ln_intp steps[3] = {0, a->strides[axis], 0};
-                    loop(args, dims, steps, NULL);
+                    if(reduction_apply_loop(loop,args,dims,steps,dt,err)<0){free(cast_buffer);ln_array_free(work);return NULL;}
                 }
                 else {
                     while (remain > 0) {
@@ -2625,7 +2717,7 @@ reduceat_general_new(const ln_array *a, const ln_intp *indices,
                         char *args[3] = {dst, cast_buffer, dst};
                         ln_intp dims[1] = {chunk};
                         ln_intp steps[3] = {0, (ln_intp)dt->elsize, 0};
-                        loop(args, dims, steps, NULL);
+                        if(reduction_apply_loop(loop,args,dims,steps,dt,err)<0){free(cast_buffer);ln_array_free(work);return NULL;}
                         sp += chunk * a->strides[axis];
                         remain -= chunk;
                     }

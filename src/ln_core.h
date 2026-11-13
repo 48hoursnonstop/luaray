@@ -136,6 +136,8 @@ struct ln_dtype_class {
     const ln_dtype_class_slots *slots;
 };
 
+enum { LN_DTYPE_NEEDS_INIT = 8 };
+
 struct ln_dtype_descr {
     const ln_dtype_class *cls;
     /* Legacy convenience fields retained during the numeric-core migration.

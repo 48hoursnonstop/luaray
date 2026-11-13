@@ -120,3 +120,47 @@ ordinary coefficients, masks, output identity, reversed views, overflow writebac
 and the 8192-element iterator boundary. Foreign scalar classes, exact Python
 exceptions/warnings, all possible buffer layouts and non-x86 floating conversion
 behavior remain uncertified. See [validation](development/validation.md).
+
+## Sum, mean and cumulative durations
+
+Duration reductions retain the input unit. NaT propagates through selected
+values; a mask can exclude it. An empty duration sum is zero and an empty mean
+is NaT. Mean divides integer ticks toward zero. Checked addition raises on
+signed overflow or on a non-NaT sum reaching the reserved NaT tick value.
+
+```lua
+local lr = require("luaray")
+local duration_type = lr.dtype("timedelta64[D]")
+local durations = lr.array({1, 2, 3}, duration_type)
+assert(lr.astype(lr.array(lr.sum(durations)), "int64"):tolist() == 6)
+assert(lr.astype(lr.array(lr.mean(durations)), "int64"):tolist() == 2)
+assert(lr.astype(lr.cumsum(durations), "int64")[3] == 6)
+local with_nat = lr.array({math.mininteger, 1}, duration_type)
+assert(lr.sum(with_nat).isnat)
+```
+
+A reduction's dtype control selects a **general DType**, without width, endian or
+time-unit details. Sized string and specific temporal descriptors raise, even
+for empty inputs. The pinned legacy addition resolver can retain the original
+duration descriptor despite a different general dtype request. Ordinary
+`cumsum`/`cumprod` discard descriptor details through their type-number adapter;
+direct ufunc accumulate/reduceat retain the strict descriptor check.
+
+```lua
+assert(not pcall(function() lr.sum(durations, {dtype = duration_type}) end))
+local cumulative = lr.cumsum(durations, {dtype = lr.dtype("timedelta64[h]")})
+assert(cumulative.dtype == "timedelta64[D]")
+assert(not pcall(function()
+  lr.add_accumulate(durations, {dtype = lr.dtype("timedelta64[h]")})
+end))
+assert(not pcall(function()
+  lr.sum(lr.array({math.maxinteger, 1}, duration_type))
+end))
+```
+
+Absolute datetimes and duration products have no corresponding sum/product loop.
+String addition reductions also reject through their source resolver, including
+empty arrays. References cover duration units, NaT, overflow, masks, initial
+values, general/specific dtype requests, cumulative operations and reduceat.
+Every output alias, cross-unit output and post-error output state remains
+uncertified; these are partially compatible APIs.

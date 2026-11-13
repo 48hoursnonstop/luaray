@@ -12,6 +12,17 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.140.0-dev
+
+Added immutable native dtype descriptors with scalar metadata, formatting,
+equivalence and shared readers for core array/casting/selection APIs. Corrected
+`float` to float64, native character/width aliases, equivalent integer aliases
+and Unicode endian cast safety. Unicode allocations now honor NEEDS_INIT.
+Unsized join/sampling outputs resolve real widths. Added timedelta sum/mean/
+accumulation with NaT and checked overflow, and validated reduction dtype classes
+before empty shortcuts. Documented the distinct legacy cumulative metadata rule.
+Added native/Lua regressions, four differential corpora and English/Spanish guides.
+
 ## 0.139.0-dev
 
 Added `shape`, `ndim` and `size` queries over native ndarray metadata and the

@@ -22,6 +22,8 @@ const pages = [
     ['Gathering values', 'Extracción por índices', 'take'],
     ['Along an axis', 'Operaciones por eje', 'along_axis'],
     ['Axis callbacks', 'Callbacks por eje', 'axis_callbacks'],
+    ['Callbacks over several axes', 'Callbacks sobre varios ejes', 'over_axes'],
+    ['Zero-width string sums', 'Sumas de cadenas de ancho cero', 'zero_string_sum'],
     ['Choosing values', 'Selección con choose', 'choose'],
     ['Conditions and extraction', 'Condiciones y extracción', 'condition_selection'],
     ['Selection and broadcasting', 'Selección y broadcasting', 'selection'],
@@ -104,7 +106,7 @@ export default defineConfig({
         nav: [
           { text: 'Guide', link: '/getting-started' },
           { text: 'Reference', link: '/creation' },
-          { text: '0.152.0-dev', link: `${repo}/releases/tag/v0.152.0-dev` },
+          { text: '0.153.0-dev', link: `${repo}/releases/tag/v0.153.0-dev` },
         ],
         sidebar: sidebar(),
       },
@@ -115,7 +117,7 @@ export default defineConfig({
         nav: [
           { text: 'Guía', link: '/es/getting-started' },
           { text: 'Referencia', link: '/es/creation' },
-          { text: '0.152.0-dev', link: `${repo}/releases/tag/v0.152.0-dev` },
+          { text: '0.153.0-dev', link: `${repo}/releases/tag/v0.153.0-dev` },
         ],
         sidebar: sidebar(true),
         outline: { label: 'En esta página', level: [2, 3] },

@@ -1,5 +1,5 @@
 local np=require("luaray_core")
-assert(np._version=="0.152.0-dev")
+assert(np._version=="0.153.0-dev")
 local function near(x,y,tol) return math.abs(x-y)<=tol end
 for _,alpha in ipairs({{1,2,3},{0.01,0.02,0.03},{0.1,0.0999},{0,0.03,0.01},{0.01,0,0},{0,0,0},{1},{0},{}}) do
   for _,sz in ipairs({{}, {2,3}, {0}, {1,0,3}}) do

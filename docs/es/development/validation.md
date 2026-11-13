@@ -51,14 +51,14 @@ Los generadores recientes usan NumPy 2.5.3; los anteriores conservan su atribuci
 NumPy 2.3.5.
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 409 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 410 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.152.0-dev** aprobó **67 suites nativas**, **122 suites Lua**, siete ejemplos
-y 318 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.153.0-dev** aprobó **68 suites nativas**, **124 suites Lua**, siete ejemplos
+y 334 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -135,7 +135,9 @@ Ndindex aprobó **1 254 casos /39 746 comprobaciones** y 91 comprobaciones Lua p
 
 Apply_along_axis aprobó **60 768 casos /1 226 968 comprobaciones** y 191 comprobaciones Lua permanentes: ejes y orden de callbacks, vistas compartidas, bytes/metadatos, dtype/forma del primer resultado, inserción de dimensiones y broadcasting, escrituras, solo lectura y fallos. Los ejes positivos se normalizaron a posiciones Lua y el parámetro Python con nombre a un argumento Lua. El corpus se regeneró exactamente; el padding longdouble se omite explícitamente.
 
-La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, además del runner Lua y catorce pruebas nativas. Aprobaron todas las suites mantenidas y los 54 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
+Apply_over_axes y sumas de cadenas de ancho cero aprobaron **193 600 casos /4 923 021 comprobaciones**, 443 comprobaciones Lua permanentes, una prueba nativa y una prueba C++ de cabeceras/enlace. Comprueban orden/ejes/retención de dimensiones, identidad/vistas, seeds, máscaras, dtypes/salidas y estados después de fallos. Se normalizaron 8 774 resultados escalares de callbacks y 2 892 cadenas escalares a la representación Lua declarada. La referencia de cadenas aísla 180 grupos dtype/salida en procesos NumPy nuevos por cambios de despacho dependientes del historial observados. Ambos corpus se regeneraron exactamente. El padding longdouble se omite; el writeback de fallos con solapamiento general sigue sin certificar.
+
+La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, además del runner Lua y quince pruebas nativas. Aprobaron todas las suites mantenidas y los 56 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
 
 ## Integridad de las entregas
 

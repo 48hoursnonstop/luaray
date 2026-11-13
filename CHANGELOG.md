@@ -14,6 +14,22 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.153.0-dev
+
+Added apply_over_axes with ordered/repeated axis callbacks, shared intermediate
+state, singleton restoration, scalar-result coercion and preserved callback errors.
+Fixed squeeze identity when no axes are removed and scalar reduction axis-table
+validation. Implemented zero-width fixed-string sum, descriptor/out resolution,
+initialized zero-stride results, masks and typed seeds including Boolean provenance.
+Disjoint numeric outputs preserve committed seeds after string conversion errors.
+
+Validated 193,600 NumPy 2.5.3 cases / 4,923,021 checks and 443 new Lua checks plus
+a native harness and C++ header/link smoke. Scalar callback representations and
+string returns are explicitly normalized to Lua conventions; 180 fresh reference
+process groups avoid observed NumPy dtype/output dispatch-cache history. Added
+executable English/Spanish guides. Full scalar-class and overlap failure-writeback
+compatibility remains uncertified.
+
 ## 0.152.0-dev
 
 Added apply_along_axis with shared one-dimensional callback views, C-order

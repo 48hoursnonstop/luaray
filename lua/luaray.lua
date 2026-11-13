@@ -11,4 +11,5 @@ require("luaray.requirements")(lr)
 require("luaray.index_grids")(lr)
 require("luaray.iteration")(lr)
 require("luaray.axis_callbacks")(lr)
+require("luaray.axis_reduction")(lr)
 return lr

@@ -1864,6 +1864,22 @@ resolve_reduction_dtype(const ln_array *a, const ln_dtype *requested,
     /* The pinned legacy datetime/string addition resolver consults the
      * original operands, even when a general DType was requested. */
     if(a->descr->kind=='m'||a->descr->kind=='M')return a->descr;
+    if(op==LN_REDUCE_SUM&&a->descr->elsize&&ln_string_is_dtype(a->descr)&&
+       out_dtype&&ln_string_is_dtype(out_dtype))return NULL;
+    if(op==LN_REDUCE_SUM&&a->descr->elsize==0&&ln_string_is_dtype(a->descr)){
+        /* reducelike_promote_and_resolve passes {out?out:arr,arr,out} to
+         * descriptor resolution. Empty input strings preserve the concrete
+         * accumulator width when out has the same string class. */
+        if(!out_dtype)return a->descr;
+        if(out_dtype->cls==a->descr->cls)return out_dtype;
+        if(ln_string_is_dtype(out_dtype)){
+            if(!requested||requested->cls!=a->descr->cls)return NULL;
+            return ln_string_make_dtype(a->descr->kind=='U',ln_string_nchars(out_dtype),'=',NULL);
+        }
+        if(requested&&ln_string_is_dtype(requested))
+            return ln_string_make_dtype(requested->kind=='U',ln_legacy_string_width_for_dtype(out_dtype),'=',NULL);
+        return requested;
+    }
     if(op!=LN_REDUCE_PROD&&!out_dtype&&(a->descr->kind=='S'||a->descr->kind=='U'))return a->descr;
     if(requested&&requested->kind=='m'&&op!=LN_REDUCE_PROD&&
        (a->descr->cls->flags&LN_DTYPE_CLASS_LEGACY_NUMERIC))return a->descr;
@@ -2228,13 +2244,59 @@ divide_mean_output(ln_array *out, const ln_intp *counts, ln_error *err)
     return 0;
 }
 
+/* An add reduction can retain a fixed-string descriptor only when the
+ * concatenating ArrayMethod resolves to the same width: S0/U0. The empty
+ * string has no registered reduction identity. Result allocation normalizes
+ * zero widths to one while retaining the iterator's zero byte strides. */
+static ln_array *
+reduce_zero_string_new(const ln_array *a,const uint8_t *axes,int keepdims,
+                       const ln_dtype *dtype,const ln_array *where,
+                       int has_initial,double initial_v,int64_t initial_i,
+                       int initial_is_integer,ln_error *err)
+{
+    int count=0;
+    for(int i=0;i<a->nd;i++)if(axes&&axes[i])count++;
+    if(count>1){seterr(err,"string add reduction is not reorderable across multiple axes");return NULL;}
+    if(where){
+        ln_intp strides[LN_MAXDIMS];
+        if(where->descr->type_num!=LN_BOOL){seterr(err,"where mask must have bool dtype");return NULL;}
+        if(ln_broadcast_strides(a->nd,a->dimensions,where->nd,where->dimensions,
+                               where->strides,"where mask",strides,err)<0)return NULL;
+        if(!has_initial){seterr(err,"string add reduction with where requires initial");return NULL;}
+    }
+    if(!has_initial){
+        for(int i=0;i<a->nd;i++)if(axes&&axes[i]&&a->dimensions[i]==0){
+            seterr(err,"zero-size string add reduction has no identity");return NULL;
+        }
+    }
+    int nd=0;ln_intp dimensions[LN_MAXDIMS]={0};
+    reduction_shape(a,axes,keepdims,&nd,dimensions);
+    size_t width=ln_string_nchars(dtype);
+    const ln_dtype *allocated=ln_string_make_dtype(dtype->kind=='U',width?width:1,'=',err);
+    if(!allocated)return NULL;
+    ln_array *result=ln_array_new(nd,nd?dimensions:NULL,allocated,0,1,err);
+    if(!result)return NULL;
+    for(int i=0;i<nd;i++)result->strides[i]=0;
+    ln_update_contiguous_flags(result);
+    if(has_initial&&dtype->elsize&&ln_array_size(result)>0){
+        uint8_t boolean=(uint8_t)(initial_i!=0);
+        const ln_dtype *seed_dtype=ln_dtype_by_name(initial_is_integer==2?"bool":initial_is_integer?"int64":"float64");
+        const char *seed=initial_is_integer==2?(const char*)&boolean:
+                         initial_is_integer?(const char*)&initial_i:(const char*)&initial_v;
+        if(ln_cast_strided_numeric(seed,0,seed_dtype,result->data,0,allocated,1,err)<0){
+            ln_array_free(result);return NULL;
+        }
+    }
+    return result;
+}
+
 static ln_array *
 reduce_general_new(const ln_array *a, const uint8_t *axis_flags,
                    int keepdims, const ln_dtype *requested_dtype,
                    const ln_dtype *out_dtype_for_resolution,
                    const ln_array *where, ln_reduce_op op,
                    int has_initial, double initial_v, int64_t initial_i,
-                   int initial_is_integer, ln_error *err)
+                   int initial_is_integer, ln_array *seed_output, ln_error *err)
 {
     if (!a) { seterr(err, "invalid reduction input"); return NULL; }
     if (op == LN_REDUCE_MEAN) has_initial = 0;
@@ -2242,6 +2304,10 @@ reduce_general_new(const ln_array *a, const uint8_t *axis_flags,
     const ln_dtype *rdt = resolve_reduction_dtype(
             a, requested_dtype, out_dtype_for_resolution, op);
     if (!rdt) { seterr(err, "reduction dtype resolution failed"); return NULL; }
+    if(op==LN_REDUCE_SUM&&ln_string_is_dtype(rdt)&&
+       a->descr->elsize==0&&ln_string_is_dtype(a->descr))
+        return reduce_zero_string_new(a,axis_flags,keepdims,rdt,where,has_initial,
+                                      initial_v,initial_i,initial_is_integer,err);
     if(!reduction_binary_loop(rdt,op==LN_REDUCE_PROD)){seterr(err,"no reduction inner loop for dtype");return NULL;}
 
     int out_nd = 0;
@@ -2292,6 +2358,20 @@ reduce_general_new(const ln_array *a, const uint8_t *axis_flags,
     }
     ln_intp total = ln_array_size(a);
     if (total < 0) { seterr(err, "array is too big"); goto fail_counts; }
+
+    /* NumPy NpyIter commits the numeric identity/initial to a disjoint
+     * output before buffering a non-scalar string input. A later string
+     * conversion error leaves those seeds observable. Scalar inputs are
+     * converted before output initialization instead. Retain staging for
+     * overlapping operands, including a mask aliased by the output. */
+    if(seed_output&&op==LN_REDUCE_SUM&&a->nd>0&&
+       ln_string_is_dtype(a->descr)&&requested_dtype&&
+       !ln_arrays_may_overlap(a,seed_output)&&
+       (!where||!ln_arrays_may_overlap(where,seed_output))&&
+       (rdt->cls->flags&LN_DTYPE_CLASS_LEGACY_NUMERIC)&&
+       (seed_output->descr->cls->flags&LN_DTYPE_CLASS_LEGACY_NUMERIC)){
+        if(copy_cast_same_shape_core(out,seed_output,err)<0)goto fail_counts;
+    }
 
     char *cast_buffer = NULL;
     if (a->descr->type_num != rdt->type_num || !(a->flags&LN_ARRAY_ALIGNED)) {
@@ -2415,7 +2495,7 @@ ln_reduce_ex(const ln_array *a, const uint8_t *axis_flags,
 {
     return reduce_general_new(a, axis_flags, keepdims, dtype, NULL, where, op,
                               has_initial, initial_v, initial_i,
-                              initial_is_integer, err);
+                              initial_is_integer, NULL, err);
 }
 
 int
@@ -2447,7 +2527,7 @@ ln_reduce_into_ex(const ln_array *a, const uint8_t *axis_flags,
         else if (a->descr->kind == 'f' || a->descr->kind == 'c') mean_dtype = ln_promote_dtype(a->descr, out->descr);
         else mean_dtype = ln_dtype_by_num(LN_DOUBLE);
         ln_array *tmp = reduce_general_new(a, axis_flags, keepdims, mean_dtype,
-                NULL, where, LN_REDUCE_SUM, 0, 0, 0, 1, err);
+                NULL, where, LN_REDUCE_SUM, 0, 0, 0, 1, NULL, err);
         if (!tmp) return -1;
         int rc = copy_cast_same_shape_core(tmp, out, err);
         ln_array_free(tmp);
@@ -2467,7 +2547,7 @@ ln_reduce_into_ex(const ln_array *a, const uint8_t *axis_flags,
 
     ln_array *tmp = reduce_general_new(a, axis_flags, keepdims, dtype,
             out->descr, where, op, has_initial, initial_v, initial_i,
-            initial_is_integer, err);
+            initial_is_integer, out, err);
     if (!tmp) return -1;
     int rc = copy_cast_same_shape_core(tmp, out, err);
     ln_array_free(tmp);

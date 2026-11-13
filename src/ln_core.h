@@ -377,6 +377,7 @@ int ln_unary_array_op_into(const ln_array *a, ln_array *out,
  * `initial` is meaningful for sum/prod; mean ignores it.  The *_into form
  * computes through a temporary accumulator and casts into `out`, matching
  * NumPy's COPY_IF_OVERLAP safety for reductions. */
+/* initial_is_integer: 0 floating, 1 integer, 2 Boolean seed provenance. */
 ln_array *ln_reduce_ex(const ln_array *a, const uint8_t *axis_flags,
                        int keepdims, const ln_dtype *dtype,
                        const ln_array *where, ln_reduce_op op,

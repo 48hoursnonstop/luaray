@@ -2919,6 +2919,7 @@ parse_reduction_axes_value(lua_State *L,int idx,int nd,uint8_t *flags)
     if(lua_type(L,idx)==LUA_TTABLE){
         memset(flags,0,LN_MAXDIMS);
         size_t n=lua_rawlen(L,idx);
+        if(nd==0&&n)return luaL_error(L,"axis tuple is out of bounds for a zero-dimensional array");
         for(size_t i=1;i<=n;i++){
             lua_geti(L,idx,(lua_Integer)i);
             int ok=0;lua_Integer raw=lua_tointegerx(L,-1,&ok);
@@ -3003,7 +3004,7 @@ parse_reduction_options_table(lua_State *L,int idx,int nd,ln_reduce_op op,reduct
     if(lua_type(L,-1)!=LUA_TNIL){
         if(op==LN_REDUCE_MEAN){lua_pop(L,1);return luaL_error(L,"mean does not accept initial");}
         opts->has_initial=1;
-        if(lua_type(L,-1)==LUA_TBOOLEAN){opts->initial_is_integer=1;opts->initial_i=lua_toboolean(L,-1);opts->initial_v=(double)opts->initial_i;}
+        if(lua_type(L,-1)==LUA_TBOOLEAN){opts->initial_is_integer=2;opts->initial_i=lua_toboolean(L,-1);opts->initial_v=(double)opts->initial_i;}
         else if(lua_type(L,-1)==LUA_TNUMBER){int ok=0;opts->initial_is_integer=lua_isinteger(L,-1);opts->initial_v=(double)lua_tonumberx(L,-1,&ok);if(!ok){lua_pop(L,1);return luaL_error(L,"initial must be numeric or boolean");}opts->initial_i=opts->initial_is_integer?(int64_t)lua_tointegerx(L,-1,NULL):0;}
         else{lua_pop(L,1);return luaL_error(L,"initial must be numeric, boolean, or nil");}
     }
@@ -4595,6 +4596,11 @@ static int np_squeeze(lua_State *L) {
         axis_list(L,2,n,axes,&count);unique_axes(L,axes,count);
         for(int i=0;i<count;i++)selected[axes[i]]=1;
     }
+    /* NumPy PyArray_Squeeze[Selected] preserves object identity when no
+     * dimensions were requested for removal, including scalar/empty axes. */
+    int any_selected=0;
+    for(int i=0;i<n;i++)any_selected|=selected[i];
+    if(!any_selected){lua_pushvalue(L,1);return 1;}
     ln_error e={0};ln_array *v=ln_axis_squeeze(u->a,selected,&e);
     if(!v)return fail(L,&e);
     return push_array(L,v);
@@ -8113,7 +8119,7 @@ int luaopen_luaray_core(lua_State*L){
     for(int i=0;names[i];i++){lua_pushstring(L,names[i]);lua_setfield(L,-2,names[i]);}
     push_index_token(L,LN_INDEX_NEWAXIS);lua_setfield(L,-2,"newaxis");
     push_index_token(L,LN_INDEX_ELLIPSIS);lua_setfield(L,-2,"ellipsis");
-    lua_pushstring(L,"0.152.0-dev");lua_setfield(L,-2,"_version");
+    lua_pushstring(L,"0.153.0-dev");lua_setfield(L,-2,"_version");
     lua_pushstring(L,"286e698f1dcf601648b165f48485ceaeec9c6231");lua_setfield(L,-2,"_numpy_upstream_commit");
     return 1;
 }

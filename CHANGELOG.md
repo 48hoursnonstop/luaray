@@ -12,6 +12,20 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.141.0-dev
+
+Added the native `ndarray` constructor with owned allocation or retained C/F
+buffers, byte offsets, positive/negative/zero strides and rank-one inference.
+String buffers are pinned and read only. Zero-width S0/U0 descriptors retain
+their width. Bounds and element products are checked before pointer formation;
+unsafe upstream inferred layouts and invalid real buffers are rejected.
+
+Validated 24,204 NumPy 2.5.3 cases / 240,870 exact checks, 62 permanent Lua
+checks and a native ownership/range regression. Skipped 2,420 unsafe or
+unverified upstream parameter states; these are not compatibility passes.
+Added executable English/Spanish constructor documentation. Compatibility
+remains partial; no foreign buffer, subclass or unsupported dtype protocols.
+
 ## 0.140.0-dev
 
 Added immutable native dtype descriptors with scalar metadata, formatting,

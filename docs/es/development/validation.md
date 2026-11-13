@@ -51,14 +51,14 @@ Los generadores recientes usan NumPy 2.5.3; los anteriores conservan su atribuci
 NumPy 2.3.5.
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 395 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 396 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.140.0-dev** aprobó **60 suites nativas**, **110 suites Lua**, siete ejemplos
-y 198 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.141.0-dev** aprobó **61 suites nativas**, **111 suites Lua**, siete ejemplos
+y 208 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -111,7 +111,9 @@ Las consultas de metadatos aprobaron **892 casos /50 182 comprobaciones exactas*
 
 Los descriptores dtype y sus dependencias aprobaron **12 398 casos /294 470 comprobaciones**: 1 208 de propiedades/relaciones, 2 790 de argumentos, 7 680 de selección/reducción temporal y 720 de uniones sin ancho. Las 64 comprobaciones Lua permanentes y la nueva prueba C cubren Unicode inicializado, aliases, casts, NaT y desbordamiento. También pasó una prueba C++ de cabecera/enlace. Duraciones y metadatos son exactos; valores numéricos de muestreo usan tolerancia relativa 2e-3 para half, 3e-6 para float32/complex64 y 2e-12 para tipos más amplios. Las reducciones usan 3e-6 para float32/complex64 y 2e-12 para tipos amplios; cero se comprueba exactamente. Todos los casos históricos siguen aprobando sin cambiar sus aserciones.
 
-La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, además del runner Lua y siete pruebas nativas. Aprobaron todas las suites mantenidas y los 34 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
+El constructor ndarray aprobó **24 204 casos /240 870 comprobaciones exactas** de aceptación, bytes, dtype, forma, strides, flags, memoria compartida y escrituras. Se omitieron 2 420 estados de parámetros inseguros o no verificados del original; no cuentan como aprobaciones. Las alineaciones de cuerpos de cadenas mayores a ocho bytes dependen del host y se omiten; la de arrays y reservas propias se comprueba exactamente. Las 62 comprobaciones Lua permanentes y la prueba C cubren GC, corrutinas, permisos y rechazos seguros. La regeneración del corpus fue exacta y pasó una prueba C++ de cabecera/enlace.
+
+La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, además del runner Lua y ocho pruebas nativas. Aprobaron todas las suites mantenidas y los 35 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
 
 ## Integridad de las entregas
 

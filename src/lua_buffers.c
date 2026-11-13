@@ -20,6 +20,27 @@ static ln_intp integer_option(lua_State *L,int index,ln_intp default_value)
     if(n<INTPTR_MIN||n>INTPTR_MAX)luaL_error(L,"buffer count or offset is outside native index range");
     return (ln_intp)n;
 }
+static ln_array *from_string(lua_State *L,int index,const ln_dtype *dtype,ln_intp count,ln_intp offset,ln_error *error)
+{
+    index=lua_absindex(L,index);
+    size_t length;const char *data=lua_tolstring(L,index,&length);
+    string_owner *owner=malloc(sizeof(*owner));
+    if(!owner){luaL_error(L,"out of memory");return NULL;}
+    lua_rawgeti(L,LUA_REGISTRYINDEX,LUA_RIDX_MAINTHREAD);
+    owner->main=lua_tothread(L,-1);lua_pop(L,1);
+    lua_pushvalue(L,index);owner->reference=luaL_ref(L,LUA_REGISTRYINDEX);
+    ln_array *result=ln_array_from_buffer((void*)data,length,dtype,count,offset,0,release_string,owner,error);
+    if(!result){release_string((void*)data,owner);return NULL;}
+    return result;
+}
+ln_array *ln_lua_buffer_storage(lua_State *L,int index)
+{
+    ln_array *a=ln_lua_test_array(L,index);if(a)return a;
+    if(lua_type(L,index)!=LUA_TSTRING){luaL_error(L,"buffer must be a binary Lua string or ndarray");return NULL;}
+    ln_error error={0};a=from_string(L,index,ln_dtype_by_num(LN_UBYTE),-1,0,&error);
+    if(!a){ln_lua_fail(L,&error);return NULL;}
+    ln_lua_push_array(L,a);return a;
+}
 int ln_lua_frombuffer(lua_State *L)
 {
     int argc=lua_gettop(L);
@@ -35,13 +56,6 @@ int ln_lua_frombuffer(lua_State *L)
         return result?ln_lua_push_array(L,result):ln_lua_fail(L,&error);
     }
     if(lua_type(L,1)!=LUA_TSTRING)return luaL_error(L,"buffer storage must be a binary Lua string or C-contiguous ndarray");
-    size_t length;const char *data=lua_tolstring(L,1,&length);
-    string_owner *owner=malloc(sizeof(*owner));
-    if(!owner)return luaL_error(L,"out of memory");
-    lua_rawgeti(L,LUA_REGISTRYINDEX,LUA_RIDX_MAINTHREAD);
-    owner->main=lua_tothread(L,-1);lua_pop(L,1);
-    lua_pushvalue(L,1);owner->reference=luaL_ref(L,LUA_REGISTRYINDEX);
-    result=ln_array_from_buffer((void*)data,length,dtype,count,offset,0,release_string,owner,&error);
-    if(!result){release_string((void*)data,owner);return ln_lua_fail(L,&error);}
-    return ln_lua_push_array(L,result);
+    result=from_string(L,1,dtype,count,offset,&error);
+    return result?ln_lua_push_array(L,result):ln_lua_fail(L,&error);
 }

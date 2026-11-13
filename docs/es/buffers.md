@@ -93,3 +93,5 @@ Las referencias comprueban bytes exactos, dtype, forma, strides, rangos, errores
 memoria compartida y estado tras escribir. Las pruebas Lua/C mantenidas también
 comprueban GC, recolección de la corrutina creadora, liberación final, lectura no
 alineada, protección de escritura y propietarios externos solapados.
+
+Para formas multidimensionales, buffers contiguos F o strides explícitos, usa el [constructor ndarray](./ndarray.md).

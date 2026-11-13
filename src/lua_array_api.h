@@ -6,6 +6,8 @@
  * their userdata is rooted on the Lua stack. push takes ownership; legacy
  * conversion roots its result on the stack. Calls raise ordinary Lua errors. */
 ln_array *ln_lua_test_array(lua_State *L,int index);
+/* Array buffers are borrowed; string-backed byte storage is rooted on stack. */
+ln_array *ln_lua_buffer_storage(lua_State *L,int index);
 const ln_dtype *ln_lua_test_dtype(lua_State *L,int index);
 const ln_dtype *ln_lua_check_dtype(lua_State *L,int index);
 const ln_dtype *ln_lua_temporal_scalar_dtype(lua_State *L,int index);

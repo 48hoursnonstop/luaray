@@ -1,14 +1,9 @@
 {
-  "version": "0.140.0-dev",
+  "version": "0.141.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
-  "new_reference_cases": {
-    "dtype_properties_and_relations": 1208,
-    "descriptor_inputs": 2790,
-    "reduction_selection_and_durations": 7680,
-    "unsized_join_resolution": 720
-  },
-  "new_lua_regression_checks": 64,
+  "new_reference_cases": 24204,
+  "new_lua_regression_checks": 62,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -16,41 +11,22 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.dtype": "implemented_partial",
-    "numpy.can_cast": "implemented_partial",
-    "numpy.issubdtype": "implemented_partial",
-    "numpy.promote_types": "implemented_partial",
-    "numpy.result_type": "implemented_partial",
-    "numpy.array": "implemented_partial",
-    "numpy.empty": "implemented_partial",
-    "numpy.concatenate": "implemented_partial",
-    "numpy.linspace": "implemented_partial",
-    "numpy.sum": "implemented_partial",
-    "numpy.mean": "implemented_partial",
-    "numpy.cumsum": "implemented_partial",
-    "numpy.ndarray.astype": "implemented_partial",
-    "numpy.ndarray.view": "implemented_partial"
+    "numpy.ndarray": "implemented_partial"
   },
   "evidence": [
-    "src/ln_dtype_info.c",
-    "src/lua_dtype.c",
-    "src/ln_core.c",
-    "src/ln_datetime.c",
-    "src/ln_string.c",
-    "src/ln_dtype_transfer.c",
-    "src/ln_join.c",
-    "src/ln_sampling.c",
+    "src/ln_constructor.c",
+    "src/lua_constructor.c",
+    "src/lua_buffers.c",
     "src/lua_array_api.h",
-    "tests/native/test_dtype140_core.c",
-    "tests/lua/dtype_regression.lua",
-    "docs/dtypes.md",
-    "docs/temporal_scaling.md",
+    "tests/native/test_constructor141_core.c",
+    "tests/lua/constructor_regression.lua",
+    "docs/ndarray.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 395,
-    "missing_bindings": 279,
+    "available_callables": 396,
+    "missing_bindings": 278,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -160,14 +136,17 @@
     "Core dtype readers accept descriptors; some legacy readers including random-generator controls still require strings. Native character/width/endian forms are supported within the existing scalar-kind scope. Non-native numeric/temporal formats remain blocked. The old float->float32 alias was corrected to NumPy float64; use float32 or f for single precision.",
     "Reduction dtype controls select general classes and reject width/endian/time details before empty shortcuts. Legacy ndarray cumulative adapters discard concrete metadata. Legacy timedelta/string addition selection quirks are preserved for verified cases.",
     "Duration sum/mean/accumulate/reduceat preserve units, propagate selected NaT, use truncating integer means and checked addition including reserved-NaT overflow. Masks and initial values are tested; every out/alias/cross-unit/post-error output state is not certified.",
-    "Unsized string joins resolve from descriptors without inspecting contents; one same-class input retains its Unicode endian while common-instance combination normalizes. Sampling final casts resolve the source calculation formatting width."
+    "Unsized string joins resolve from descriptors without inspecting contents; one same-class input retains its Unicode endian while common-instance combination normalizes. Sampling final casts resolve the source calculation formatting width.",
+    "ndarray constructor accepts documented dense integer shape/layout and scalar dtype descriptors; retained Lua string or C/F-contiguous ndarray buffers only. No Python arbitrary buffer/subclass/foreign-array protocols.",
+    "ndarray deliberately rejects unsafe or unverified upstream states: negative/excessive buffer offsets, inferred-stride footprints outside actual storage, zero-width inference, empty external buffers with nonempty payloads and overflowing element counts. The 2420 skipped reference parameter states are not compatibility passes. Native/Lua regressions directly test safety rejection.",
+    "Owned zero-byte ndarray allocations reset strides, while buffer views retain them. S0/U0 retain zero width here; existing empty constructors normalize widths. Constructor contiguity flags preserve upstream default-versus-explicit stride distinctions."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "8e1ea1cce1fd4b31dd7b70974bf20b7c1137e92580b61b58bf481e14cdb35e36",
-      "files": 323
+      "sha256": "013b12f1e15846a6e70316ee147616a655d2b7cde5ba24a3fec037b071552ae7",
+      "files": 329
     },
-    "version": "0.140.0-dev",
+    "version": "0.141.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -200,7 +179,9 @@
       "ln_string",
       "lua_creation",
       "lua_bytes",
-      "ln_sampling"
+      "ln_sampling",
+      "ln_constructor",
+      "lua_constructor"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -210,14 +191,16 @@
       "tests/native/test_buffer136_core.c",
       "tests/native/test_flags137_core.c",
       "tests/native/test_creation107_core.c",
-      "tests/native/test_dtype140_core.c"
+      "tests/native/test_dtype140_core.c",
+      "tests/native/test_constructor141_core.c"
     ],
     "all_maintained_tests": "passed",
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.140.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.141.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact descriptor fields/equivalence, type selection, dtype/shape/strides, acceptance, string widths and source/backing states; duration ticks compare as exact integer strings. Numeric typed samples use relative2e-3 for half,3e-6 for float32/complex64,2e-12 for wider values; zero is exact. Reducer float32/complex64 uses relative3e-6, wider2e-12; remaining values are exact. Full dtype protocol and output-error mutation parity remain uncertified.",
-  "new_reference_checks": 294470
+  "new_check_semantics": "Exact constructor acceptance, shape, strides, scalar dtype typestr, flags, nbytes, raw logical bytes, sharing and write-through backing bytes. String body alignment at widths above eight bytes is host allocation dependent and omitted; array and owned alignment remain exact. No uninitialized allocation values are read: successful owned arrays are initialized before inspecting their payload.",
+  "new_reference_checks": 240870,
+  "constructor_upstream_states_not_executed": 2420
 }

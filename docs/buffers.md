@@ -91,3 +91,5 @@ The reference suite checks raw bytes, dtype, shape, strides, ranges, errors,
 sharing and write-through state. Maintained Lua/native tests additionally check
 GC, creating-coroutine collection, final release, unaligned reads, read-only
 writes and overlapping external owners.
+
+For multidimensional shapes, F-contiguous buffers or explicit strides, use the [ndarray constructor](./ndarray.md).

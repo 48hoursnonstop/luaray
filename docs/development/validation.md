@@ -40,13 +40,13 @@ retain their original NumPy 2.3.5 attribution.
 
 `compatibility/current.json` records the release-specific behavioral evidence.
 `compatibility/api_inventory.json` records runtime availability. The latter
-reports 395 of 675 scoped names as available and classifies all available APIs
+reports 396 of 675 scoped names as available and classifies all available APIs
 as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.140.0-dev** passed **60 native suites**, **110 Lua suites**, seven public
-examples and 198 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
+LuaRay **0.141.0-dev** passed **61 native suites**, **111 Lua suites**, seven public
+examples and 208 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
 passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
 metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
@@ -98,7 +98,9 @@ Metadata queries passed **892 cases /50,182 exact checks**, with 35 permanent Lu
 
 Dtype descriptors and their dependencies passed **12,398 cases /294,470 checks**: 1,208 property/relation, 2,790 argument, 7,680 temporal/reduction-selection and 720 unsized-join cases. The 64 permanent Lua checks and new native test cover initialized Unicode, aliases, casts, NaT and overflow. A C++ header/link smoke test also passed. Durations and metadata are exact; numeric sampling uses relative2e-3 for half,3e-6 for float32/complex64 and2e-12 for wider types. Reducers use relative3e-6 for float32/complex64 and2e-12 for wider types; zero is exact. Historical references still pass with their assertions unchanged.
 
-The directed ASan/UBSan run instrumented `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, plus the Lua runner and seven native harnesses. All maintained suites and all 34 cumulative reference corpora passed. Other dependencies were not fully instrumented; leak detection was disabled. Packaging verifies the executable-source fingerprint.
+The ndarray constructor passed **24,204 cases /240,870 exact checks** of acceptance, bytes, dtype, shape, strides, flags, sharing and writes. Another 2,420 unsafe or unverified upstream parameter states were skipped; these are not compatibility passes. String-body alignment above eight bytes is host dependent and omitted; array and owned alignment remain exact. The 62 permanent Lua checks and native harness cover GC, coroutines, permissions and safety rejection. Corpus regeneration was exact and a C++ header/link smoke test passed.
+
+The directed ASan/UBSan run instrumented `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, plus the Lua runner and eight native harnesses. All maintained suites and all 35 cumulative reference corpora passed. Other dependencies were not fully instrumented; leak detection was disabled. Packaging verifies the executable-source fingerprint.
 
 ## Release integrity
 

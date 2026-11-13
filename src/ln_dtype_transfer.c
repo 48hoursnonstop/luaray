@@ -1072,7 +1072,10 @@ ln_cast_strided_numeric(const char *src, ln_intp src_stride,
             continue;
         }
         switch (src_dtype->type_num) {
-            LN_TRANSFER_CASE(LN_BOOL, uint8_t)
+            /* BOOL-to-numeric converts truth, even for noncanonical raw
+             * Boolean bytes. Identity BOOL transfers above retain payloads. */
+            case LN_BOOL:{uint8_t value;LN_LOAD(uint8_t,src,value);
+                LN_CAST_STORE(dst_dtype->type_num,dst,value!=0);break;}
             LN_TRANSFER_CASE(LN_BYTE, int8_t)
             LN_TRANSFER_CASE(LN_UBYTE, uint8_t)
             LN_TRANSFER_CASE(LN_SHORT, int16_t)

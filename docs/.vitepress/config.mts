@@ -38,6 +38,7 @@ const pages = [
   ['Mathematics', 'Matemáticas', [
     ['Unary operations', 'Operaciones unarias', 'unary_math'],
     ['Binary operations', 'Operaciones binarias', 'binary_math'],
+    ['Integer operations', 'Operaciones enteras', 'integer_math'],
     ['Real and imaginary parts', 'Partes real e imaginaria', 'components'],
     ['Comparing values', 'Comparación de valores', 'reality'],
     ['Equality and tolerances', 'Igualdad y tolerancias', 'comparison'],
@@ -106,7 +107,7 @@ export default defineConfig({
         nav: [
           { text: 'Guide', link: '/getting-started' },
           { text: 'Reference', link: '/creation' },
-          { text: '0.153.0-dev', link: `${repo}/releases/tag/v0.153.0-dev` },
+          { text: '0.154.0-dev', link: `${repo}/releases/tag/v0.154.0-dev` },
         ],
         sidebar: sidebar(),
       },
@@ -117,7 +118,7 @@ export default defineConfig({
         nav: [
           { text: 'Guía', link: '/es/getting-started' },
           { text: 'Referencia', link: '/es/creation' },
-          { text: '0.153.0-dev', link: `${repo}/releases/tag/v0.153.0-dev` },
+          { text: '0.154.0-dev', link: `${repo}/releases/tag/v0.154.0-dev` },
         ],
         sidebar: sidebar(true),
         outline: { label: 'En esta página', level: [2, 3] },

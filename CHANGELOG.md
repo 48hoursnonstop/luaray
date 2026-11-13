@@ -14,6 +14,25 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.154.0-dev
+
+Added native invert/bitwise_count/left_shift/right_shift/gcd/lcm ArrayMethods,
+four public aliases and Lua ~ / << / >> operators. Includes signed-magnitude
+counts, checked shifts, arithmetic sign extension, fixed-width wrapping,
+broadcasting, output masks and default-versus-uniform alias resolution.
+Fixed noncanonical Boolean-to-numeric conversion and symmetric numeric alias
+promotion. New integer functions reject unsupported option-table keys.
+
+Validated 144,844 NumPy 2.5.3 cases / 3,318,010 checks, 6,242 new permanent Lua
+checks, a native harness and C++ header/link execution. Both corpora regenerate
+exactly; all 256 Boolean payloads are included. Scalar ufunc returns explicitly
+follow LuaRay's typed rank-zero convention. Added executable English/Spanish guides.
+
+Corrected the private sanitizer driver to derive rebuilds from its declared
+harness list and verify ASan symbols in every listed object. The 0.153 release
+received a published correction and a successful repeat audit of its unchanged
+source; its initial report overstated the instrumented harness count by one.
+
 ## 0.153.0-dev
 
 Added apply_over_axes with ordered/repeated axis callbacks, shared intermediate

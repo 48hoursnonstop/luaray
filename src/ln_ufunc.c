@@ -5,6 +5,7 @@
 #include "ln_string.h"
 #include "ln_unary_math.h"
 #include "ln_binary_math.h"
+#include "ln_integer_math.h"
 #include "ln_clip.h"
 #include "ln_dtype_transfer.h"
 #include "ln_time_scale.h"
@@ -155,6 +156,10 @@ legacy_binary_op_for_name(const char *name, ln_binary_op *op)
         {"maximum",LN_OP_MAXIMUM},{"minimum",LN_OP_MINIMUM},
         {"floor_divide",LN_OP_FLOOR_DIVIDE},{"remainder",LN_OP_REMAINDER},{"fmod",LN_OP_REMAINDER},{"power",LN_OP_POWER},
         {"bitwise_and",LN_OP_BITWISE_AND},{"bitwise_or",LN_OP_BITWISE_OR},{"bitwise_xor",LN_OP_BITWISE_XOR},
+        /* The extra integer kernels share the established weak-scalar
+         * integer promotion policy; their execution uses separate methods. */
+        {"left_shift",LN_OP_BITWISE_AND},{"right_shift",LN_OP_BITWISE_AND},
+        {"gcd",LN_OP_BITWISE_AND},{"lcm",LN_OP_BITWISE_AND},
         {"fmax",LN_OP_FMAX},{"fmin",LN_OP_FMIN},{"copysign",LN_OP_COPYSIGN},{"arctan2",LN_OP_ARCTAN2},{"hypot",LN_OP_HYPOT}
     };
     for(size_t i=0;i<sizeof(map)/sizeof(map[0]);++i){
@@ -718,6 +723,8 @@ ln_ufunc_by_name(const char *name)
     const ln_ufunc *extra=ln_unary_math_by_name(name);
     if(extra)return extra;
     extra=ln_binary_math_by_name(name);
+    if(extra)return extra;
+    extra=ln_integer_math_by_name(name);
     return extra?extra:strcmp(name,"clip")==0?ln_clip_ufunc():NULL;
 }
 
@@ -725,7 +732,7 @@ size_t
 ln_ufunc_registry_count(void)
 {
     init_registry();
-    return nufuncs+ln_unary_math_count()+ln_binary_math_count()+1;
+    return nufuncs+ln_unary_math_count()+ln_binary_math_count()+ln_integer_math_count()+1;
 }
 
 static int
@@ -736,6 +743,7 @@ materialize_weak_operand(const ln_ufunc *u,const ln_ufunc_operand *operand,
     if(!u||!operand||!strong||!strong->descr){ufunc_error(err,"invalid weak scalar operand");return -1;}
     ln_binary_op op=LN_OP_POWER;
     int float_power=strcmp(u->name,"float_power")==0;
+    int default_shift=strcmp(u->name,"left_shift")==0||strcmp(u->name,"right_shift")==0;
     if(!float_power&&!legacy_binary_op_for_name(u->name,&op)){
         ufunc_error(err,"weak scalar resolution is not implemented for this ufunc");return -1;
     }
@@ -744,6 +752,10 @@ materialize_weak_operand(const ln_ufunc *u,const ln_ufunc_operand *operand,
      * Preserve the scalar's full precision until that forced signature is
      * resolved, rather than overflowing or rounding in the strong input dtype. */
     if(op==LN_OP_LOGICAL_AND||op==LN_OP_LOGICAL_OR||op==LN_OP_LOGICAL_XOR){
+        dt=ln_dtype_by_num(LN_BOOL);
+    }else if(operand->kind==LN_UFUNC_WEAK_BOOL&&default_shift){
+        /* Default shift resolution sees Boolean scalars as Boolean, rather
+         * than pre-casting them into a strong longlong alias signature. */
         dt=ln_dtype_by_num(LN_BOOL);
     }else if(is_time_dtype(strong->descr)&&(op==LN_OP_ADD||op==LN_OP_SUBTRACT||(op>=LN_OP_EQUAL&&op<=LN_OP_GREATER_EQUAL))&&
             (operand->kind==LN_UFUNC_WEAK_INT||operand->kind==LN_UFUNC_WEAK_BOOL)){
@@ -774,6 +786,14 @@ materialize_weak_operand(const ln_ufunc *u,const ln_ufunc_operand *operand,
             ufunc_error(err,"operand is not a weak scalar");return -1;
     }
     if(!dt)return -1;
+    if(default_shift&&operand->kind==LN_UFUNC_WEAK_INT){
+        /* A weak integer takes the first equivalent default-loop class,
+         * rather than creating an exact longlong/ulonglong pair. Bounds
+         * were already checked in the strong operand's integer range. */
+        const ln_dtype *canonical=dt->type_num==LN_LONGLONG?ln_dtype_by_num(LN_LONG):
+                                  dt->type_num==LN_ULONGLONG?ln_dtype_by_num(LN_ULONG):NULL;
+        if(canonical&&canonical->elsize==dt->elsize)dt=canonical;
+    }
     memset(tmp,0,sizeof(*tmp));
     memset(storage,0,sizeof(ln_clongdouble));
     tmp->data=(char *)storage;tmp->nd=0;tmp->descr=dt;

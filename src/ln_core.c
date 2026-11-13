@@ -386,6 +386,9 @@ static int npy_smallest_type_of_kind(int kind) {
 
 static int npy_promote_type_num(int i, int j) {
     if (i == j) return i;
+    /* NumPy builds the upper triangle and mirrors it. Both aliases may
+     * safely cast to each other, so input order cannot choose the result. */
+    if(i>j){int swap=i;i=j;j=swap;}
     if (npy_can_cast_safely_numeric(i, j)) return j;
     if (npy_can_cast_safely_numeric(j, i)) return i;
 

@@ -1,12 +1,12 @@
 {
-  "version": "0.153.0-dev",
+  "version": "0.154.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
   "new_reference_cases": {
-    "apply_over_axes": 129600,
-    "zero_width_string_sum": 64000
+    "integer_operations": 143680,
+    "boolean_transfer_and_promotion": 1164
   },
-  "new_lua_regression_checks": 443,
+  "new_lua_regression_checks": 6242,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -14,30 +14,40 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.apply_over_axes": "implemented_partial",
-    "numpy.squeeze": "implemented_partial",
-    "numpy.sum": "implemented_partial",
-    "numpy.ndarray.sum": "implemented_partial"
+    "numpy.invert": "implemented_partial",
+    "numpy.bitwise_not": "implemented_partial",
+    "numpy.bitwise_invert": "implemented_partial",
+    "numpy.bitwise_count": "implemented_partial",
+    "numpy.left_shift": "implemented_partial",
+    "numpy.bitwise_left_shift": "implemented_partial",
+    "numpy.right_shift": "implemented_partial",
+    "numpy.bitwise_right_shift": "implemented_partial",
+    "numpy.gcd": "implemented_partial",
+    "numpy.lcm": "implemented_partial",
+    "numpy.promote_types": "implemented_partial",
+    "numpy.result_type": "implemented_partial",
+    "numpy.astype": "implemented_partial",
+    "numpy.ndarray.astype": "implemented_partial"
   },
   "evidence": [
-    "lua/luaray/axis_reduction.lua",
-    "lua/luaray.lua",
+    "src/ln_integer_math.c",
+    "src/ln_integer_math.h",
     "src/ln_core.c",
-    "src/ln_core.h",
+    "src/ln_dtype_transfer.c",
+    "src/ln_ufunc.c",
     "src/lua_module.c",
-    "tests/native/test_zero_string153_core.c",
-    "tests/lua/over_axes_regression.lua",
-    "tests/lua/zero_string_sum_regression.lua",
-    "docs/over_axes.md",
-    "docs/es/over_axes.md",
-    "docs/zero_string_sum.md",
-    "docs/es/zero_string_sum.md",
+    "tests/native/test_integer154_core.c",
+    "tests/native/test_core.c",
+    "tests/lua/integer_math_regression.lua",
+    "tests/lua/boolean_transfer_regression.lua",
+    "docs/integer_math.md",
+    "docs/es/integer_math.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 410,
-    "missing_bindings": 264,
+    "available_callables": 420,
+    "missing_bindings": 254,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -190,14 +200,19 @@
     "squeeze preserves userdata identity when no axes are removed. A nonempty reduction axis table is invalid for rank-zero input, while scalar Lua axes1/-1 retain the source special case.",
     "Zero-width S0/U0 string sum follows non-reorderable addition with no identity, explicit mask/seed requirements, descriptor/out resolution and initialized zero-stride results. Ordinary nonzero-width string sum remains rejected. General string seeds and variable StringDType remain unavailable.",
     "Numeric sum commits seeds before string conversion errors for disjoint non-scalar inputs/outputs. General overlapping string/numeric reduction failure writeback and output/mask overlap remain uncertified and retain staged execution.",
-    "The source oracle isolates dtype/output combinations in fresh NumPy processes after reproducing history-dependent dispatch. These cache-history variations are not a Lua compatibility target; scalar adapters and ABI padding exclusions are explicit."
+    "The source oracle isolates dtype/output combinations in fresh NumPy processes after reproducing history-dependent dispatch. These cache-history variations are not a Lua compatibility target; scalar adapters and ABI padding exclusions are explicit.",
+    "Integer invert/count/shifts/gcd/lcm use native ArrayMethods with shared broadcasting, masks, alias protection and same-kind output. Only out/where table keys are accepted; full ufunc methods and dtype/casting/order protocols remain unavailable.",
+    "Population count uses absolute signed magnitude and returns uint8. Default shifts distinguish exact array signatures from weak scalar/default-loop alias selection; uniform gcd/lcm promote aliases separately and reject an all-Boolean dtype. All host ABIs and operand combinations remain uncertified.",
+    "Lua array ~, << and >> follow the NumPy integer operation semantics. Negative counts do not reverse direction; signed right shifts extend the sign, oversized shifts give zero/sign fill, and weak scalar bounds are checked before execution.",
+    "Boolean-to-numeric casts normalize truth for noncanonical raw bytes; same-descriptor Boolean identity copies preserve bytes. Numeric promotion now mirrors the source upper triangle to keep equivalent alias choices symmetric.",
+    "The sanitizer driver now derives object rebuilds from its declared unit/harness lists and verifies ASan initialization symbols in every listed object. The initial 0.153 audit overcounted instrumented native harnesses by one; a corrected repeat audit of its unchanged commit passed and was published separately."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "0a335145b3ecc2ffa0b391ef1581f287dbcfbe2d480446ce3b7200be7d2bf27e",
-      "files": 362
+      "sha256": "49d3734743265494428a42e49aab8856d07bf8a3cfaf705c27721dbdce882bbf",
+      "files": 367
     },
-    "version": "0.153.0-dev",
+    "version": "0.154.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -240,7 +255,8 @@
       "lua_resize",
       "ln_layout",
       "ln_bytes",
-      "lua_components"
+      "lua_components",
+      "ln_integer_math"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -258,24 +274,89 @@
       "tests/native/test_resize145_core.c",
       "tests/native/test_bytes146_core.c",
       "tests/native/test_field147_core.c",
-      "tests/native/test_zero_string153_core.c"
+      "tests/native/test_zero_string153_core.c",
+      "tests/native/test_integer154_core.c"
     ],
+    "instrumentation_verification": {
+      "asan_initialization_symbols": "verified in every listed object",
+      "objects": [
+        "ln_write.o",
+        "lua_elements.o",
+        "ln_dtype_transfer.o",
+        "ln_datetime_strings.o",
+        "ln_join.o",
+        "ln_condition.o",
+        "ln_dot.o",
+        "ln_matrix.o",
+        "ln_linalg.o",
+        "lua_matrix.o",
+        "lua_module.o",
+        "ln_time_scale.o",
+        "ln_ufunc.o",
+        "ln_nditer_multi.o",
+        "ln_datetime.o",
+        "ln_core.o",
+        "lua_buffers.o",
+        "ln_mapping.o",
+        "ln_nditer.o",
+        "ln_take.o",
+        "ln_choose.o",
+        "lua_flags.o",
+        "ln_components.o",
+        "ln_creation.o",
+        "lua_metadata.o",
+        "ln_dtype_info.o",
+        "lua_dtype.o",
+        "ln_string.o",
+        "lua_creation.o",
+        "lua_bytes.o",
+        "ln_sampling.o",
+        "ln_constructor.o",
+        "lua_constructor.o",
+        "ln_arange.o",
+        "lua_arange.o",
+        "ln_arange_time.o",
+        "ln_resize.o",
+        "lua_resize.o",
+        "ln_layout.o",
+        "ln_bytes.o",
+        "lua_components.o",
+        "ln_integer_math.o",
+        "runner.o",
+        "tests/test_matrix_core.o",
+        "tests/test_comparison134_core.o",
+        "tests/test_elements135_core.o",
+        "tests/test_buffer136_core.o",
+        "tests/test_flags137_core.o",
+        "tests/test_creation107_core.o",
+        "tests/test_dtype140_core.o",
+        "tests/test_constructor141_core.o",
+        "tests/test_arange142_core.o",
+        "tests/test_arange143_core.o",
+        "tests/test_arange144_core.o",
+        "tests/test_resize145_core.o",
+        "tests/test_bytes146_core.o",
+        "tests/test_field147_core.o",
+        "tests/test_zero_string153_core.o",
+        "tests/test_integer154_core.o"
+      ],
+      "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
+    },
     "all_maintained_tests": "passed",
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.153.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.154.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact callback order/axis arguments, input/result payloads, dtype, shape, strides, flags, sharing/identity, mutation/errors; scalar result adapters explicitly declared. Separate zero-string sum corpus checks axes, initial/masks, dtype/out resolution, result/post-error output states. Fresh NumPy processes isolate each of 180 input/output/requested-dtype groups.",
-  "new_reference_checks": 4923021,
-  "new_reference_exclusions": {},
+  "new_check_semantics": "Exact values/raw payloads, dtype strings/legacy character codes/type numbers, shape, strides, flags, output identity and post-write/error states across integer signatures, layouts, weak scalars, masks, overlap and unsupported inputs. Separate references cover every Boolean byte payload, astype/copyto, alias promotion pairs/triples and casting policies.",
+  "new_reference_checks": 3318010,
+  "new_reference_exclusions": {
+    "existing_non_native_numeric_endian": "unavailable and not certified",
+    "existing_generic_datetime_astype": "historical numeric-to-generic-datetime rejection retained; generic datetime transfer not counted as a pass"
+  },
   "new_reference_language_adaptations": {
-    "axes": "source nonnegative axes shift to one-based Lua positions, including callback axes after one normalization",
-    "scalar_callback_results_normalized": 8774,
-    "scalar_string_returns_normalized": 2892,
-    "scalar_inference": "owned writable rank-zero arrays with Lua scalar inference: int64/float64/complex128, UTF-8 strings to Unicode, temporal dtype retained",
-    "reference_process_isolation": 180,
-    "history_sensitive_dispatch": "observed NumPy dtype/output dispatch cache history is not emulated",
+    "ufunc_scalar_returns_normalized": 2120,
+    "scalar_representation": "NumPy ufunc scalars become owned writable typed rank-zero arrays; bytes and dtype remain exact",
     "extended_padding": "ten significant bytes per component checked; six ABI padding bytes omitted"
   }
 }

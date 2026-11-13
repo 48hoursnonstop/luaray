@@ -1,5 +1,6 @@
 #include "ln_bytes.h"
 #include "ln_layout.h"
+#include "ln_creation.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,4 +84,60 @@ int ln_bytes_export(const ln_array *a,char order,char **bytes,size_t *length,ln_
         }
     }
     *bytes=result;*length=size;return 0;
+}
+
+/* NumPy methods.c:PyArray_Byteswap and arraytypes.c.src copyswapn.
+ * Complex components are swapped in separate passes; Unicode visits each
+ * code point within an item. This order matters for overlapping byte views. */
+static void reverse_bytes(char *data,size_t width)
+{
+    for(size_t i=0;i<width/2;++i){char t=data[i];data[i]=data[width-1-i];data[width-1-i]=t;}
+}
+static void swap_run(char *data,ln_intp stride,ln_intp count,const ln_dtype *dtype)
+{
+    size_t width=dtype->elsize;
+    if(dtype->kind=='c'){
+        width/=2;
+        for(int part=0;part<2;++part)
+            for(ln_intp i=0;i<count;++i)reverse_bytes(data+i*stride+part*width,width);
+    }
+    else if(dtype->kind=='U'){
+        for(ln_intp i=0;i<count;++i)
+            for(size_t part=0;part<width;part+=4)reverse_bytes(data+i*stride+part,4);
+    }
+    else for(ln_intp i=0;i<count;++i)reverse_bytes(data+i*stride,width);
+}
+int ln_bytes_swap_inplace(ln_array *a,ln_error *err)
+{
+    if(!a||!a->descr)return fail(err,"byteswap requires an ndarray",LN_ERROR_TYPE);
+    if(!(a->flags&LN_ARRAY_WRITEABLE))return fail(err,"array to be byte-swapped is read-only",LN_ERROR_VALUE);
+    if(!strchr("biufcSUMm",a->descr->kind))return fail(err,"unsupported byteswap dtype",LN_ERROR_TYPE);
+    size_t size;if(ln_bytes_size(a,&size,err)<0)return -1;
+    if(!size||a->descr->elsize==1||a->descr->kind=='S')return 0;
+    ln_intp count=ln_array_size(a);
+    if(a->flags&(LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS)){
+        swap_run(a->data,(ln_intp)a->descr->elsize,count,a->descr);return 0;
+    }
+    /* Match IterAllButAxis's positive-minimum-stride axis selection, including
+     * its first-nonzero initialization and stable tie behavior. */
+    int axis=0,d=0;ln_intp minimum=0;
+    while(!minimum&&d<a->nd)minimum=a->strides[d++];
+    for(d=1;d<a->nd;++d)if(a->strides[d]>0&&a->strides[d]<minimum){axis=d;minimum=a->strides[d];}
+    ln_intp outer=count/a->dimensions[axis],coordinates[LN_MAXDIMS]={0};
+    for(ln_intp i=0;i<outer;++i){
+        char *data=a->data;
+        for(d=0;d<a->nd;++d)if(d!=axis)data+=coordinates[d]*a->strides[d];
+        swap_run(data,a->strides[axis],a->dimensions[axis],a->descr);
+        for(d=a->nd-1;d>=0;--d)if(d!=axis){
+            if(++coordinates[d]<a->dimensions[d])break;
+            coordinates[d]=0;
+        }
+    }
+    return 0;
+}
+ln_array *ln_bytes_swap_copy(const ln_array *a,ln_error *err)
+{
+    ln_array *result=ln_creation_convert(a,NULL,'A',1,-1,NULL,err);if(!result)return NULL;
+    if(ln_bytes_swap_inplace(result,err)<0){ln_array_free(result);return NULL;}
+    return result;
 }

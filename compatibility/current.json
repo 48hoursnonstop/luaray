@@ -1,13 +1,12 @@
 {
-  "version": "0.145.0-dev",
+  "version": "0.146.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
   "new_reference_cases": {
-    "independent_resize": 7776,
-    "inplace_resize": 7128,
-    "layout_and_unicode_join": 3344
+    "byteswap": 9504,
+    "zero_width_memory_queries": 36000
   },
-  "new_lua_regression_checks": 156,
+  "new_lua_regression_checks": 108,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -15,28 +14,25 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.resize": "implemented_partial",
-    "numpy.ndarray.resize": "implemented_partial",
-    "numpy.reshape": "implemented_partial",
-    "numpy.concatenate": "implemented_partial"
+    "numpy.ndarray.byteswap": "implemented_partial",
+    "numpy.shares_memory": "implemented_partial",
+    "numpy.may_share_memory": "implemented_partial"
   },
   "evidence": [
-    "src/ln_resize.c",
-    "src/ln_resize.h",
-    "src/lua_resize.c",
-    "src/lua_resize.h",
-    "src/ln_core.c",
-    "src/ln_layout.c",
-    "src/ln_join.c",
-    "tests/native/test_resize145_core.c",
-    "tests/lua/resize_regression.lua",
-    "docs/resize.md",
+    "src/ln_bytes.c",
+    "src/ln_bytes.h",
+    "src/lua_bytes.c",
+    "src/lua_bytes.h",
+    "src/lua_module.c",
+    "tests/native/test_bytes146_core.c",
+    "tests/lua/byteswap_regression.lua",
+    "docs/byteswap.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 398,
-    "missing_bindings": 276,
+    "available_callables": 399,
+    "missing_bindings": 275,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -164,14 +160,17 @@
     "Relative-stop addition and temporal length numerators are checked before allocation; unsafe signed-int64 upstream overflow states and oversized allocations were excluded from oracle execution, not counted as passes. Native regressions directly test rejection.",
     "Resize follows C-ravel/repeated-concatenate/prefix/reshape, including empty-like width normalization and default native Unicode descriptor resolution. Zero-width default reshape flags now preserve source stride-fill flags. Object/structured/StringDType and foreign protocols remain unsupported.",
     "ndarray.resize uses one Lua shape argument and optional Boolean refcheck table. Lua aliases to the same userdata remain valid; byte-changing reallocations with native views are always rejected even with refcheck=false. Same-byte shape changes can retain shared buffers.",
-    "Read-only numeric growth leaves an unspecified tail as upstream; references never read it. Unicode growth is initialized even read-only deliberately. All negative dimensions and nonzero-axis stride products are validated after empty axes; unsafe source validation bypasses are not reproduced."
+    "Read-only numeric growth leaves an unspecified tail as upstream; references never read it. Unicode growth is initialized even read-only deliberately. All negative dimensions and nonzero-axis stride products are validated after empty axes; unsafe source validation bypasses are not reproduced.",
+    "ndarray.byteswap supports a Boolean or inplace option table, source ANYORDER copies and in-place mutation with unchanged descriptors. Source complex component-pass and Unicode code-point traversal order is preserved for bounded overlapping layouts. Foreign protocols, object/structured and variable-width string dtypes remain unsupported.",
+    "Byte swapping reverses full extended component storage including padding, which the new references compare exactly. Swapped Unicode may be invalid until its representation or descriptor matches; no unsafe decoded values are used as oracle inputs.",
+    "Zero-width S/U exact/bounds queries now retain the source omitted-width/reflected-address solver convention. Existing exact-query work/memory caps remain; general unbounded Diophantine solving and all host ABIs are not certified. This query convention does not change zero-byte write semantics."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "2b7a477a8f5577e899bf4bea0bc5089d0ef675dce5ee21faae9ea9b4199be82f",
-      "files": 346
+      "sha256": "01feba4b33e89876c28fa1a131d06a59a6253252a8b3add5eea5f79ed05db6d8",
+      "files": 348
     },
-    "version": "0.145.0-dev",
+    "version": "0.146.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -212,7 +211,8 @@
       "ln_arange_time",
       "ln_resize",
       "lua_resize",
-      "ln_layout"
+      "ln_layout",
+      "ln_bytes"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -227,18 +227,16 @@
       "tests/native/test_arange142_core.c",
       "tests/native/test_arange143_core.c",
       "tests/native/test_arange144_core.c",
-      "tests/native/test_resize145_core.c"
+      "tests/native/test_resize145_core.c",
+      "tests/native/test_bytes146_core.c"
     ],
     "all_maintained_tests": "passed",
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.145.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.146.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact acceptance, initialized raw bytes, dtypes, shapes, strides, nbytes, flags and input/base states. Read-only growth checks only the initialized physical prefix. Noncontiguous rejected sources compare logical bytes. Longdouble output checks significant x86 bytes and omits ABI padding.",
-  "new_reference_checks": 313948,
-  "new_reference_exclusions": {
-    "undefined_source_tails": "not read or compared",
-    "malformed_after_zero_shapes": "native safety tests only; no unsafe source views read"
-  }
+  "new_check_semantics": "Exact acceptance, identity, sharing, full raw payloads including all longdouble ABI padding, dtype metadata, layout/flags and full backing buffers. Raw oracle inputs are fully initialized; no swapped raw numerical or Unicode payload is decoded. Independent exact/bounds memory queries compare zero-width and mixed-width layouts.",
+  "new_reference_checks": 262320,
+  "new_reference_exclusions": {}
 }

@@ -22,6 +22,7 @@ const pages = [
     ['Conditions and extraction', 'Condiciones y extracción', 'condition_selection'],
     ['Selection and broadcasting', 'Selección y broadcasting', 'selection'],
     ['Typed views and bytes', 'Vistas tipadas y bytes', 'byte_views'],
+    ['Swapping bytes', 'Intercambiar bytes', 'byteswap'],
     ['Elements and filling', 'Elementos y relleno', 'elements'],
     ['Existing buffers', 'Buffers existentes', 'buffers'],
     ['Memory flags', 'Flags de memoria', 'flags'],
@@ -98,7 +99,7 @@ export default defineConfig({
         nav: [
           { text: 'Guide', link: '/getting-started' },
           { text: 'Reference', link: '/creation' },
-          { text: '0.145.0-dev', link: `${repo}/releases/tag/v0.145.0-dev` },
+          { text: '0.146.0-dev', link: `${repo}/releases/tag/v0.146.0-dev` },
         ],
         sidebar: sidebar(),
       },
@@ -109,7 +110,7 @@ export default defineConfig({
         nav: [
           { text: 'Guía', link: '/es/getting-started' },
           { text: 'Referencia', link: '/es/creation' },
-          { text: '0.145.0-dev', link: `${repo}/releases/tag/v0.145.0-dev` },
+          { text: '0.146.0-dev', link: `${repo}/releases/tag/v0.146.0-dev` },
         ],
         sidebar: sidebar(true),
         outline: { label: 'En esta página', level: [2, 3] },

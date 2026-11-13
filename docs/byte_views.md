@@ -80,3 +80,5 @@ structured/subarray/void and variable-width StringDType arrays remain unavailabl
 as does non-native numeric endian. Fixed Unicode endian is retained. No Python
 pickle/file serialization is implied. Runtime availability remains partial;
 see compatibility records and [validation results](development/validation.md) for executed checks.
+
+[Swapping bytes](byteswap.md) describes payload mutation without changing the dtype.

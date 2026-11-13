@@ -46,3 +46,29 @@ int ln_lua_bytes_nbytes(lua_State *L)
     lua_pushinteger(L,(lua_Integer)size);return 1;
 }
 int ln_lua_bytes_itemsize(lua_State *L){lua_pushinteger(L,(lua_Integer)input(L)->descr->elsize);return 1;}
+
+int ln_lua_bytes_swap(lua_State *L)
+{
+    ln_array *a=input(L);int index=2,inplace=0;
+    if(lua_gettop(L)>2)return luaL_error(L,"byteswap accepts one optional inplace control");
+    if(lua_type(L,2)==LUA_TTABLE){
+        lua_pushnil(L);
+        while(lua_next(L,2)){
+            size_t n=0;const char *key=lua_type(L,-2)==LUA_TSTRING?lua_tolstring(L,-2,&n):NULL;
+            if(!key||n!=7||memcmp(key,"inplace",7))return luaL_error(L,"byteswap only supports inplace");
+            lua_pop(L,1);
+        }
+        lua_getfield(L,2,"inplace");index=lua_gettop(L);
+    }
+    if(lua_type(L,index)!=LUA_TNONE&&lua_type(L,index)!=LUA_TNIL){
+        if(lua_type(L,index)!=LUA_TBOOLEAN)return luaL_error(L,"inplace must be a Boolean");
+        inplace=lua_toboolean(L,index);
+    }
+    ln_error err={0};
+    if(inplace){
+        if(ln_bytes_swap_inplace(a,&err)<0)return ln_lua_fail(L,&err);
+        lua_pushvalue(L,1);return 1;
+    }
+    ln_array *result=ln_bytes_swap_copy(a,&err);
+    return result?ln_lua_push_array(L,result):ln_lua_fail(L,&err);
+}

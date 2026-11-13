@@ -14,6 +14,18 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.146.0-dev
+
+Added native `ndarray:byteswap` with independent ANYORDER copies or in-place
+mutation, preserved dtype metadata, complete component payloads, Unicode code
+points and source write ordering for overlapping views. Read-only in-place
+requests fail even for empty arrays and no-op dtypes.
+
+Corrected exact/bounds memory queries for zero-width strided arrays, retaining
+the upstream reflected-address solver corner case. Validated 45,504 NumPy
+2.5.3 cases / 262,320 exact checks across two reproducible corpora, 108 permanent
+Lua checks and native regressions. Added executable English/Spanish guides.
+
 ## 0.145.0-dev
 
 Added native `resize` and `ndarray:resize`: independent C-order repetition,

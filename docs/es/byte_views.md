@@ -48,3 +48,5 @@ estructurados/subarray/void, StringDType variable y endian numérico no nativo
 siguen pendientes. Se conserva el endian de Unicode fijo. No se añade pickle ni
 serialización de archivos. La [referencia inglesa](../byte_views.md) detalla
 el alcance; todas las APIs continúan clasificadas como parciales.
+
+[Intercambiar bytes](byteswap.md) explica la modificación del almacenamiento sin cambiar el dtype.

@@ -34,12 +34,12 @@ ln_array *ln_array_take(const ln_array *input,const ln_array *indices,int axis,
     ln_intp shape[LN_MAXDIMS],n=1,chunk=1,axis_size=dims[ax];
     for(int d=0;d<ax;++d) {
         shape[d]=dims[d];
-        if(ln_mul_sizes_with_overflow(&n,n,dims[d])<0){bad(err,"take prefix overflow");goto fail;}
+        if(ln_mul_sizes_with_overflow(&n,n,dims[d]) != 0){bad(err,"take prefix overflow");goto fail;}
     }
     for(int d=0;d<indices->nd;++d)shape[ax+d]=indices->dimensions[d];
     for(int d=ax+1;d<rank;++d) {
         shape[d+indices->nd-1]=dims[d];
-        if(ln_mul_sizes_with_overflow(&chunk,chunk,dims[d])<0){bad(err,"take suffix overflow");goto fail;}
+        if(ln_mul_sizes_with_overflow(&chunk,chunk,dims[d]) != 0){bad(err,"take suffix overflow");goto fail;}
     }
     if(out) {
         if(!(out->flags&LN_ARRAY_WRITEABLE)){bad(err,"take output is read-only");goto fail;}

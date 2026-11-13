@@ -72,7 +72,7 @@ shape_product(int nd, const ln_intp *shape, ln_intp *out, ln_error *err)
 {
     ln_intp n = 1;
     for (int i = 0; i < nd; ++i) {
-        if (shape[i] < 0 || ln_mul_sizes_with_overflow(&n, n, shape[i]) < 0) {
+        if (shape[i] < 0 || ln_mul_sizes_with_overflow(&n, n, shape[i]) != 0) {
             map_error(err, "advanced indexing operation result is too large");
             return -1;
         }
@@ -574,7 +574,7 @@ allocate_mapiter_internal(const ln_map_plan *p, const ln_dtype *dtype,
         ln_intp stride = (ln_intp)dtype->elsize * subsize;
         for (int i = p->nd_fancy - 1; i >= 0; --i) {
             strides[i] = stride;
-            if (ln_mul_sizes_with_overflow(&stride, stride, p->fancy_shape[i]) < 0) {
+            if (ln_mul_sizes_with_overflow(&stride, stride, p->fancy_shape[i]) != 0) {
                 map_error(err, "advanced indexing operation result is too large");
                 return NULL;
             }
@@ -590,7 +590,7 @@ allocate_mapiter_internal(const ln_map_plan *p, const ln_dtype *dtype,
         for (int i = p->sub_nd - 1; i >= 0; --i) {
             int axis = perm[i].perm;
             strides[p->nd_fancy + axis] = stride;
-            if (ln_mul_sizes_with_overflow(&stride, stride, p->sub_shape[axis]) < 0) {
+            if (ln_mul_sizes_with_overflow(&stride, stride, p->sub_shape[axis]) != 0) {
                 map_error(err, "advanced indexing operation result is too large");
                 return NULL;
             }
@@ -603,7 +603,7 @@ allocate_mapiter_internal(const ln_map_plan *p, const ln_dtype *dtype,
         for(int d=p->nd_fancy;d<nd;++d)strides[d]=stride;
         for(int i=0;i<p->nd_fancy;++i) {
             int d=order[i];strides[d]=stride;
-            if(ln_mul_sizes_with_overflow(&stride,stride,shape[d])<0) {
+            if(ln_mul_sizes_with_overflow(&stride,stride,shape[d]) != 0) {
                 map_error(err,"advanced indexing operation result is too large");return NULL;
             }
         }

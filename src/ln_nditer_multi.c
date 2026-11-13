@@ -1,4 +1,5 @@
 #include "ln_nditer_multi.h"
+#include "ln_order.h"
 #include "ln_datetime.h"
 #include "ln_dtype_transfer.h"
 
@@ -17,47 +18,6 @@ typedef struct ln_multi_order_axis {
     int original_axis;
 } ln_multi_order_axis;
 
-static ln_intp
-intp_abs(ln_intp x)
-{
-    return x < 0 ? -x : x;
-}
-
-static int
-axis_should_insert_before(const ln_multi_order_axis *candidate,
-                          const ln_multi_order_axis *previous,int nop)
-{
-    int ambig=1,shouldswap=0;
-    for(int iop=0;iop<nop;++iop){
-        ln_intp s0=candidate->strides[iop],s1=previous->strides[iop];
-        if(s0!=0&&s1!=0){
-            if(intp_abs(s1)<=intp_abs(s0))shouldswap=0;
-            else if(ambig)shouldswap=1;
-            ambig=0;
-        }
-    }
-    return !ambig&&shouldswap;
-}
-
-static void
-find_best_axis_ordering(ln_multi_order_axis *axes,int naxes,int nop)
-{
-    for(int i=1;i<naxes;++i){
-        ln_multi_order_axis candidate=axes[i];int pos=i;
-        for(int j=i-1;j>=0;--j){
-            if(axis_should_insert_before(&candidate,&axes[j],nop))pos=j;
-            else{
-                int compared=0;
-                for(int iop=0;iop<nop;++iop){
-                    if(candidate.strides[iop]!=0&&axes[j].strides[iop]!=0){compared=1;break;}
-                }
-                if(compared)break;
-            }
-        }
-        if(pos!=i){for(int j=i;j>pos;--j)axes[j]=axes[j-1];axes[pos]=candidate;}
-    }
-}
-
 static int
 build_keeporder_axes(int nin,int nout,const ln_array *const *inputs,
         ln_array *const *outputs,const ln_array *where,int nd,const ln_intp *shape,
@@ -72,11 +32,14 @@ build_keeporder_axes(int nin,int nout,const ln_array *const *inputs,
         char nm[32];snprintf(nm,sizeof(nm),"operand %d",k);
         if(ln_broadcast_strides(nd,shape,ops[k]->nd,ops[k]->dimensions,ops[k]->strides,nm,bs[k],err)<0)return -1;
     }
+    const ln_intp *rows[LN_NDITER_MULTI_ORDER_MAXOPS];
+    for(int k=0;k<nop;k++)rows[k]=bs[k];
+    int order[LN_MAXDIMS];
+    if(ln_keeporder_axes(nd,nop,rows,order,err)<0)return -1;
     for(int ia=0;ia<nd;++ia){
-        int d=nd-1-ia;axes[ia].shape=shape[d];axes[ia].original_axis=d;
+        int d=order[ia];axes[ia].shape=shape[d];axes[ia].original_axis=d;
         for(int k=0;k<nop;++k)axes[ia].strides[k]=bs[k][d];
     }
-    if(nd>1)find_best_axis_ordering(axes,nd,nop);
     return 0;
 }
 

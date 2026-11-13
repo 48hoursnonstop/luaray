@@ -1,5 +1,5 @@
 local n=require('luaray_core')
-assert(n._version=='0.154.0-dev')
+assert(n._version=='0.155.0-dev')
 local function same(a,b)
  if type(a)=='table' then
   assert(type(b)=='table' and #a==#b)

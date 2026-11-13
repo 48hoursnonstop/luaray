@@ -14,6 +14,21 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.155.0-dev
+
+Added native ravel_multi_index and unravel_index, using one-based Lua locations,
+C/F logical order, broadcasting and per-axis raise/wrap/clip modes. Scalar inputs
+return Lua integers; array coordinates are writable views of owned interleaved
+storage. Added shared KEEPORDER axis planning without increasing ufunc operands.
+Corrected six defensive multiplication-overflow checks in take/indexing to use
+the helper's Boolean failure result.
+
+Validated 40,822 NumPy 2.5.3 cases / 391,028 checks, 168 permanent Lua checks,
+a native harness and C++ header/link execution. The corpus regenerates exactly.
+Location rebasing, scalar representation and narrow/Boolean operand upcasts are
+explicit adaptations. Another 1,472 unrepresentable-location cases and unsafe
+upstream inputs were excluded. Added executable English/Spanish documentation.
+
 ## 0.154.0-dev
 
 Added native invert/bitwise_count/left_shift/right_shift/gcd/lcm ArrayMethods,

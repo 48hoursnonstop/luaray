@@ -12,6 +12,14 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.139.0-dev
+
+Added `shape`, `ndim` and `size` queries over native ndarray metadata and the
+existing Lua array-like discovery path. Axis queries retain one-based positive
+and negative-from-end conventions. Added tests for empty/ragged sequences,
+rank-64 inputs, immutable buffers and huge zero-stride views without data
+iteration, plus English/Spanish guides.
+
 ## 0.138.0-dev
 
 Added `require` for C/F layout, alignment, writeability and storage ownership,

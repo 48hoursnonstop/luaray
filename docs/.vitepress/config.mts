@@ -6,6 +6,7 @@ const pages = [
     ['Overview', 'Introducción', ''],
     ['Getting started', 'Primeros pasos', 'getting-started'],
     ['Array fundamentals', 'Fundamentos de arrays', 'arrays'],
+    ['Shape and size queries', 'Consultas de forma y tamaño', 'metadata'],
   ]],
   ['Arrays and memory', 'Arrays y memoria', [
     ['Creation and copying', 'Creación y copias', 'creation'],
@@ -92,7 +93,7 @@ export default defineConfig({
         nav: [
           { text: 'Guide', link: '/getting-started' },
           { text: 'Reference', link: '/creation' },
-          { text: '0.138.0-dev', link: `${repo}/releases/tag/v0.138.0-dev` },
+          { text: '0.139.0-dev', link: `${repo}/releases/tag/v0.139.0-dev` },
         ],
         sidebar: sidebar(),
       },
@@ -103,7 +104,7 @@ export default defineConfig({
         nav: [
           { text: 'Guía', link: '/es/getting-started' },
           { text: 'Referencia', link: '/es/creation' },
-          { text: '0.138.0-dev', link: `${repo}/releases/tag/v0.138.0-dev` },
+          { text: '0.139.0-dev', link: `${repo}/releases/tag/v0.139.0-dev` },
         ],
         sidebar: sidebar(true),
         outline: { label: 'En esta página', level: [2, 3] },

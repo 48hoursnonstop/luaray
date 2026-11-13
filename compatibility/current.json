@@ -1,11 +1,11 @@
 {
-  "version": "0.138.0-dev",
+  "version": "0.139.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
   "new_reference_cases": {
-    "requirements_and_creation": 18430
+    "metadata_queries": 892
   },
-  "new_lua_regression_checks": 36,
+  "new_lua_regression_checks": 35,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -13,24 +13,21 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.require": "implemented_partial",
-    "numpy.array": "implemented_partial",
-    "numpy.asarray": "implemented_partial",
-    "numpy.asanyarray": "implemented_partial"
+    "numpy.shape": "implemented_partial",
+    "numpy.ndim": "implemented_partial",
+    "numpy.size": "implemented_partial"
   },
   "evidence": [
-    "lua/luaray/requirements.lua",
-    "lua/luaray.lua",
-    "src/ln_creation.c",
-    "tests/native/test_creation107_core.c",
-    "tests/lua/requirements_regression.lua",
-    "docs/requirements.md",
+    "src/lua_metadata.c",
+    "src/lua_array_api.h",
+    "tests/lua/metadata_regression.lua",
+    "docs/metadata.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 391,
-    "missing_bindings": 283,
+    "available_callables": 394,
+    "missing_bindings": 280,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -133,14 +130,16 @@
     "Flags objects retain source snapshot semantics and retain their referenced array; attributes and string mapping keys share one Lua namespace. Python flag-object warning/subclass/truth-conversion protocols and exact text representation are not reproduced.",
     "Logical root write permission is stored with the storage owner for surviving views. Native integrations must use ln_array_setflags for logical permission changes rather than directly clearing an owning root flag. Physical readonly storage cannot be unlocked.",
     "require accepts nil/false/empty requirements, character strings or dense Lua string sequences; arbitrary Python dictionaries/iterators, like and subclass protocols are unsupported. E is satisfied by the sole native Lua array class.",
-    "Dtype-changing ANYORDER creation transfers preserve KEEPORDER axis layout, while same-dtype ANYORDER copy shortcuts remain distinct. This targeted correction does not certify every array creation/cast/foreign-dispatch case."
+    "Dtype-changing ANYORDER creation transfers preserve KEEPORDER axis layout, while same-dtype ANYORDER copy shortcuts remain distinct. This targeted correction does not certify every array creation/cast/foreign-dispatch case.",
+    "shape/ndim/size read native ndarray metadata directly; other supported Lua values use existing native creation/discovery, so nested ndarray/foreign/object/nil scalar and protocol limitations remain. Shapes are fresh Lua sequences, not Python tuples.",
+    "size accepts one strict Lua integer axis, positive from one or negative from the end; zero and unsupported axis protocols raise. No Python shape/ndim/size attribute dispatch is implemented."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "0c1fbab10509dc0508fbd14d8c8b6c44e0d698582ec0227f2be3023570c54a77",
-      "files": 314
+      "sha256": "5da4041fc929eb22f8dd017d7a538e78cf262b272720dea2ed76652b0b08aaa2",
+      "files": 317
     },
-    "version": "0.138.0-dev",
+    "version": "0.139.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -166,7 +165,8 @@
       "ln_choose",
       "lua_flags",
       "ln_components",
-      "ln_creation"
+      "ln_creation",
+      "lua_metadata"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -181,8 +181,8 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.138.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.139.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact accepted values, dtype, shape, strides, identity, flags, sharing and source/backing states after actual writes. Includes immutable and physically unaligned buffers, manual flags, zero-dimensional/raw inputs, order conflicts and dtype-changing ANYORDER versus same-dtype copy behavior.",
-  "new_reference_checks": 1116960
+  "new_check_semantics": "Exact shape/rank/total and axis size, accepted/rejected axes, source and backing states. Covers rank64, scalars, empty/ragged Lua sequences and huge metadata-only broadcast views. Array inputs are queried directly without data conversion.",
+  "new_reference_checks": 50182
 }

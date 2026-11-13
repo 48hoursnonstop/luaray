@@ -51,14 +51,14 @@ Los generadores recientes usan NumPy 2.5.3; los anteriores conservan su atribuci
 NumPy 2.3.5.
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 401 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 403 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.147.0-dev** aprobó **67 suites nativas**, **117 suites Lua**, siete ejemplos
-y 268 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.148.0-dev** aprobó **67 suites nativas**, **118 suites Lua**, siete ejemplos
+y 278 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -125,7 +125,9 @@ Byteswap y las consultas de memoria de ancho cero aprobaron **45 504 casos /262 
 
 Getfield/setfield aprobaron **233 460 casos /2 680 078 comprobaciones exactas**: 79 632 vistas y 153 828 asignaciones. También pasaron 104 comprobaciones Lua nuevas, la prueba nativa y la ejecución C++ de cabecera/enlace. Se comparan bytes inicializados, estados base completos, errores parciales, diferencias entre escalares/arrays y metadatos. Ambos corpus se regeneraron exactamente.
 
-La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, además del runner Lua y catorce pruebas nativas. Aprobaron todas las suites mantenidas y los 47 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
+Los métodos conj/conjugate aprobaron **28 140 casos /340 632 comprobaciones** y 82 comprobaciones Lua permanentes. Se contrastaron identidad, salidas explícitas, casting, alias, solo lectura y estados posteriores, incluidos NaN/inf/ceros con signo. Veinticuatro resultados escalares NumPy se normalizaron expresamente a la convención unaria de arrays Lua de rango cero; sus bytes/dtypes son exactos y las comprobaciones de representación/escritura siguen esa adaptación, sin declarar paridad de objetos escalares. Longdouble omite padding de ABI. El corpus se regeneró exactamente.
+
+La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, además del runner Lua y catorce pruebas nativas. Aprobaron todas las suites mantenidas y los 48 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
 
 ## Integridad de las entregas
 

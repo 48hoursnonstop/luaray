@@ -15,13 +15,13 @@ por dtype y cobertura de firmas/casos límite.
 | numpy | 462 | 261 | 201 | 0 |
 | numpy.fft | 18 | 18 | 0 | 0 |
 | numpy.linalg | 32 | 31 | 0 | 1 |
-| numpy.ndarray | 53 | 47 | 6 | 0 |
+| numpy.ndarray | 53 | 49 | 4 | 0 |
 | numpy.random | 60 | 1 | 59 | 0 |
 | numpy.random.Generator | 44 | 43 | 1 | 0 |
 | numpy.ufunc | 6 | 0 | 6 | 0 |
-| Total | 675 | 401 | 273 | 1 |
+| Total | 675 | 403 | 271 | 1 |
 
-**401 nombres invocables no establecen compatibilidad completa.** Los
+**403 nombres invocables no establecen compatibilidad completa.** Los
 nombres disponibles se clasifican `implemented_partial`. El comportamiento se
 verifica por separado mediante referencias originales y contratos de cada
 versión. Este inventario declara cero APIs completamente compatibles. Los nombres

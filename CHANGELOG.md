@@ -14,6 +14,18 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.148.0-dev
+
+Added ndarray conj/conjugate methods: real numeric input retains identity,
+complex input uses the native conjugate engine, and optional outputs preserve
+assignment/casting, broadcasting, aliasing and read-only semantics.
+
+Validated 28,140 NumPy 2.5.3 cases / 340,632 checks and 82 permanent Lua checks.
+Twenty-four complex scalar reference results are explicitly normalized to the
+existing Lua rank-zero ndarray convention; numerical bytes remain exact and
+representation/writeability checks follow that declared adaptation. Expanded
+and enabled execution of the English/Spanish component documentation.
+
 ## 0.147.0-dev
 
 Added native per-item getfield/setfield views and writes with retained shape,

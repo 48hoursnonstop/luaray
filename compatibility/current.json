@@ -1,12 +1,11 @@
 {
-  "version": "0.147.0-dev",
+  "version": "0.148.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
   "new_reference_cases": {
-    "getfield": 79632,
-    "setfield": 153828
+    "conjugation_methods": 28140
   },
-  "new_lua_regression_checks": 104,
+  "new_lua_regression_checks": 82,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -14,28 +13,22 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.ndarray.getfield": "implemented_partial",
-    "numpy.ndarray.setfield": "implemented_partial"
+    "numpy.ndarray.conj": "implemented_partial",
+    "numpy.ndarray.conjugate": "implemented_partial"
   },
   "evidence": [
-    "src/ln_bytes.c",
-    "src/ln_bytes.h",
-    "src/lua_bytes.c",
-    "src/lua_bytes.h",
+    "src/lua_components.c",
+    "src/lua_components.h",
     "src/lua_module.c",
-    "src/lua_array_api.h",
-    "src/ln_datetime_strings.c",
-    "src/ln_datetime_strings.h",
-    "src/ln_dtype_transfer.c",
-    "tests/native/test_field147_core.c",
-    "tests/lua/fields_regression.lua",
-    "docs/fields.md",
+    "tests/lua/conjugate_method_regression.lua",
+    "docs/components.md",
+    "docs/es/components.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 401,
-    "missing_bindings": 273,
+    "available_callables": 403,
+    "missing_bindings": 271,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -170,14 +163,17 @@
     "Per-item getfield/setfield preserve shape/strides and retain native storage with checked C-int byte offsets. Object/structured/StringDType and general foreign protocols remain unsupported; fields do not implement structured records.",
     "Equal-shape ordinary Lua sequences pack progressively like CopyObject; later failures retain defined written prefixes. Broadcasting sequences use a temporary. Typed ndarrays use unsafe assignment and overlap handling. General nested typed arrays or temporal userdata in Lua sequences remain uncertified.",
     "Temporal scalar field packing differs from ndarray casting: signed item conversion/bounds and scalar-date text follow their separate paths. Duration text retains the legacy cast limit of 21 characters. Full temporal scalar formatting is shared with existing duration casts, without changing public tostring.",
-    "Empty field offsets form integer addresses without out-of-allocation pointer arithmetic or dereference; zero-width field views retain original widths and the audited source memory-query convention."
+    "Empty field offsets form integer addresses without out-of-allocation pointer arithmetic or dereference; zero-width field views retain original widths and the audited source memory-query convention.",
+    "ndarray conj/conjugate return the original real numeric userdata or execute native conjugation for complex input. Optional output uses same-kind real assignment or the complex ufunc path; foreign protocols, subclasses and all host ABIs remain uncertified.",
+    "The conjugation method accepts an output ndarray directly or an out options table. Other ufunc controls are not exposed by this method. String and temporal inputs are rejected.",
+    "Complex rank-zero method results without output follow LuaRay unary typed-array returns. Twenty-four reference scalars were normalized explicitly; their numerical bytes/dtypes are exact while ownership/writeability/post-write checks target the declared Lua representation."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "349cfdf9231a73ee7ffa60282bfb8d1679ea507594a2924413a4a81efecbe3e3",
-      "files": 350
+      "sha256": "077a8919b02b1ecd9cb66812409a0018e3b5132f99e6d023cd84e3b0771eace0",
+      "files": 351
     },
-    "version": "0.147.0-dev",
+    "version": "0.148.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -219,7 +215,8 @@
       "ln_resize",
       "lua_resize",
       "ln_layout",
-      "ln_bytes"
+      "ln_bytes",
+      "lua_components"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -242,9 +239,13 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.147.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.148.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact acceptance, raw payloads including initialized padding, shapes/strides/dtypes/flags, memory sharing and full parent buffers, including state after errors. Source raw fields are never decoded as invalid numerical/Unicode values. Setter references distinguish ordinary sequences, typed arrays and temporal scalars, partial direct writes and temporary broadcast assignment.",
-  "new_reference_checks": 2680078,
-  "new_reference_exclusions": {}
+  "new_check_semantics": "Exact numerical bytes/dtypes and metadata within the declared Lua return adaptation, source/output identity, sharing, initialized input/output/base states and actual post-write values. Longdouble omits ABI padding. Twenty-four NumPy scalar results are explicitly normalized to owned writable rank-zero ndarrays before representation/flag/post-write comparison, following the established Lua unary convention; scalar-object parity is not claimed.",
+  "new_reference_checks": 340632,
+  "new_reference_exclusions": {},
+  "new_reference_return_adaptations": {
+    "complex_rank_zero_scalar_results_normalized": 24,
+    "Lua_convention": "owned writable typed rank-zero ndarray"
+  }
 }

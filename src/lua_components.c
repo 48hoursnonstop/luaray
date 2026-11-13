@@ -1,6 +1,9 @@
 #include "lua_components.h"
 #include "lua_array_api.h"
 #include "ln_components.h"
+#include "ln_ufunc.h"
+#include "ln_write.h"
+#include <string.h>
 static int part(lua_State *L,int imaginary)
 {
     if(lua_gettop(L)<1)return luaL_error(L,"component operation requires an input");
@@ -48,5 +51,39 @@ int ln_lua_real_if_close(lua_State *L)
     ln_array *out=ln_component_close(a,tol,&identity,&err);
     if(!out)return ln_lua_fail(L,&err);
     if(identity){ln_array_free(out);lua_pushvalue(L,index);return 1;}
+    return ln_lua_push_array(L,out);
+}
+
+/* calculation.c:PyArray_Conjugate has a real-valued identity/assignment path
+ * distinct from the root conjugate ufunc. */
+int ln_lua_array_conjugate(lua_State *L)
+{
+    if(lua_gettop(L)<1||lua_gettop(L)>2)return luaL_error(L,"conjugate expects one optional output");
+    ln_array *a=ln_lua_test_array(L,1);if(!a)return luaL_error(L,"conjugate method requires an ndarray");
+    int index=2;
+    if(lua_type(L,2)==LUA_TTABLE){
+        lua_pushnil(L);
+        while(lua_next(L,2)){
+            size_t n=0;const char *key=lua_type(L,-2)==LUA_TSTRING?lua_tolstring(L,-2,&n):NULL;
+            if(!key||n!=3||memcmp(key,"out",3))return luaL_error(L,"conjugate method only supports out");
+            lua_pop(L,1);
+        }
+        lua_getfield(L,2,"out");index=lua_gettop(L);
+    }
+    ln_array *out=NULL;
+    if(lua_type(L,index)!=LUA_TNONE&&lua_type(L,index)!=LUA_TNIL){
+        out=ln_lua_test_array(L,index);
+        if(!out)return luaL_error(L,"conjugate output must be an ndarray");
+    }
+    if(!strchr("biufc",a->descr->kind))return luaL_error(L,"cannot conjugate non-numeric dtype");
+    ln_error err={0};
+    if(a->descr->kind!='c'){
+        if(!out){lua_pushvalue(L,1);return 1;}
+        if(ln_array_copyto(out,a,NULL,1,LN_SAME_KIND_CASTING,&err)<0)return ln_lua_fail(L,&err);
+        lua_pushvalue(L,index);return 1;
+    }
+    int existing=out!=NULL;const ln_array *inputs[]={a};
+    if(ln_ufunc_execute(ln_ufunc_by_name("conjugate"),inputs,&out,NULL,&err)<0)return ln_lua_fail(L,&err);
+    if(existing){lua_pushvalue(L,index);return 1;}
     return ln_lua_push_array(L,out);
 }

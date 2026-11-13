@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Componentes real e imaginario
 
 LuaRay 0.111.0-dev proporciona `lr.real(a)`, `lr.imag(a)`, `a.real` y `a.imag`
@@ -47,3 +50,66 @@ make reference-test
 Véanse [disposición](layout.md), [creación](creation.md) e
 [inventario](api_inventory.md). El inventario excluye propiedades no invocables
 y no representa compatibilidad global.
+
+## Métodos de conjugación
+
+`a:conj()` y `a:conjugate()` comparten un binding nativo. Un array numérico real,
+incluidos los booleanos, devuelve el mismo userdata. Una entrada compleja
+produce valores conjugados independientes. El método tiene una ruta distinta
+de la asignación/resolución de tipos del ufunc raíz `lr.conjugate(a)`.
+
+```lua
+local values = lr.array({1, 2, 3}, "float64")
+assert(rawequal(values:conj(), values))
+local truth = lr.array({true, false}, "bool")
+assert(rawequal(truth:conjugate(), truth) and truth:conj().dtype == "bool")
+```
+
+```lua
+local source = lr.array({lr.complex(1, 2), lr.complex(3, -4)}, "complex64")
+local conjugated = source:conjugate()
+assert(lr.imag(conjugated):tolist()[1] == -2)
+assert(lr.imag(source):tolist()[1] == 2)
+assert(not lr.shares_memory(source, conjugated))
+```
+
+Puedes pasar un array de salida directamente o como `{out=array}`. Se devuelve
+ese mismo userdata. Las entradas reales usan asignación same-kind y las
+complejas usan el ejecutor existente del ufunc conjugate. Broadcasting, strides
+negativos y salidas solapadas siguen esos motores. Se rechazan entradas de
+strings y temporales. Fallan opciones desconocidas, argumentos extra y salidas
+que no sean arrays; el único control opcional del método es la salida.
+
+```lua
+local output = lr.zeros({2}, "complex64")
+assert(rawequal(source:conj({out=output}), output))
+source:setflags(false)
+assert(rawequal(source:conjugate(output), output))
+assert(not pcall(function() source:conj(source) end))
+```
+
+Una fuente de solo lectura puede producir conjugados independientes escribibles
+o usar una salida escribible separada. La identidad de entradas reales conserva
+sus flags. Una salida compleja que comparte el array debe ser escribible. Los
+resultados complejos de rango cero sin salida siguen la convención unaria de
+LuaRay: ndarray propio, escribible y de rango cero. NumPy devuelve un escalar.
+Se conservan sus bytes numéricos y dtype; las comprobaciones de representación,
+escritura y estado posterior usan expresamente la adaptación Lua, sin declarar
+paridad de objetos escalares.
+
+```lua
+local point = lr.array(lr.complex(1, 2), "complex64")
+local result = point:conj()
+assert(result.ndim == 0 and result.flags.owndata and result.flags.writeable)
+assert(lr.imag(result):tolist() == -2)
+```
+
+La referencia del método aprobó **28 140 casos / 340 632 comprobaciones** frente
+a NumPy 2.5.3: salidas explícitas, errores de dtype/casting, broadcasting y F,
+solo lectura y solapamiento, NaN, infinitos, ceros con signo y estados base tras
+escritura real. Los valores/metadatos son exactos dentro de la adaptación
+indicada; longdouble omite padding de la ABI. Se normalizaron **24 resultados
+escalares** a la convención Lua de array de rango cero. El corpus se regenera
+exactamente y la regresión permanente añade 82 comprobaciones Lua. Ambos
+métodos siguen siendo parciales; no se certifican protocolos externos,
+subclases, todas las ABI ni todos los controles keyword del ufunc.

@@ -168,7 +168,7 @@ ln_array *ln_join_arrays(const ln_array *const *arrays, size_t count,
      * This is deliberately conservative and handles transposed/sliced aliases. */
     int overlap = 0;
     if (out) for (size_t j = 0; j < count; ++j)
-        if (arrays[j]->owner == out->owner) overlap = 1;
+        if (ln_arrays_may_overlap(arrays[j],out)) overlap = 1;
     ln_array *dst = overlap || !out ? ln_array_new(nd, shape, resolved, 0, 0, err) : out;
     if (!dst) return NULL;
     if(!out&&!flat&&join_strides(dst,arrays,count,axis,stack,err)<0){ln_array_free(dst);return NULL;}

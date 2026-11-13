@@ -48,7 +48,7 @@ ln_array *ln_array_take(const ln_array *input,const ln_array *indices,int axis,
     }
     int staged=!out || mode==LN_TAKE_RAISE || !(out->flags&LN_ARRAY_C_CONTIGUOUS) ||
                 !(out->flags&LN_ARRAY_ALIGNED) || out->descr!=src->descr ||
-                (out->owner && out->owner==src->owner);
+                (ln_arrays_may_overlap(out,src));
     if(staged) {
         work=ln_array_new(nd,shape,src->descr,0,0,err);
         if(!work)goto fail;

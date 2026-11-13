@@ -155,10 +155,15 @@ struct ln_dtype_descr {
  * code should spell ln_dtype_descr explicitly. */
 typedef ln_dtype_descr ln_dtype;
 
+typedef void (*ln_buffer_release)(void *data, void *context);
+
 typedef struct ln_buffer {
     char *ptr;
     size_t nbytes;
     size_t refs;
+    int readonly;
+    ln_buffer_release release;
+    void *context;
 } ln_buffer;
 
 typedef struct ln_array {
@@ -239,6 +244,17 @@ int ln_broadcast_strides(int ndim, const ln_intp *shape,
                          ln_intp *out_strides, ln_error *err);
 int ln_broadcast_shape(int narr, const ln_array *const *arrs,
                        int *out_nd, ln_intp *out_shape, ln_error *err);
+
+/* External storage is borrowed; release/context transfer only on success and
+ * are invoked once after the last array/view disappears. NULL release is a
+ * caller-managed lifetime. Byte offsets are zero-based, unlike array indices. */
+ln_array *ln_array_from_buffer(void *data,size_t nbytes,const ln_dtype *dtype,
+    ln_intp count,ln_intp offset,int writeable,ln_buffer_release release,
+    void *context,ln_error *err);
+ln_array *ln_array_from_array_buffer(const ln_array *source,const ln_dtype *dtype,
+    ln_intp count,ln_intp offset,ln_error *err);
+/* Conservative physical-byte overlap, independent of storage-owner identity. */
+int ln_arrays_may_overlap(const ln_array *a,const ln_array *b);
 
 ln_array *ln_array_new(int nd, const ln_intp *dims, const ln_dtype_descr *dtype,
                        int fortran, int zeroed, ln_error *err);

@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.135.0-dev')
+assert(np._version=='0.136.0-dev')
 local function shape(v,want)
   assert(type(v)=='userdata' and v.dtype=='float64')
   assert(#v.shape==#want)

@@ -28,6 +28,14 @@ extern lua_Number lua_tonumberx(lua_State *L, int idx, int *isnum);
 extern const char *lua_tolstring(lua_State *L, int idx, size_t *len);
 extern int lua_isinteger(lua_State *L, int idx);
 extern size_t lua_rawlen(lua_State *L, int idx);
+extern int lua_rawgeti(lua_State *L,int index,lua_Integer n);
+extern lua_State *lua_tothread(lua_State *L,int index);
+extern int luaL_ref(lua_State *L,int index);
+extern void luaL_unref(lua_State *L,int index,int ref);
+/* Lua 5.4 ABI, verified against its installed lua.h/luaconf.h. */
+#define LUA_REGISTRYINDEX (-1001000)
+#define LUA_RIDX_MAINTHREAD 1
+
 extern int lua_geti(lua_State *L, int idx, lua_Integer n);
 extern void lua_seti(lua_State *L, int idx, lua_Integer n);
 extern int lua_getfield(lua_State *L, int idx, const char *k);

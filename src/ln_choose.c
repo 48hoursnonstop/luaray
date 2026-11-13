@@ -36,7 +36,7 @@ ln_array *ln_array_choose(const ln_array *indices,const ln_array *const *choices
         for(int d=0;d<nd;++d)if(out->dimensions[d]!=shape[d])return bad(err,"choose output shape mismatch");
         if(!(out->flags&LN_ARRAY_WRITEABLE))return bad(err,"choose output is read-only");
         if(out->descr!=dtype)staged=1;
-        for(int j=0;j<count;++j)if(out->owner && out->owner==choices[j]->owner)staged=1;
+        for(int j=0;j<count;++j)if(ln_arrays_may_overlap(out,choices[j]))staged=1;
     }
     ln_array *work=staged?ln_array_new(nd,shape,dtype,0,0,err):out;
     if(!work)return NULL;

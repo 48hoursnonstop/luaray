@@ -476,6 +476,7 @@ void ln_array_fill_strides(ln_intp *strides, const ln_intp *dims, int nd,
 
 /* Port of NumPy flagsobject.c:_UpdateContiguousFlags. */
 void ln_update_contiguous_flags(ln_array *a) {
+    if(a->owner&&a->owner->readonly)a->flags&=~LN_ARRAY_WRITEABLE;
     /* array_assign.c:raw_array_is_aligned: singleton strides do not count,
      * and an empty array is aligned regardless of its data offset. */
     size_t alignment=a->descr->alignment;int aligned=alignment!=0;
@@ -590,16 +591,18 @@ int ln_broadcast_shape(int narr, const ln_array *const *arrs,
     *out_nd=nd; return 0;
 }
 
+static void release_allocation(void *data,void *context){(void)context;free(data);}
+
 static ln_buffer *buffer_new(size_t nbytes, int zeroed) {
     ln_buffer *b = (ln_buffer *)calloc(1,sizeof(*b));
     if (!b) return NULL;
     size_t alloc = nbytes ? nbytes : 1;
     b->ptr = zeroed ? (char *)calloc(1,alloc) : (char *)malloc(alloc);
     if (!b->ptr) { free(b); return NULL; }
-    b->nbytes = alloc; b->refs = 1; return b;
+    b->nbytes = alloc; b->refs = 1; b->release=release_allocation; return b;
 }
 static void buffer_incref(ln_buffer *b){ if(b) b->refs++; }
-static void buffer_decref(ln_buffer *b){ if(b && --b->refs==0){ free(b->ptr); free(b);} }
+static void buffer_decref(ln_buffer *b){ if(b && --b->refs==0){ if(b->release)b->release(b->ptr,b->context); free(b);} }
 
 ln_array *ln_array_new(int nd, const ln_intp *dims, const ln_dtype_descr *dtype,
                        int fortran, int zeroed, ln_error *err) {
@@ -636,6 +639,74 @@ ln_array *ln_array_view(const ln_array *base, int nd, const ln_intp *dims,
     v->flags=(base->flags & (LN_ARRAY_ALIGNED|LN_ARRAY_WRITEABLE));
     if(nd>0){v->dimensions=(ln_intp*)malloc((size_t)2*nd*sizeof(ln_intp));if(!v->dimensions){ln_array_free(v);seterr(err,"out of memory");return NULL;}v->strides=v->dimensions+nd;memcpy(v->dimensions,dims,(size_t)nd*sizeof(ln_intp));memcpy(v->strides,strides,(size_t)nd*sizeof(ln_intp));}
     ln_update_contiguous_flags(v); return v;
+}
+
+/* Source contract: NumPy ctors.c:PyArray_FromBuffer. Resolve count and byte
+ * range without count*itemsize overflow, including explicit empty buffers. */
+static int buffer_layout(size_t nbytes,const ln_dtype *dtype,ln_intp *count,
+                         ln_intp offset,ln_error *err)
+{
+    if(!dtype||!dtype->elsize){seterr(err,"itemsize cannot be zero in type");return -1;}
+    if(nbytes>(size_t)INTPTR_MAX||dtype->elsize>(size_t)INTPTR_MAX){seterr(err,"buffer is too large");return -1;}
+    if(offset<0||(size_t)offset>nbytes){seterr(err,"offset must be non-negative and no greater than buffer length");return -1;}
+    size_t remaining=nbytes-(size_t)offset;
+    if(*count<0){
+        if(remaining%dtype->elsize){seterr(err,"buffer size must be a multiple of element size");return -1;}
+        *count=(ln_intp)(remaining/dtype->elsize);
+    }else if((size_t)*count>remaining/dtype->elsize){seterr(err,"buffer is smaller than requested size");return -1;}
+    return 0;
+}
+ln_array *ln_array_from_buffer(void *data,size_t nbytes,const ln_dtype *dtype,
+    ln_intp count,ln_intp offset,int writeable,ln_buffer_release release,
+    void *context,ln_error *err)
+{
+    if(buffer_layout(nbytes,dtype,&count,offset,err)<0)return NULL;
+    if(!data){seterr(err,"external buffer pointer must not be NULL, including empty storage");return NULL;}
+    ln_buffer *owner=calloc(1,sizeof(*owner));
+    if(!owner){seterr(err,"out of memory");return NULL;}
+    owner->ptr=data;owner->nbytes=nbytes;owner->refs=1;owner->readonly=!writeable;
+    ln_array base={0};base.data=data;base.descr=dtype;base.owner=owner;
+    base.flags=writeable?LN_ARRAY_WRITEABLE:0;
+    ln_intp stride=(ln_intp)dtype->elsize;
+    ln_array *result=ln_array_view(&base,1,&count,&stride,(char*)data+offset,err);
+    if(result){owner->release=release;owner->context=context;}
+    buffer_decref(owner);return result;
+}
+ln_array *ln_array_from_array_buffer(const ln_array *source,const ln_dtype *dtype,
+    ln_intp count,ln_intp offset,ln_error *err)
+{
+    if(!source||!(source->flags&LN_ARRAY_C_CONTIGUOUS)){seterr(err,"buffer must be C-contiguous");return NULL;}
+    ln_intp size=ln_array_size(source),bytes;
+    if(size<0||ln_mul_sizes_with_overflow(&bytes,size,(ln_intp)source->descr->elsize)){
+        seterr(err,"buffer is too large");return NULL;
+    }
+    if(buffer_layout((size_t)bytes,dtype,&count,offset,err)<0)return NULL;
+    ln_intp stride=(ln_intp)dtype->elsize;
+    ln_array *result=ln_array_view(source,1,&count,&stride,source->data+offset,err);
+    if(result){result->descr=dtype;ln_update_contiguous_flags(result);}
+    return result;
+}
+static int physical_bounds(const ln_array *a,uintptr_t *low,uintptr_t *high)
+{
+    uintptr_t before=0,after=0,start=(uintptr_t)a->data;
+    for(int d=0;d<a->nd;++d){
+        if(a->dimensions[d]<=1)continue;
+        uintptr_t stride=a->strides[d]<0?(uintptr_t)(-(a->strides[d]+1))+1:(uintptr_t)a->strides[d];
+        uintptr_t extent=(uintptr_t)(a->dimensions[d]-1);
+        if(stride&&extent>UINTPTR_MAX/stride)return -1;
+        extent*=stride;uintptr_t *span=a->strides[d]<0?&before:&after;
+        if(*span>UINTPTR_MAX-extent)return -1;
+        *span+=extent;
+    }
+    if(before>start||after>UINTPTR_MAX-start||a->descr->elsize>UINTPTR_MAX-start-after)return -1;
+    *low=start-before;*high=start+after+a->descr->elsize;return 0;
+}
+int ln_arrays_may_overlap(const ln_array *a,const ln_array *b)
+{
+    if(!a||!b||!ln_array_size(a)||!ln_array_size(b)||!a->descr->elsize||!b->descr->elsize)return 0;
+    uintptr_t al,ah,bl,bh;
+    if(physical_bounds(a,&al,&ah)<0||physical_bounds(b,&bl,&bh)<0)return 1;
+    return al<bh&&bl<ah;
 }
 
 ln_array *ln_array_index_axis0(const ln_array *base, ln_intp lua_index, ln_error *err) {
@@ -1009,12 +1080,12 @@ ln_array_assign_scalar(ln_array *dst, double v, int64_t vi,
         return -1;
     }
 
-    /* Supported numeric item sizes are all <= long double on this build. */
+    /* Include both components of the widest supported complex scalar. */
     union {
-        long double ld;
+        ln_clongdouble cld;
         unsigned long long ull;
-        unsigned char bytes[sizeof(long double) > sizeof(unsigned long long)
-                            ? sizeof(long double) : sizeof(unsigned long long)];
+        unsigned char bytes[sizeof(ln_clongdouble) > sizeof(unsigned long long)
+                            ? sizeof(ln_clongdouble) : sizeof(unsigned long long)];
     } scalar;
     memset(&scalar, 0, sizeof(scalar));
 

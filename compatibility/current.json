@@ -1,13 +1,11 @@
 {
-  "version": "0.135.0-dev",
+  "version": "0.136.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
   "new_reference_cases": {
-    "item": 11813,
-    "fill": 10801,
-    "calendar_casts_and_resolution": 4230
+    "frombuffer": 17290
   },
-  "new_lua_regression_checks": 56,
+  "new_lua_regression_checks": 48,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -15,28 +13,27 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.ndarray.item": "implemented_partial",
-    "numpy.ndarray.fill": "implemented_partial",
-    "numpy.astype": "implemented_partial",
-    "numpy.copyto": "implemented_partial"
+    "numpy.frombuffer": "implemented_partial"
   },
   "evidence": [
-    "src/lua_elements.c",
-    "src/lua_array_api.h",
-    "src/ln_datetime_strings.c",
-    "src/ln_dtype_transfer.c",
-    "tests/native/test_elements135_core.c",
-    "tests/lua/elements_regression.lua",
-    "docs/elements.md",
-    "compatibility/numpy-source.sha256",
+    "src/lua_buffers.c",
+    "src/ln_core.c",
+    "src/ln_core.h",
+    "src/ln_mapping.c",
     "src/ln_write.c",
-    "src/ln_ufunc.c",
-    "src/ln_dtype_transfer.h"
+    "src/ln_nditer.c",
+    "src/ln_join.c",
+    "src/ln_take.c",
+    "src/ln_choose.c",
+    "tests/native/test_buffer136_core.c",
+    "tests/lua/buffer_regression.lua",
+    "docs/buffers.md",
+    "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 387,
-    "missing_bindings": 287,
+    "available_callables": 388,
+    "missing_bindings": 286,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -131,14 +128,17 @@
     "Ndarray item uses strict one-based Lua integer indices and one coordinate table. Longdouble/complex256 and high uint64 values return detached typed rank-zero arrays; temporal elements retain LuaRay temporal userdata instead of Python datetime/timedelta/None conversion.",
     "Fill packs before writes including empty arrays, captures aliased values, uses Boolean sequence truth and preserves scalar versus rank-zero casting distinctions. Full object/structured/foreign/Python scalar and warning/error protocols remain unsupported.",
     "Datetime year/month casts use actual calendar conversion; pinned source integer wrap in calendar formulas and scalar item-range decisions is implemented without signed overflow UB. Duration casts retain average units and temporal text casts retain the observed21-character legacy limit.",
-    "Temporal transfer availability is resolved before data iteration, including empty arrays. Literal false copyto masks preserve the distinct scalar-preconversion and array-assignment shortcuts; regression checks retain the previous scalar string conversion rules."
+    "Temporal transfer availability is resolved before data iteration, including empty arrays. Literal false copyto masks preserve the distinct scalar-preconversion and array-assignment shortcuts; regression checks retain the previous scalar string conversion rules.",
+    "frombuffer accepts binary Lua strings and C-contiguous native ndarrays; arbitrary foreign buffer, like and subclass protocols are unavailable. Count and offset must be strict Lua integers; byte offsets start at zero. Non-native numeric endian descriptors remain unsupported.",
+    "Lua strings are pinned and read-only through all views. C external buffers transfer their optional callback/context only on successful construction; null callbacks leave lifetime with the caller. Lua-owned buffers must not outlive their Lua state.",
+    "Expanded instrumentation found and fixed an earlier scalar-assignment stack buffer that was too small for complex256; the final audit includes ln_core and the dedicated regression. Other dependencies remain only partially instrumented."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "bcf45bb87bfe982555099e558e8b76239b5f14b75f952166b2f01319efb9fdc5",
-      "files": 304
+      "sha256": "524aba333546c7080e0a943916d6bb2f490834f0f7c761eebb527f07157d6aad",
+      "files": 308
     },
-    "version": "0.135.0-dev",
+    "version": "0.136.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -155,20 +155,27 @@
       "ln_time_scale",
       "ln_ufunc",
       "ln_nditer_multi",
-      "ln_datetime"
+      "ln_datetime",
+      "ln_core",
+      "lua_buffers",
+      "ln_mapping",
+      "ln_nditer",
+      "ln_take",
+      "ln_choose"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
       "tests/native/test_matrix_core.c",
       "tests/native/test_comparison134_core.c",
-      "tests/native/test_elements135_core.c"
+      "tests/native/test_elements135_core.c",
+      "tests/native/test_buffer136_core.c"
     ],
     "all_maintained_tests": "passed",
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.135.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.136.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact selected scalar/native values, dtype, shape, strides, independent item storage, input/backing states and full fill writes/errors. Typed rank-zero results preserve longdouble/clongdouble and uint64 above Lua signed range. Temporal item retains source ticks/unit rather than Python calendar objects.",
-  "new_reference_checks": 684401
+  "new_check_semantics": "Exact raw bytes, dtype, shape, strides, inferred/explicit byte ranges, acceptance, physical sharing and backing state after writes. Maintained tests additionally verify registry lifetime, coroutine collection, read-only views, independent external-owner aliasing and extended-complex scalar packing.",
+  "new_reference_checks": 229717
 }

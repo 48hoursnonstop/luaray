@@ -139,7 +139,7 @@ ln_array_assign_array(ln_array *dst, const ln_array *src_in, ln_error *err)
 
     const ln_array *src = src_in;
     ln_array *tmp = NULL;
-    if (dst->owner && src->owner == dst->owner) {
+    if (ln_arrays_may_overlap(dst,src)) {
         tmp = ln_array_copy_c(src, err);
         if (!tmp) return -1;
         src = tmp;
@@ -276,7 +276,7 @@ ln_array_boolean_assign_array(ln_array *dst, const ln_array *mask,
 
     const ln_array *values = values_in;
     ln_array *tmp = NULL;
-    if (dst->owner && values->owner == dst->owner) {
+    if (ln_arrays_may_overlap(dst,values)) {
         tmp = ln_array_copy_c(values, err);
         if (!tmp) return -1;
         values = tmp;
@@ -985,7 +985,7 @@ advanced_assign_prepared(ln_array *dst, const ln_index *indices,
 
     const ln_array *values = values_in;
     ln_array *tmp = NULL;
-    if (dst->owner && values->owner == dst->owner) {
+    if (ln_arrays_may_overlap(dst,values)) {
         tmp = ln_array_copy_c(values, err);
         if (!tmp) return -1;
         values = tmp;
@@ -1096,7 +1096,7 @@ ln_array_advanced_assign_array(ln_array *dst,const ln_index *indices,
     for(int j=0;j<index_num;++j) {
         const ln_array *ind=indices[j].array;
         if((indices[j].kind==LN_INDEX_FANCY || indices[j].kind==LN_INDEX_0D_BOOL) &&
-           ind && dst->owner && ind->owner==dst->owner) {
+           ln_arrays_may_overlap(dst,ind)) {
             copies[j]=ln_array_copy_c(ind,err);
             if(!copies[j])goto done;
             prepared[j].array=copies[j];

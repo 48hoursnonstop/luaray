@@ -51,14 +51,14 @@ Los generadores recientes usan NumPy 2.5.3; los anteriores conservan su atribuci
 NumPy 2.3.5.
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 387 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 388 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.135.0-dev** aprobó **57 suites nativas**, **105 suites Lua**, siete ejemplos
-y 158 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.136.0-dev** aprobó **58 suites nativas**, **106 suites Lua**, siete ejemplos
+y 166 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -101,7 +101,9 @@ Igualdad, tolerancias y núcleo temporal aprobaron **27 384 casos /1 186 383 com
 
 Elementos, relleno y casts de calendario aprobaron **25 314 casos /645 992 comprobaciones exactas**: 11 813 de item, 10 801 de fill y 2 700 de casts. Las 51 comprobaciones Lua permanentes y la nueva prueba C incluyen índices C lógicos, coordenadas, valores separados sin pérdida, GC, memoria no alineada, alias escalares, booleanos, vacíos, NaT, conversiones escalares temporales y límites de calendario. La representación Lua de item conserva valores/unidades y usa ndarrays de rango cero cuando el número nativo no cabe en un escalar Lua.
 
-La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, además del runner Lua y las pruebas nativas de matrices, comparación y elementos. Aprobaron todas las suites mantenidas y los 26 corpus acumulados de referencia. Las otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. La evidencia registra una huella de los archivos ejecutables y el empaquetado verifica que coincide con el código fuente.
+Los buffers aprobaron **17 290 casos /229 717 comprobaciones exactas** de bytes, dtype, forma, strides, rangos, errores, memoria compartida y escrituras. Las 48 comprobaciones Lua permanentes y la nueva prueba C incluyen GC, recolección de la corrutina creadora, liberación final, fuentes inmutables, alineación y propietarios externos solapados. La instrumentación ampliada detectó y permitió corregir un buffer temporal anterior insuficiente para asignar complex256.
+
+La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, además del runner Lua y cuatro pruebas nativas. Aprobaron todas las suites mantenidas y los 27 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
 
 ## Integridad de las entregas
 

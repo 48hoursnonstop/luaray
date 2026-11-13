@@ -22,7 +22,6 @@ static int prepared(const ln_array *a)
  * exactly. Merely sharing an owner does not imply overlapping storage. */
 static int overlaps(const ln_array *a, const ln_array *b)
 {
-    if (!a->owner || a->owner != b->owner) return 0;
     uintptr_t ap = (uintptr_t)a->data, bp = (uintptr_t)b->data;
     size_t an = (size_t)ln_array_size(a) * a->descr->elsize;
     size_t bn = (size_t)ln_array_size(b) * b->descr->elsize;
@@ -174,7 +173,7 @@ int ln_array_copyto(ln_array *dst,const ln_array *input,const ln_array *where,
         if(ln_cast_strided_numeric(input->data,0,input->descr,temporary->data,0,dst->descr,1,err)<0)goto fail;
         src=temporary;
     }
-    else if(input->nd>0 && dst->owner && input->owner==dst->owner &&
+    else if(input->nd>0 && ln_arrays_may_overlap(dst,input) &&
             (dst->nd>1 || (dst->nd==1 && dst->strides[0] && input->strides[input->nd-1] &&
              ((dst->strides[0]<0)!=(input->strides[input->nd-1]<0))))) {
         temporary=ln_array_copy_c(input,err);

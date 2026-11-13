@@ -12,6 +12,16 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.136.0-dev
+
+Added genuine zero-copy `frombuffer` for binary Lua strings and C-contiguous
+ndarrays. External owners have explicit release callbacks, immutable string
+storage is pinned through the last view, and creating coroutines may be collected
+safely. Physical overlap detection now handles independently acquired owners.
+Also fixed an earlier complex256 scalar-assignment temporary overflow exposed by
+expanded instrumentation. Added native/Lua lifetime and alias tests plus an
+English/Spanish buffer guide.
+
 ## 0.135.0-dev
 
 Added native ndarray `item` and `fill`, with logical flat/coordinate indexing,

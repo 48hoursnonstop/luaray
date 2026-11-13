@@ -352,7 +352,7 @@ byte_bounds(const ln_array *a, intptr_t *lo, intptr_t *hi)
 static int
 may_overlap(const ln_array *a, const ln_array *b)
 {
-    if (!a || !b || a->owner != b->owner || ln_array_size(a) == 0 || ln_array_size(b) == 0) return 0;
+    if (!ln_arrays_may_overlap(a,b)) return 0;
     intptr_t alo, ahi, blo, bhi;
     byte_bounds(a, &alo, &ahi);
     byte_bounds(b, &blo, &bhi);

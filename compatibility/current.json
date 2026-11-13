@@ -1,12 +1,11 @@
 {
-  "version": "0.155.0-dev",
+  "version": "0.156.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
   "new_reference_cases": {
-    "ravel_multi_index": 32128,
-    "unravel_index": 8694
+    "bincount": 6937
   },
-  "new_lua_regression_checks": 168,
+  "new_lua_regression_checks": 93,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -14,29 +13,24 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.ravel_multi_index": "implemented_partial",
-    "numpy.unravel_index": "implemented_partial"
+    "numpy.bincount": "implemented_partial"
   },
   "evidence": [
-    "src/ln_index_math.c",
-    "src/ln_index_math.h",
-    "src/lua_index_math.c",
-    "src/lua_index_math.h",
-    "src/ln_order.c",
-    "src/ln_order.h",
-    "src/ln_nditer_multi.c",
-    "src/ln_take.c",
-    "src/ln_mapping.c",
-    "tests/native/test_index155_core.c",
-    "tests/lua/index_math_regression.lua",
-    "docs/index_conversion.md",
-    "docs/es/index_conversion.md",
+    "src/ln_bincount.c",
+    "src/ln_bincount.h",
+    "src/lua_bincount.c",
+    "src/lua_bincount.h",
+    "src/lua_module.c",
+    "tests/native/test_bincount156_core.c",
+    "tests/lua/bincount_regression.lua",
+    "docs/bincount.md",
+    "docs/es/bincount.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 422,
-    "missing_bindings": 252,
+    "available_callables": 423,
+    "missing_bindings": 251,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -198,14 +192,17 @@
     "Ravel/unravel use one-based integer locations. Zero is invalid when visited; ravel raise rejects negative values, wrap uses modulo and clip clamps negatives. Literal Boolean true is Lua location one and false is invalid zero, a declared language difference.",
     "Ravel supports up to 63 coordinate axes, 64 broadcast dimensions and whole coordinate ndarrays including scalar-vector containers. Unravel supports target rank 64 and index rank 63; returned arrays are rooted writable views of new interleaved storage, not independent coordinate allocations.",
     "Strict nonnegative Lua integer/table shapes and C/F order replace Python shape/sequence protocols. Ordinary inferred empty index tables, float/complex/string/time indices, unknown options and malformed mode names are rejected. Full foreign inputs, non-native numeric endian, every host ABI/resource limit and every input combination remain uncertified.",
-    "The shared KEEPORDER helper preserves the existing iterator sort and handles minimum signed strides without signed absolute-value overflow; the generic ufunc operand cap remains unchanged. Six existing take/indexing multiplication guards now honor the overflow helper Boolean failure contract."
+    "The shared KEEPORDER helper preserves the existing iterator sort and handles minimum signed strides without signed absolute-value overflow; the generic ufunc operand cap remains unchanged. Six existing take/indexing multiplication guards now honor the overflow helper Boolean failure contract.",
+    "Bincount counts zero-origin nonnegative integer/Boolean category data. All integer labels forcecast to native intp, including wide-unsigned wrap; negative converted labels and maximum-intp output-size overflow are rejected. Output is owned native intp or weighted float64.",
+    "Weighted bincount accumulates sequentially in logical input order using safe typed conversion to float64. Empty labels still validate rank/dtype/minlength but ignore weights and return intp zeros. Read-only/unaligned/stepped/broadcast inputs remain unchanged.",
+    "Bincount exposes strict weights/minlength Lua options or positional arguments; typed scalar minlength, foreign/index protocols, numeric strings in ordinary weight sequences, Python warning/exception classes, enormous source allocations, every ABI and every input combination remain uncertified."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "4ab274ff2b66427662ca7c8a553216fee4ec26cffaa6315f304b9b16c4d1a255",
-      "files": 375
+      "sha256": "8eac7cd4a79fd4069c36b802dcb80db64e68d692ba7774a6013d617e694fe9fc",
+      "files": 381
     },
-    "version": "0.155.0-dev",
+    "version": "0.156.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -252,7 +249,9 @@
       "ln_integer_math",
       "ln_order",
       "ln_index_math",
-      "lua_index_math"
+      "lua_index_math",
+      "ln_bincount",
+      "lua_bincount"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -272,7 +271,8 @@
       "tests/native/test_field147_core.c",
       "tests/native/test_zero_string153_core.c",
       "tests/native/test_integer154_core.c",
-      "tests/native/test_index155_core.c"
+      "tests/native/test_index155_core.c",
+      "tests/native/test_bincount156_core.c"
     ],
     "instrumentation_verification": {
       "asan_initialization_symbols": "verified in every listed object",
@@ -322,6 +322,8 @@
         "ln_order.o",
         "ln_index_math.o",
         "lua_index_math.o",
+        "ln_bincount.o",
+        "lua_bincount.o",
         "runner.o",
         "tests/test_matrix_core.o",
         "tests/test_comparison134_core.o",
@@ -339,7 +341,8 @@
         "tests/test_field147_core.o",
         "tests/test_zero_string153_core.o",
         "tests/test_integer154_core.o",
-        "tests/test_index155_core.o"
+        "tests/test_index155_core.o",
+        "tests/test_bincount156_core.o"
       ],
       "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
     },
@@ -347,27 +350,18 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.155.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.156.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact one-based locations, dtype string/character/type number, shape, strides, ownership/writeability/contiguity/alignment, sharing, input independence, writable coordinate views and post-write input states. C/F logical order and K physical order, bounds, broadcast, typed failures, scalar/empty/high rank and checked target products.",
-  "new_reference_checks": 391028,
+  "new_check_semantics": "Exact values and raw payloads, output dtype string/character/type number, shape, strides, ownership/writeability/contiguity/alignment, independent storage and unchanged label/weight bytes. Ordinary and typed inputs, strided/read-only/broadcast/unaligned layouts, sequential floating accumulation, empty inputs, signed/wide-unsigned bounds and invalid conversions.",
+  "new_reference_checks": 50126,
   "new_reference_exclusions": {
-    "intp_max_rebase": {
-      "cases": 1472,
-      "operand_arrays": 3136,
-      "reason": "NumPy location intp_max cannot be represented after adding one in a Lua intp location"
-    },
-    "unsafe_source_inputs": [
-      "negative target dimensions",
-      "unravel rank64 index buffer overflow before rank65 check",
-      "invalid integer clipmode enumeration outside0..2"
-    ]
+    "resource_or_source_overflow_cases": 48,
+    "reason": "Do not attempt source output allocation of >=4097 bins in maximum-label probes or source signed intp_max+1 overflow. Native-only checks reject maximum-intp labels and enormous minlength.",
+    "unsupported_language_inputs": "Foreign protocols, typed scalar minlength and numeric strings in ordinary weight sequences are not counted as compatible."
   },
   "new_reference_language_adaptations": {
-    "input_values_rebased": 105704,
-    "narrow_or_boolean_operand_arrays_upcast": 11312,
-    "scalar_index_or_coordinate_returns_normalized": 4932,
-    "location_policy": "Nonnegative NumPy locations become one-based Lua locations; negative values retain sign. Narrow arrays upcast where needed; Boolean reference operands become intp. This does not certify literal NumPy Boolean-index semantics.",
-    "scalar_policy": "NumPy scalar indices/coordinates become Lua integers. Array metadata and interleaved view storage remain directly compared."
+    "labels": "Numeric category data retain zero origin; Lua result element one counts category zero.",
+    "argument_protocol": "Positional weights/minlength or a strict Lua options table. Empty second table means empty weights. Omitted/nil minlength means zero; Boolean minlength is rejected.",
+    "extended_padding": "Fixture serializers zero six longdouble ABI padding bytes per component, including unaligned views; all ten significant bytes remain checked."
   }
 }

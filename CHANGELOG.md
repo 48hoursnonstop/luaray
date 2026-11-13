@@ -14,6 +14,19 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.156.0-dev
+
+Added native bincount for zero-origin category data, independent writable output,
+optional float64 weights and minimum lengths. Includes sequential accumulation,
+integer/Boolean coercion, strided/read-only/unaligned inputs, checked output size
+and NumPy's empty-input weight bypass. Lua bindings offer positional arguments
+or a strict weights/minlength options table.
+
+Validated 6,937 NumPy 2.5.3 cases / 50,126 checks, 93 permanent Lua checks,
+a native harness and C++ header/link execution. The corpus regenerates exactly;
+48 oversized/source-overflow cases are excluded. Added executable English/Spanish
+guides, including zero-origin labels versus one-based result indexing.
+
 ## 0.155.0-dev
 
 Added native ravel_multi_index and unravel_index, using one-based Lua locations,

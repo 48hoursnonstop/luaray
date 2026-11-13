@@ -16,6 +16,7 @@ const pages = [
     ['Resizing arrays', 'Cambiar tamaño de arrays', 'resize'],
     ['Indexing and assignment', 'Índices y asignación', 'writing'],
     ['Coordinate grids and locations', 'Rejillas y posiciones', 'index_grids'],
+    ['Arrays from a callback', 'Arrays desde callbacks', 'fromfunction'],
     ['Masked writes', 'Escrituras con máscara', 'masked_writes'],
     ['Gathering values', 'Extracción por índices', 'take'],
     ['Along an axis', 'Operaciones por eje', 'along_axis'],
@@ -101,7 +102,7 @@ export default defineConfig({
         nav: [
           { text: 'Guide', link: '/getting-started' },
           { text: 'Reference', link: '/creation' },
-          { text: '0.149.0-dev', link: `${repo}/releases/tag/v0.149.0-dev` },
+          { text: '0.150.0-dev', link: `${repo}/releases/tag/v0.150.0-dev` },
         ],
         sidebar: sidebar(),
       },
@@ -112,7 +113,7 @@ export default defineConfig({
         nav: [
           { text: 'Guía', link: '/es/getting-started' },
           { text: 'Referencia', link: '/es/creation' },
-          { text: '0.149.0-dev', link: `${repo}/releases/tag/v0.149.0-dev` },
+          { text: '0.150.0-dev', link: `${repo}/releases/tag/v0.150.0-dev` },
         ],
         sidebar: sidebar(true),
         outline: { label: 'En esta página', level: [2, 3] },

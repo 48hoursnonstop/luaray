@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.149.0-dev')
+assert(np._version=='0.150.0-dev')
 local function near(a,b,eps)
  eps=eps or 1e-7
  if type(a)=='table' then

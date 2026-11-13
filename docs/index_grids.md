@@ -118,3 +118,5 @@ The APIs remain partial. General object/structured/StringDType, foreign array
 protocols, every nested sequence coercion, all host ABIs and Python keyword or
 shape-object protocols are unsupported or uncertified. These functions do not
 claim complete behavior for every operation subsequently applied to their arrays.
+
+[Fromfunction](fromfunction.md) executes a Lua callback over dense coordinate grids.

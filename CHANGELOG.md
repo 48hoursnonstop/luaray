@@ -14,6 +14,17 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.150.0-dev
+
+Added fromfunction: builds dense coordinate views, invokes a Lua callable once
+and forwards its return values without coercion. Supports descriptor/string
+coordinate dtypes, callable objects, trailing Lua context parameters, nil arity,
+mutable/read-only views and unchanged callback errors.
+
+Validated 2,160 NumPy 2.5.3 cases / 1,172,364 checks and 103 permanent Lua checks.
+Reference keyword context maps to Lua positional parameters; tuple results map
+to Lua multiple returns. Added executable English/Spanish callback guides.
+
 ## 0.149.0-dev
 
 Added indices, ix_ and argwhere through the native range, layout, assignment

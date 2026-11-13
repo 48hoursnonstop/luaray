@@ -51,14 +51,14 @@ Los generadores recientes usan NumPy 2.5.3; los anteriores conservan su atribuci
 NumPy 2.3.5.
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 406 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 407 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.149.0-dev** aprobó **67 suites nativas**, **119 suites Lua**, siete ejemplos
-y 288 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.150.0-dev** aprobó **67 suites nativas**, **120 suites Lua**, siete ejemplos
+y 300 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -129,7 +129,9 @@ Los métodos conj/conjugate aprobaron **28 140 casos /340 632 comprobaciones** y
 
 Indices/ix_/argwhere aprobaron **6 063 casos /474 263 comprobaciones** y 150 comprobaciones Lua permanentes: 1 344 rejillas, 2 539 mallas y 2 180 búsquedas de posiciones. Se compararon valores, metadatos, memoria compartida y escrituras/estados base, incluidas entradas vacías, escalares, de solo lectura y de hasta 64 dimensiones. Las rejillas conservan datos desde cero. Se normalizaron 438 ejes booleanos y 13 671 valores de argwhere a posiciones Lua desde uno; los metadatos siguen comparándose directamente. Longdouble omite padding de ABI. Los tres corpus se regeneraron exactamente.
 
-La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, además del runner Lua y catorce pruebas nativas. Aprobaron todas las suites mantenidas y los 51 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
+Fromfunction aprobó **2 160 casos /1 172 364 comprobaciones** y 103 comprobaciones Lua permanentes: número de llamadas/argumentos/retornos, valores, metadatos, identidad, memoria compartida, cambios y errores. El contexto keyword original se mapeó a parámetros Lua extra y las tuplas a retornos múltiples; el motor no convierte los resultados. Las coordenadas conservan valores desde cero. Longdouble omite padding de ABI. El corpus se regeneró exactamente.
+
+La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, además del runner Lua y catorce pruebas nativas. Aprobaron todas las suites mantenidas y los 52 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
 
 ## Integridad de las entregas
 

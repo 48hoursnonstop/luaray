@@ -1,4 +1,4 @@
--- NumPy 2.5.3 numeric.py:indices/argwhere and _index_tricks_impl.py:ix_.
+-- NumPy 2.5.3 numeric.py:indices/argwhere/fromfunction and _index_tricks_impl.py:ix_.
 -- Coordinate grids retain numerical values starting at zero; index locations
 -- from nonzero/argwhere follow LuaRay's existing one-based indexing contract.
 return function(lr)
@@ -84,5 +84,21 @@ return function(lr)
     end
     local coordinates=lr.nonzero(a)
     return lr.transpose(lr.ascontiguousarray(lr.stack(coordinates,1)))
+  end
+  function lr.fromfunction(callback,dimensions,options,...)
+    if options~=nil and type(options)~='table' then error('fromfunction options must be a table',2) end
+    options=options or {}
+    for key in pairs(options) do
+      if key~='dtype' then error('unknown fromfunction option',2) end
+    end
+    local dtype=options.dtype
+    if dtype==nil then dtype='float64' end
+    local grids=lr.indices(dimensions,dtype)
+    local n=grids.shape[1]
+    local arguments={}
+    for i=1,n do arguments[i]=grids:get(i) end
+    local extra=select('#',...)
+    for i=1,extra do arguments[n+i]=select(i,...) end
+    return callback(table.unpack(arguments,1,n+extra))
   end
 end

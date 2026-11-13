@@ -120,3 +120,5 @@ protocolos externos, todas las coerciones de secuencias anidadas, todas las ABI
 y los protocolos Python de keywords y objetos de forma siguen sin soporte o
 sin certificar. Estas funciones no certifican todas las operaciones que puedan
 aplicarse después a sus arrays.
+
+[Fromfunction](fromfunction.md) ejecuta un callback Lua sobre rejillas densas de coordenadas.

@@ -1,4 +1,5 @@
 #include "ln_datetime.h"
+#include "ln_datetime_strings.h"
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
@@ -43,9 +44,11 @@ int ln_datetime_metadata_gcd(const ln_datetime_meta *a,const ln_datetime_meta *b
     else if(b->base==LN_FR_Y){if(a->base==LN_FR_M){base=LN_FR_M;n2*=12;}else if(sb){dterr(e,"incompatible nonlinear datetime units");return -1;}else base=a->base;}
     else if(a->base==LN_FR_M){if(sa){dterr(e,"incompatible nonlinear datetime units");return -1;}base=b->base;}
     else if(b->base==LN_FR_M){if(sb){dterr(e,"incompatible nonlinear datetime units");return -1;}base=a->base;}
-    if(a->base!=b->base && a->base!=LN_FR_Y && b->base!=LN_FR_Y && a->base!=LN_FR_M && b->base!=LN_FR_M){
-        if(a->base>b->base){base=a->base;uint64_t f=factor(b->base,a->base);if(!f)return -1;n2*=f;}
-        else{base=b->base;uint64_t f=factor(a->base,b->base);if(!f)return -1;n1*=f;}
+    if(a->base!=b->base){
+        /* datetime.c applies its unit-factor table after the nonlinear-unit
+         * compatibility checks too. Y/M factors are one in this table. */
+        if(a->base>b->base){base=a->base;uint64_t f=factor(b->base,a->base);n2*=f;if(!n2){dterr(e,"overflow computing datetime metadata factor");return -1;}}
+        else{base=b->base;uint64_t f=factor(a->base,b->base);n1*=f;if(!n1){dterr(e,"overflow computing datetime metadata factor");return -1;}}
     }
     uint64_t g=gcd64(n1,n2); if(!g||g>INT_MAX){dterr(e,"overflow getting common datetime metadata divisor");return -1;} o->base=base;o->num=(int)g;return 0;
 }
@@ -58,7 +61,10 @@ static const ln_dtype_descr *dt_common_instance(const ln_dtype_descr *a,const ln
     if(bt && !at){return b->type_num==LN_TIMEDELTA && (a->kind=='i'||a->kind=='u'||a->kind=='b') && !(a->kind=='u' && a->elsize>=sizeof(int64_t)) ? b : NULL;}
     if(!at||!bt)return NULL;
     ln_datetime_meta out; ln_error e={0}; const ln_datetime_meta *ma=ln_datetime_metadata(a),*mb=ln_datetime_metadata(b);
-    if(ln_datetime_metadata_gcd(ma,mb,a->type_num==LN_TIMEDELTA,b->type_num==LN_TIMEDELTA,&out,&e)<0)return NULL;
+    /* PyArray_PromoteTypes casts both descriptors to the common class before
+     * common_instance: a datetime result therefore has two datetime inputs. */
+    int duration=a->type_num==LN_TIMEDELTA&&b->type_num==LN_TIMEDELTA;
+    if(ln_datetime_metadata_gcd(ma,mb,duration,duration,&out,&e)<0)return NULL;
     return ln_datetime_make_dtype(a->type_num==LN_DATETIME||b->type_num==LN_DATETIME?0:1,out,NULL);
 }
 static const ln_dtype_class_slots SLOTS={dt_default,dt_common_class,dt_common_instance};
@@ -270,4 +276,35 @@ void ln_datetime_isinf_loop(char **args,const ln_intp *dimensions,const ln_intp 
 {
     (void)data;
     for(ln_intp i=0;i<dimensions[0];++i){uint8_t value=0;memcpy(args[1]+i*steps[1],&value,1);}
+}
+
+int ln_datetime_integer_item(int64_t ticks,const ln_dtype *dtype,ln_error *error)
+{
+    const ln_datetime_meta *meta=ln_datetime_metadata(dtype);
+    if(!meta){dterr(error,"integer item requires temporal dtype");return -1;}
+    if(ticks==LN_DATETIME_NAT)return 0;
+    if(meta->num<=0){dterr(error,"temporal item requires a positive unit multiplier");return -1;}
+    if(dtype->kind=='M'){
+        if(meta->base==LN_FR_GENERIC)return 0;
+        if(meta->base>LN_FR_us)return 1;
+        ln_datetimestruct date;
+        if(ln_datetime_value_to_struct(ticks,meta,&date,error)<0)return -1;
+        return date.year<1||date.year>9999||date.sec==60;
+    }
+    if(meta->base>LN_FR_us||meta->base<=LN_FR_M)return 1;
+    /* datetime.c's item conversion applies int64 wrapping to the multiplier
+     * before deciding whether datetime.timedelta's day range can represent it. */
+    uint64_t bits=(uint64_t)ticks*(uint64_t)meta->num;int64_t scaled;memcpy(&scaled,&bits,8);
+    if(meta->base==LN_FR_W){bits=(uint64_t)scaled*7;memcpy(&scaled,&bits,8);}
+    int64_t divisor=1;
+    switch(meta->base){
+      case LN_FR_h:divisor=24;break;
+      case LN_FR_m:divisor=1440;break;
+      case LN_FR_s:divisor=86400;break;
+      case LN_FR_ms:divisor=86400000;break;
+      case LN_FR_us:divisor=86400000000LL;break;
+      default:break;
+    }
+    int64_t days=scaled/divisor;if(scaled<0&&scaled%divisor)--days;
+    return days< -999999999||days>999999999;
 }

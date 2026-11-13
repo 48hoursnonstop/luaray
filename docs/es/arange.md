@@ -164,8 +164,8 @@ certifican las políticas de advertencias flotantes.
 ## Compatibilidad y verificación
 
 La interfaz numérica tiene compatibilidad parcial con NumPy 2.5.3.
-Todavía no admite rangos datetime/timedelta ni
-protocolos Python de tipos externos, `like` o dispositivos. Los enteros Python
+Los rangos de fechas y duraciones se describen en [rangos temporales](./temporal_ranges.md).
+Todavía no admite protocolos Python de tipos externos, `like` o dispositivos. Los enteros Python
 fuera del rango Lua no son representables; las diferencias y sumas iniciales
 internas usan aritmética más amplia y comprobada.
 

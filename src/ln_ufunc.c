@@ -96,6 +96,10 @@ resolve_time_binary_descrs(const ln_ufunc *u,const ln_ufunc_loop *method,
         else if(c->legacy_type_num==LN_TIMEDELTA)descrs[i]=ln_datetime_make_dtype(1,*meta,err);
         else descrs[i]=ln_dtype_default_descr(c);
         if(!descrs[i])return -1;
+        if(i<2&&is_time_dtype(inputs[i]->descr)&&
+           !ln_dtype_can_cast(inputs[i]->descr,descrs[i],LN_SAME_KIND_CASTING)){
+            ufunc_error(err,"datetime ufunc input cannot be cast with same_kind");return -1;
+        }
     }
     return 0;
 }

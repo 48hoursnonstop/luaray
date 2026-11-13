@@ -57,7 +57,7 @@ for _,call in ipairs({
  function()lr.arange(0,2,'int32\0extra')end,
  function()lr.arange(0,3,1,'S0')end,
  function()lr.arange(0,3,1,'U3')end,
- function()lr.arange(0,3,1,'datetime64[D]')end,
+ function()lr.arange(0,3,lr.datetime64('2020-01-01'),'datetime64[D]')end,
  function()lr.arange(0,lr.complex(3,3),1,'float64')end,
  function()lr.arange(256,258,1,'uint8')end,
  function()lr.arange(255,258,1,'uint8')end,

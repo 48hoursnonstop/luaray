@@ -12,6 +12,21 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.144.0-dev
+
+Added native datetime/timedelta arange with common-unit resolution, calendar
+conversion, relative endpoints, default ticks and checked allocation bounds.
+Explicit numeric dtypes retain the source numeric dispatcher, temporal item
+conversion and scalar/array packing distinctions. Existing legacy calls remain.
+
+Corrected datetime metadata factors and common-class promotion. Temporal ufunc
+inputs now enforce default same-kind casting separately from promotion. Shared
+integer-item classification moved into the native datetime subsystem.
+
+Validated 65,082 NumPy 2.5.3 cases / 301,408 exact checks across three corpora,
+plus 98 permanent Lua checks and native regressions. Unsafe/oversized source
+states are excluded explicitly. Added executable English/Spanish temporal guides.
+
 ## 0.143.0-dev
 
 Extended arange to numeric rank-zero array arguments. Native dtype promotion

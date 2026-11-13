@@ -20,6 +20,9 @@ const ln_dtype_descr *ln_datetime_default_dtype(int timedelta);
 const ln_dtype_descr *ln_datetime_parse_dtype(const char *typestr, ln_error *err);
 const ln_dtype_descr *ln_datetime_make_dtype(int timedelta, ln_datetime_meta meta, ln_error *err);
 const ln_datetime_meta *ln_datetime_metadata(const ln_dtype_descr *dtype);
+/* Whether the pinned source's Python item representation is an integer.
+ * Returns -1 on invalid metadata/conversion; no Python runs in this helper. */
+int ln_datetime_integer_item(int64_t ticks,const ln_dtype *dtype,ln_error *err);
 int ln_datetime_metadata_gcd(const ln_datetime_meta *a,const ln_datetime_meta *b,
         int strict_a,int strict_b,ln_datetime_meta *out,ln_error *err);
 int ln_datetime_conversion_factor(const ln_datetime_meta *src,const ln_datetime_meta *dst,

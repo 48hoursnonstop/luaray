@@ -1,9 +1,13 @@
 {
-  "version": "0.143.0-dev",
+  "version": "0.144.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
-  "new_reference_cases": 17508,
-  "new_lua_regression_checks": 35,
+  "new_reference_cases": {
+    "temporal_ranges_and_numeric_dispatch": 28086,
+    "temporal_metadata_promotion": 33124,
+    "temporal_ufunc_casting": 3872
+  },
+  "new_lua_regression_checks": 98,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -11,15 +15,26 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.arange": "implemented_partial"
+    "numpy.arange": "implemented_partial",
+    "numpy.promote_types": "implemented_partial",
+    "numpy.result_type": "implemented_partial",
+    "numpy.add": "implemented_partial",
+    "numpy.subtract": "implemented_partial",
+    "numpy.ndarray.fill": "implemented_partial"
   },
   "evidence": [
+    "src/ln_arange_time.c",
     "src/ln_arange.c",
     "src/ln_arange.h",
-    "tests/native/test_arange143_core.c",
-    "tests/lua/arange_arrays_regression.lua",
-    "tests/lua/arange_regression.lua",
-    "docs/arange.md",
+    "src/ln_datetime.c",
+    "src/ln_datetime.h",
+    "src/ln_ufunc.c",
+    "src/ln_ufunc.h",
+    "src/lua_arange.c",
+    "src/lua_elements.c",
+    "tests/native/test_arange144_core.c",
+    "tests/lua/temporal_ranges_regression.lua",
+    "docs/temporal_ranges.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
@@ -139,20 +154,25 @@
     "ndarray constructor accepts documented dense integer shape/layout and scalar dtype descriptors; retained Lua string or C/F-contiguous ndarray buffers only. No Python arbitrary buffer/subclass/foreign-array protocols.",
     "ndarray deliberately rejects unsafe or unverified upstream states: negative/excessive buffer offsets, inferred-stride footprints outside actual storage, zero-width inference, empty external buffers with nonempty payloads and overflowing element counts. The 2420 skipped reference parameter states are not compatibility passes. Native/Lua regressions directly test safety rejection.",
     "Owned zero-byte ndarray allocations reset strides, while buffer views retain them. S0/U0 retain zero width here; existing empty constructors normalize widths. Constructor contiguity flags preserve upstream default-versus-explicit stride distinctions.",
-    "arange numeric inputs accept Lua Boolean/integer/float/complex and numeric rank-zero arrays, with existing native numeric output dtypes. Higher-rank arguments, temporal range construction, foreign numeric/like/device protocols and Python integers outside Lua integer range remain unsupported.",
+    "arange supports Lua numeric scalars, numeric rank-zero arrays, temporal scalars/arrays and temporal-converter strings/integers within documented scope. Higher-rank arguments, foreign numeric/like/device protocols and Python integers outside Lua range remain unsupported.",
     "Legacy integer stop plus positional dtype preserves per-index conversion, including arbitrary-length Boolean ranges, raw temporal ticks and empty string descriptors. Options tables select the new NumPy constructor contract.",
     "Lua-scalar arange computes source length and first two scalar conversions, then typed-delta filling with integer wrap. The new Boolean constructor has at most two elements. Lua complex scalar inputs require complex output; typed arithmetic follows its separate source scalar conversion rules.",
     "The 0.142 scalar arange reference corpus excludes 138 oversized or outside-Lua-integer parameter cases. Longdouble padding bytes are omitted explicitly; significant bytes remain exact. Full host ABI, floating warning/error policy and all oversized allocations are not certified.",
     "Typed arange uses native weak/array arithmetic and preserves original-array versus computed-scalar packing. Intermediate precision, integer wrap, default output promotion and complex128 versus complex64/complex256 length conversion follow the verified source cases. This does not certify every operand/value/ABI combination.",
     "Original complex64/complex128 arrays reject ordinary real/integer scalar conversion; longdouble conversion has a separate source path. Numeric warning/error configuration and warning messages remain uncertified.",
-    "The new reference corpus excludes 56 oversized allocations and 70 rejected source-array constructions before arange execution. These are not compatibility passes. Longdouble padding is canonicalized in fixture initializers and omitted from numerical comparisons."
+    "The 0.143 typed numeric reference corpus excludes 56 oversized allocations and 70 rejected source-array constructions before arange execution. These are not compatibility passes. Longdouble padding is canonicalized in fixture initializers and omitted from numerical comparisons.",
+    "Temporal arange performs same-kind conversion, metadata GCD resolution, calendar date conversion, normalized relative endpoints and integer tick filling. Generic output class is retained while units are inferred. Numeric array arguments to the temporal converter and Python datetime/foreign object protocols remain unsupported.",
+    "Explicit numeric output selects source numeric dispatch; temporal quotients retain their integer-item and division semantics. Original temporal scalars and rank-zero arrays keep distinct packing behavior through scalar_object provenance. ln_ufunc_operand layout changed: native consumers must rebuild against matching development headers.",
+    "Temporal metadata promotion casts to the common class before common-instance resolution, while ufunc input casts enforce default same_kind separately. Complete ufunc casting options/output aliasing/error-state fidelity remain uncertified.",
+    "Temporal relative endpoints normalize before NaT validation, preserving the tested upstream relative-NaT empty-range quirk. Zero steps and final NaT ticks are errors. Unit multipliers must be positive.",
+    "Relative-stop addition and temporal length numerators are checked before allocation; unsafe signed-int64 upstream overflow states and oversized allocations were excluded from oracle execution, not counted as passes. Native regressions directly test rejection."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "2a3420b70350884737b2b98be46a927ec837536c2823804734b87910fd173481",
-      "files": 337
+      "sha256": "44e410c29dfd4a15c4291f8fbbff0891927b326106bc496d57b2296616b0acd6",
+      "files": 340
     },
-    "version": "0.143.0-dev",
+    "version": "0.144.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -189,7 +209,8 @@
       "ln_constructor",
       "lua_constructor",
       "ln_arange",
-      "lua_arange"
+      "lua_arange",
+      "ln_arange_time"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -202,18 +223,19 @@
       "tests/native/test_dtype140_core.c",
       "tests/native/test_constructor141_core.c",
       "tests/native/test_arange142_core.c",
-      "tests/native/test_arange143_core.c"
+      "tests/native/test_arange143_core.c",
+      "tests/native/test_arange144_core.c"
     ],
     "all_maintained_tests": "passed",
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.143.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.144.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Direct NumPy 2.5.3 arange comparisons with numeric rank-zero ndarray inputs. Exact acceptance, dtype typestr, shape/strides, flags, nbytes, significant numeric bytes and source payload/write permissions after independent output writes. Six x86 longdouble padding bytes per component are canonicalized to zero in input fixtures and omitted in comparisons; ten significant bytes remain exactly checked.",
-  "new_reference_checks": 250603,
+  "new_check_semantics": "Exact acceptance, temporal int64 ticks, units/multipliers/typestr, shape/strides, nbytes, flags and unchanged array sources. Metadata promotion and arithmetic are checked independently. Numeric longdouble outputs compare ten significant bytes per x86 component and omit six ABI padding bytes; temporal outputs compare all eight bytes.",
+  "new_reference_checks": 301408,
   "new_reference_exclusions": {
-    "oversized_allocations": 56,
-    "argument_array_construction_errors": 70
+    "oversized_or_unsafe_upstream_states": 1190,
+    "argument_construction_errors": 308
   }
 }

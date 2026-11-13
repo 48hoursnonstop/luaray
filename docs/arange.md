@@ -161,9 +161,9 @@ Floating warning policies are not reproduced or certified.
 
 ## Compatibility and verification
 
-The numeric interface has partial NumPy 2.5.3 compatibility. Datetime/timedelta
-ranges, foreign numeric and Python `like`/device
-protocols are not supported by this interface yet. Python arbitrary-precision
+The numeric interface has partial NumPy 2.5.3 compatibility. Date and duration
+arguments follow the [temporal range rules](./temporal_ranges.md). Foreign numeric
+and Python `like`/device protocols remain unsupported. Python arbitrary-precision
 integer arguments outside Lua's integer range are not representable; internal
 integer differences and initial sums use checked wider arithmetic.
 

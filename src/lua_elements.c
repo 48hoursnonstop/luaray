@@ -49,33 +49,6 @@ int ln_lua_array_item(lua_State *L)
 /* Scalar packing differs from casting a rank-zero array. NumPy temporal
  * scalar integer conversion follows its Python item representation, while
  * floating conversion uses raw ticks and text uses the scalar's display. */
-static int temporal_integer_item(int64_t ticks,const ln_dtype *dtype,const ln_datetime_meta *meta,ln_error *error)
-{
-    if(ticks==LN_DATETIME_NAT)return 0;
-    if(dtype->kind=='M'){
-        if(meta->base==LN_FR_GENERIC)return 0;
-        if(meta->base>LN_FR_us)return 1;
-        ln_datetimestruct date;
-        if(ln_datetime_value_to_struct(ticks,meta,&date,error)<0)return -1;
-        return date.year<1||date.year>9999||date.sec==60;
-    }
-    if(meta->base>LN_FR_us||meta->base<=LN_FR_M)return 1;
-    /* datetime.c's item conversion applies int64 wrapping to the multiplier
-     * before deciding whether datetime.timedelta's day range can represent it. */
-    uint64_t bits=(uint64_t)ticks*(uint64_t)meta->num;int64_t scaled;memcpy(&scaled,&bits,8);
-    if(meta->base==LN_FR_W){bits=(uint64_t)scaled*7;memcpy(&scaled,&bits,8);}
-    int64_t divisor=1;
-    switch(meta->base){
-      case LN_FR_h:divisor=24;break;
-      case LN_FR_m:divisor=1440;break;
-      case LN_FR_s:divisor=86400;break;
-      case LN_FR_ms:divisor=86400000;break;
-      case LN_FR_us:divisor=86400000000LL;break;
-      default:break;
-    }
-    int64_t days=scaled/divisor;if(scaled<0&&scaled%divisor)--days;
-    return days< -999999999||days>999999999;
-}
 static ln_array *temporal_fill_value(lua_State *L,const ln_array *destination,int *argument)
 {
     const ln_dtype *dtype=ln_lua_temporal_scalar_dtype(L,2);
@@ -92,7 +65,7 @@ static ln_array *temporal_fill_value(lua_State *L,const ln_array *destination,in
         lua_pushstring(L,text);*argument=lua_gettop(L);return NULL;
     }
     if(target->kind=='i'){
-        ln_error error={0};int integer_item=temporal_integer_item(ticks,dtype,meta,&error);
+        ln_error error={0};int integer_item=ln_datetime_integer_item(ticks,dtype,&error);
         if(integer_item<0)ln_lua_fail(L,&error);
         if(!integer_item)luaL_error(L,"temporal scalar does not have an integer item representation");
         lua_pushinteger(L,(lua_Integer)ticks);*argument=lua_gettop(L);return NULL;

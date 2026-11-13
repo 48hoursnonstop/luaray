@@ -30,6 +30,9 @@ typedef struct ln_ufunc_operand {
     long double imag;
     const char *string;
     size_t string_len;
+    /* Binding provenance for scalar objects represented by rank-zero arrays.
+     * Ufunc arithmetic still treats their descriptor as a strong operand. */
+    int scalar_object;
 } ln_ufunc_operand;
 
 typedef struct ln_ufunc ln_ufunc;

@@ -4,6 +4,7 @@
 #include "ln_arange.h"
 #include "ln_half.h"
 #include "ln_complex.h"
+#include "ln_datetime.h"
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
@@ -186,9 +187,11 @@ static int numeric(const ln_dtype *d)
 #define READ_VALUE(TYPE,FIELD) do{TYPE range_loaded;memcpy(&range_loaded,a->data,sizeof range_loaded);*(FIELD)=range_loaded;}while(0)
 static int read_array(const ln_array *a,scalar *value,long double *real,long double *imag,ln_error *err)
 {
-    if(!a||a->nd||!numeric(a->descr))return bad(err,"arange array arguments must be rank-zero numeric arrays");
+    if(!a||a->nd||(!numeric(a->descr)&&!ln_datetime_metadata(a->descr)))return bad(err,"arange array arguments must be rank-zero scalar arrays");
     memset(value,0,sizeof(*value));*imag=0;
-    if(a->descr->kind=='c'){
+    if(ln_datetime_metadata(a->descr)){
+        int64_t ticks;memcpy(&ticks,a->data,8);value->integer=ticks;*real=ticks;
+    }else if(a->descr->kind=='c'){
         value->kind=COMPLEX;
         if(ln_array_get_complex(a,NULL,real,imag,err)<0)return -1;
     }else if(a->descr->kind=='f'){
@@ -220,6 +223,11 @@ static int pack_typed(ln_array *result,ln_intp index,const ln_array *a,int origi
     scalar value;long double real,imag;if(read_array(a,&value,&real,&imag,err)<0)return -1;
     const ln_dtype *out=result->descr;char *destination=result->data+index*(ln_intp)out->elsize;
     if(out->kind=='b'){*destination=(real!=0||imag!=0);return 0;}
+    if(ln_datetime_metadata(a->descr)){
+        int item=ln_datetime_integer_item((int64_t)value.integer,a->descr,err);
+        if(item<0)return -1;
+        if(!item)return bad(err,"temporal value does not have a numeric item representation");
+    }
     if(out->kind=='i'||out->kind=='u'){
         if(original_array&&value.kind==COMPLEX&&a->descr->type_num!=LN_CLONGDOUBLE)
             return bad(err,"cannot convert a complex array to an integer scalar");
@@ -257,7 +265,9 @@ static int pack_typed(ln_array *result,ln_intp index,const ln_array *a,int origi
 static const ln_dtype *operand_dtype(const ln_ufunc_operand *op,ln_error *err)
 {
     if(op->kind==LN_UFUNC_OPERAND_ARRAY){
-        if(!op->array||op->array->nd||!numeric(op->array->descr)){bad(err,"arange requires rank-zero numeric arrays");return NULL;}
+        if(!op->array||op->array->nd||(!numeric(op->array->descr)&&!ln_datetime_metadata(op->array->descr))){bad(err,"arange requires rank-zero scalar arrays");return NULL;}
+        const ln_datetime_meta *meta=ln_datetime_metadata(op->array->descr);
+        if(meta&&meta->num<=0){bad(err,"arange requires positive temporal unit multipliers");return NULL;}
         return op->array->descr;
     }
     scalar value;if(unpack(op,&value,err)<0)return NULL;
@@ -275,7 +285,7 @@ static ln_array *arange_arrays(const ln_ufunc_operand *from,const ln_ufunc_opera
     const ln_ufunc_operand *all[]={from,to,by};const ln_dtype *inferred=ln_dtype_by_name("intp");
     for(int i=0;i<3;++i){
         const ln_dtype *d=operand_dtype(all[i],err);if(!d)return NULL;
-        inferred=ln_promote_dtype(inferred,d);if(!inferred){bad(err,"cannot infer arange dtype");return NULL;}
+        if(!dtype){inferred=ln_promote_dtype(inferred,d);if(!inferred){bad(err,"cannot infer arange dtype");return NULL;}}
     }
     if(!dtype)dtype=inferred;
     if(!numeric(dtype)){bad(err,"arange does not support this output dtype");return NULL;}
@@ -313,6 +323,11 @@ static ln_array *arange_arrays(const ln_ufunc_operand *from,const ln_ufunc_opera
     }
     quotient=calculate("true_divide",diff,*by,err);if(!quotient)goto finish;
     scalar q;if(read_array(quotient,&q,&qr,&qi,err)<0)goto finish;
+    if(ln_datetime_metadata(quotient->descr)){
+        int item=ln_datetime_integer_item((int64_t)q.integer,quotient->descr,err);
+        if(item<0)goto finish;
+        if(!item){bad(err,"temporal quotient cannot be converted to a numeric length");goto finish;}
+    }
     ln_intp count;
     if(dtype->kind=='c'&&quotient->descr->type_num==LN_CDOUBLE){
         ln_intp real_count,imag_count;
@@ -331,7 +346,7 @@ static ln_array *arange_arrays(const ln_ufunc_operand *from,const ln_ufunc_opera
     }
     result=ln_array_new(1,&count,dtype,0,0,err);if(!result||!count)goto finish;
     int rc;
-    if(from->kind==LN_UFUNC_OPERAND_ARRAY)rc=pack_typed(result,0,from->array,1,err);
+    if(from->kind==LN_UFUNC_OPERAND_ARRAY)rc=pack_typed(result,0,from->array,!from->scalar_object,err);
     else{scalar start;rc=unpack(from,&start,err);if(!rc)rc=pack(result,0,start,err);}
     if(!rc&&count>1)rc=next?pack_typed(result,1,next,0,err):pack(result,1,first,err);
     if(!rc)rc=fill(result,err);

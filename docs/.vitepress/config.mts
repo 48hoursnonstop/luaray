@@ -36,6 +36,7 @@ const pages = [
     ['Clipping', 'Recorte de valores', 'clip'],
     ['Sequences and sampling', 'Secuencias y muestreo', 'sampling'],
     ['Numeric ranges', 'Rangos numéricos', 'arange'],
+    ['Date and duration ranges', 'Rangos de fechas y duraciones', 'temporal_ranges'],
     ['Finite differences', 'Diferencias finitas', 'differences'],
     ['Numerical gradients', 'Gradientes numéricos', 'gradient'],
     ['Trapezoidal integration', 'Integración trapezoidal', 'integration'],
@@ -96,7 +97,7 @@ export default defineConfig({
         nav: [
           { text: 'Guide', link: '/getting-started' },
           { text: 'Reference', link: '/creation' },
-          { text: '0.143.0-dev', link: `${repo}/releases/tag/v0.143.0-dev` },
+          { text: '0.144.0-dev', link: `${repo}/releases/tag/v0.144.0-dev` },
         ],
         sidebar: sidebar(),
       },
@@ -107,7 +108,7 @@ export default defineConfig({
         nav: [
           { text: 'Guía', link: '/es/getting-started' },
           { text: 'Referencia', link: '/es/creation' },
-          { text: '0.143.0-dev', link: `${repo}/releases/tag/v0.143.0-dev` },
+          { text: '0.144.0-dev', link: `${repo}/releases/tag/v0.144.0-dev` },
         ],
         sidebar: sidebar(true),
         outline: { label: 'En esta página', level: [2, 3] },

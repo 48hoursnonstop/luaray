@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.143.0-dev')
+assert(np._version=='0.144.0-dev')
 local function eq(a,b)
  if type(b)=='table' then assert(type(a)=='table' and #a==#b,'table length') for i=1,#b do eq(a[i],b[i]) end
  else assert(a==b,tostring(a)..' ~= '..tostring(b)) end

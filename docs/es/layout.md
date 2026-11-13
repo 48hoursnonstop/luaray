@@ -101,3 +101,5 @@ make reference-test
 Ocho hashes fijan las fuentes en [pinned source hashes](https://github.com/48hoursnonstop/luaray/blob/main/compatibility/numpy-source.sha256).
 Véanse [creación](creation.md), [matemáticas binarias](binary_math.md) e
 [inventario](api_inventory.md).
+
+[Cambiar el tamaño](resize.md) explica las copias con repetición y la reasignación del array existente.

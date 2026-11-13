@@ -1,5 +1,6 @@
 #include "ln_core.h"
 #include "ln_layout.h"
+#include "ln_resize.h"
 #include "ln_dtype_transfer.h"
 #include "ln_ufunc_loops.h"
 #include "ln_nditer.h"
@@ -648,6 +649,36 @@ static ln_buffer *buffer_new(size_t nbytes, int zeroed) {
 }
 static void buffer_incref(ln_buffer *b){ if(b) b->refs++; }
 static void buffer_decref(ln_buffer *b){ if(b && --b->refs==0){ if(b->release)b->release(b->ptr,b->context); free(b);} }
+
+int ln_array_resize_inplace(ln_array *a,int nd,const ln_intp *shape,ln_error *err)
+{
+    if(!a||!(a->flags&(LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS))){seterr(err,"resize requires a single-segment array");return -1;}
+    ln_intp count;if(ln_resize_shape(nd,shape,a->descr->elsize,&count,err)<0)return -1;
+    ln_intp old_count=ln_array_size(a),old_bytes,new_bytes;
+    if(old_count<0||ln_mul_sizes_with_overflow(&old_bytes,old_count,(ln_intp)a->descr->elsize)||
+       ln_mul_sizes_with_overflow(&new_bytes,count,(ln_intp)a->descr->elsize)){seterr(err,"resize byte count overflow");return -1;}
+    int reallocating=old_bytes!=new_bytes;
+    if(reallocating&&(!(a->flags&LN_ARRAY_OWNDATA)||!a->owner||a->data!=a->owner->ptr||
+       a->owner->release!=release_allocation)){seterr(err,"resize requires owned native storage");return -1;}
+    if(reallocating&&a->owner->refs!=1){seterr(err,"cannot reallocate storage retained by another view");return -1;}
+    ln_intp *dimensions=nd?malloc((size_t)2*nd*sizeof(*dimensions)):NULL;
+    if(nd&&!dimensions){seterr(err,"out of memory");return -1;}
+    int flags=a->flags;
+    if(nd){
+        memcpy(dimensions,shape,(size_t)nd*sizeof(*shape));
+        ln_array_fill_strides(dimensions+nd,dimensions,nd,a->descr->elsize,flags,&flags);
+    }
+    if(reallocating){
+        size_t allocation=new_bytes?(size_t)new_bytes:1;
+        char *data=realloc(a->owner->ptr,allocation);
+        if(!data){free(dimensions);seterr(err,"cannot allocate resized storage");return -1;}
+        a->owner->ptr=a->data=data;a->owner->nbytes=allocation;
+        if(new_bytes>old_bytes&&((flags&LN_ARRAY_WRITEABLE)||(a->descr->flags&LN_DTYPE_NEEDS_INIT)))
+            memset(data+old_bytes,0,(size_t)(new_bytes-old_bytes));
+    }
+    free(a->dimensions);a->dimensions=dimensions;a->strides=nd?dimensions+nd:NULL;a->nd=nd;a->flags=flags;
+    return 0;
+}
 
 ln_array *ln_array_new(int nd, const ln_intp *dims, const ln_dtype_descr *dtype,
                        int fortran, int zeroed, ln_error *err) {

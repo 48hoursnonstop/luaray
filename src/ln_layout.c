@@ -126,11 +126,14 @@ ln_array *ln_layout_reshape(const ln_array *a,int nd,const ln_intp *newshape,
         owned=ln_creation_convert(a,NULL,order,1,0,NULL,err);if(!owned)return NULL;
         base=owned;has_strides=0;
     }
+    int default_flags=0;
     if(!has_strides){
-        int flags=0;ln_array_fill_strides(strides,shape,nd,base->descr->elsize,
-                          order=='F'?LN_ARRAY_F_CONTIGUOUS:LN_ARRAY_C_CONTIGUOUS,&flags);
+        ln_array_fill_strides(strides,shape,nd,base->descr->elsize,
+                          order=='F'?LN_ARRAY_F_CONTIGUOUS:LN_ARRAY_C_CONTIGUOUS,&default_flags);
     }
     ln_array *out=ln_array_view(base,nd,shape,strides,base->data,err);
+    if(out&&!has_strides&&nd)
+        out->flags=(out->flags&~(LN_ARRAY_C_CONTIGUOUS|LN_ARRAY_F_CONTIGUOUS))|default_flags;
     if(owned)ln_array_free(owned);
     return out;
 }

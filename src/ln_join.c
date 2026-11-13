@@ -144,6 +144,12 @@ ln_array *ln_join_arrays(const ln_array *const *arrays, size_t count,
         }
     }
     if (!stack) shape[flat ? 0 : axis] = cumulative;
+    if(!out&&!dtype&&resolved->kind=='U'){
+        /* Default concatenation requests a native descriptor even for one
+         * input; an explicit unsized dtype follows the separate rule below. */
+        resolved=ln_string_make_dtype(1,resolved->elsize/4,'=',err);
+        if(!resolved)return NULL;
+    }
     /* convert_datatype.c:FindConcatenationDescriptor resolves an unsized
      * string request through its class, never by inspecting input contents.
      * One same-class input retains its descriptor; combining instances uses

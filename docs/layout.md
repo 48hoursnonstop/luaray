@@ -100,3 +100,5 @@ Eight source/test hashes are pinned in [pinned source hashes](https://github.com
 See [creation](creation.md) for array conversion and copying,
 [binary mathematics](binary_math.md) for ordinary inputs, and the
 [API inventory](api_inventory.md) for measured callable availability.
+
+[Resizing arrays](resize.md) covers repeated copies and in-place allocation changes.

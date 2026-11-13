@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.144.0-dev')
+assert(np._version=='0.145.0-dev')
 local function eq(a,b) assert(a==b,tostring(a)..' ~= '..tostring(b)) end
 local function reject(fn) assert(not pcall(fn),'expected invalid axis to be rejected') end
 local a=np.reshape(np.arange(24,'int32'),{2,3,4})

@@ -14,6 +14,19 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.145.0-dev
+
+Added native `resize` and `ndarray:resize`: independent C-order repetition,
+empty-input zero filling, physical in-place growth/shrink and checked storage
+ownership. Lua aliases follow the same userdata; reallocation with live views
+is blocked even when refcheck=false. Shape-only changes can retain shared storage.
+Read-only Unicode growth is initialized deliberately; numeric tails stay unspecified.
+
+Corrected default Unicode concatenation endian resolution and zero-width
+reshape contiguity flags. Validated 18,248 NumPy 2.5.3 cases / 313,948 exact
+checks, 156 permanent Lua checks and native ownership/boundary regressions.
+Added executable English/Spanish resizing guides. All Lua docs use `lr`.
+
 ## 0.144.0-dev
 
 Added native datetime/timedelta arange with common-unit resolution, calendar

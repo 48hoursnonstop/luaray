@@ -25,6 +25,8 @@ const char *ln_casting_name(ln_casting casting);
 int ln_dtype_cast_safety(const ln_dtype_descr *from, const ln_dtype_descr *to);
 int ln_dtype_can_cast(const ln_dtype_descr *from, const ln_dtype_descr *to,
                       ln_casting casting);
+/* Resolve metadata-dependent transfer availability even for empty arrays. */
+int ln_dtype_validate_transfer(const ln_dtype_descr *from,const ln_dtype_descr *to,ln_error *err);
 int ln_dtype_supports_same_value(const ln_dtype_descr *from, const ln_dtype_descr *to);
 int ln_cast_same_value_one(const char *src, const ln_dtype_descr *from,
                            const ln_dtype_descr *to, ln_error *err);

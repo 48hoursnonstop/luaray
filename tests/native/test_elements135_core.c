@@ -23,6 +23,8 @@ int main(void)
     source=INT64_MAX;
     assert(ln_datetime_value_to_struct(source,ln_datetime_metadata(ln_dtype_by_name("datetime64[2h]")),&date,&error)<0);
     assert(error.kind==LN_ERROR_OVERFLOW);
+    source=0;
+    assert(ln_cast_strided_numeric((const char*)&source,8,year,(char*)&third,8,ln_dtype_by_name("datetime64[ps]"),1,&error)<0);
     puts("elements135 native: calendar conversion, wrap and temporal text passed");
     return 0;
 }

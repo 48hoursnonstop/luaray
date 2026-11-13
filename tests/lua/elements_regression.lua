@@ -45,6 +45,13 @@ local empty=lr.zeros({0},'float64');reject(function()empty:fill('invalid')end)
 local storage=lr.zeros({33},'uint8');local unaligned=storage:get(lr.s(2,nil)):view('longdouble')
 unaligned:fill(ld_scalar);check(lr.array_equal(unaligned:item(1),ld_scalar))
 check(not lr.shares_memory(unaligned:item(1),storage))
+reject(function()lr.subtract(lr.array({0},'datetime64[Y]'),lr.array({0},'datetime64[ps]'))end)
+reject(function()lr.astype(lr.zeros({0},'datetime64[Y]'),'datetime64[ps]')end)
+local no_write=lr.zeros({2},'datetime64[ps]')
+lr.copyto(no_write,lr.zeros({2},'datetime64[Y]'),'unsafe',false)
+check(lr.astype(no_write,'int64')[1]==0)
+reject(function()lr.copyto(no_write,lr.array(0,'datetime64[Y]'),'unsafe',false)end)
+reject(function()lr.copyto(no_write,lr.array(0,'datetime64[Y]'),'unsafe',lr.array({false,false}))end)
 for _,call in ipairs({
  function()a:item()end,
  function()a:item(0)end,

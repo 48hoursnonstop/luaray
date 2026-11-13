@@ -17,7 +17,9 @@
 Added native ndarray `item` and `fill`, with logical flat/coordinate indexing,
 detached precision-preserving scalars, scalar packing before writes and alias
 capture. Fixed shared datetime year/month calendar casts, defined source wrap
-behavior and temporal text limits. Added maintained native/Lua tests and
+behavior and temporal text limits. Resolve temporal metadata before iteration,
+including empty arrays, and preserve scalar/array false-mask distinctions.
+Added maintained native/Lua tests and
 English/Spanish guides for element access and filling.
 
 ## 0.134.0-dev

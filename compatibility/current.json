@@ -5,9 +5,9 @@
   "new_reference_cases": {
     "item": 11813,
     "fill": 10801,
-    "calendar_casts": 2700
+    "calendar_casts_and_resolution": 4230
   },
-  "new_lua_regression_checks": 51,
+  "new_lua_regression_checks": 56,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -28,7 +28,10 @@
     "tests/native/test_elements135_core.c",
     "tests/lua/elements_regression.lua",
     "docs/elements.md",
-    "compatibility/numpy-source.sha256"
+    "compatibility/numpy-source.sha256",
+    "src/ln_write.c",
+    "src/ln_ufunc.c",
+    "src/ln_dtype_transfer.h"
   ],
   "availability_inventory": {
     "scoped_names": 675,
@@ -127,12 +130,18 @@
     "New extended-precision reference inputs normalize x87 padding and retain all value bits. Other host floating ABIs and all nondefault rounding/error-state modes remain uncertified.",
     "Ndarray item uses strict one-based Lua integer indices and one coordinate table. Longdouble/complex256 and high uint64 values return detached typed rank-zero arrays; temporal elements retain LuaRay temporal userdata instead of Python datetime/timedelta/None conversion.",
     "Fill packs before writes including empty arrays, captures aliased values, uses Boolean sequence truth and preserves scalar versus rank-zero casting distinctions. Full object/structured/foreign/Python scalar and warning/error protocols remain unsupported.",
-    "Datetime year/month casts use actual calendar conversion; pinned source integer wrap in calendar formulas and scalar item-range decisions is implemented without signed overflow UB. Duration casts retain average units and temporal text casts retain the observed21-character legacy limit."
+    "Datetime year/month casts use actual calendar conversion; pinned source integer wrap in calendar formulas and scalar item-range decisions is implemented without signed overflow UB. Duration casts retain average units and temporal text casts retain the observed21-character legacy limit.",
+    "Temporal transfer availability is resolved before data iteration, including empty arrays. Literal false copyto masks preserve the distinct scalar-preconversion and array-assignment shortcuts; regression checks retain the previous scalar string conversion rules."
   ],
   "sanitizers": {
+    "source_fingerprint": {
+      "sha256": "bcf45bb87bfe982555099e558e8b76239b5f14b75f952166b2f01319efb9fdc5",
+      "files": 304
+    },
     "version": "0.135.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
+      "ln_write",
       "lua_elements",
       "ln_dtype_transfer",
       "ln_datetime_strings",
@@ -161,5 +170,5 @@
     "log": "artifacts/matrix-0.135.0-dev-sanitizers.log"
   },
   "new_check_semantics": "Exact selected scalar/native values, dtype, shape, strides, independent item storage, input/backing states and full fill writes/errors. Typed rank-zero results preserve longdouble/clongdouble and uint64 above Lua signed range. Temporal item retains source ticks/unit rather than Python calendar objects.",
-  "new_reference_checks": 645992
+  "new_reference_checks": 684401
 }

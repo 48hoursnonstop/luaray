@@ -97,6 +97,9 @@ item results are explicit adaptations. The shared calendar fixes include source
 integer wrap behavior executed without signed-overflow undefined behavior.
 Timedelta string casts retain the source's 21-character limit.
 
+Unit-factor availability is resolved before iteration, including empty arrays.
+Scalar and array false-mask shortcuts follow their separate source paths.
+
 References check selected values, native precision, shapes, strides, backing
 writes, aliasing, read-only and empty cases, NaT and scalar conversion errors.
 The APIs remain partially compatible: object/structured dtypes, full foreign and

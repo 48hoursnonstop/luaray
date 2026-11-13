@@ -97,7 +97,7 @@ static ln_array *temporal_fill_value(lua_State *L,const ln_array *destination,in
         if(!integer_item)luaL_error(L,"temporal scalar does not have an integer item representation");
         lua_pushinteger(L,(lua_Integer)ticks);*argument=lua_gettop(L);return NULL;
     }
-    if((target->kind=='m'||target->kind=='M')&&target->kind!=dtype->kind){
+    if((target->kind=='m'||target->kind=='M')&&(target->kind!=dtype->kind||ticks==LN_DATETIME_NAT)){
         ln_error error={0};ln_array *raw=ln_array_view(value,0,NULL,NULL,value->data,&error);
         if(!raw){ln_lua_fail(L,&error);return NULL;}
         raw->descr=target;ln_lua_push_array(L,raw);return raw;

@@ -1852,6 +1852,7 @@ array_cast_new(const ln_array *src,const ln_dtype *requested,ln_casting casting,
             src->descr->name,dst->name,ln_casting_name(casting));
         return NULL;
     }
+    if(ln_dtype_validate_transfer(src->descr,dst,e)<0)return NULL;
     int fort=(order=='F') ||
         ((order=='A'||order=='K') &&
          (src->flags&LN_ARRAY_F_CONTIGUOUS) && !(src->flags&LN_ARRAY_C_CONTIGUOUS));

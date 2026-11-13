@@ -103,6 +103,10 @@ incluyen el comportamiento de desbordamiento entero de la referencia sin usar
 operaciones C de desbordamiento con comportamiento indefinido. Las conversiones
 de timedelta a strings conservan el límite de21 caracteres de referencia.
 
+La disponibilidad de factores de unidad se resuelve antes de iterar, incluidos
+arrays vacíos. Los atajos de máscara falsa para escalares y arrays conservan
+sus rutas distintas de la referencia.
+
 Las referencias comprueban valores seleccionados, precisión nativa, formas, strides,
 escritura en memoria compartida, alias, solo lectura, vacíos, NaT y errores de
 conversión escalar. Las API son parciales: no se certifican object/estructuras,

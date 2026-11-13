@@ -86,13 +86,9 @@ Linear interpolation passed **1,531 cases /137,255 checks**, with37 permanent Lu
 
 Equality, closeness and temporal core passed **27,384 cases /1,186,383 exact checks**:8,482 equality,4,478 closeness and14,424 temporal cases. The48 permanent Lua checks and new native test exercise shapes, broadcasting, weak/typed promotion, NaN/NaT, identity, writable independence, extended-precision thresholds, integer offsets, masks and completed writes before overflow. Extended inputs avoid float64 serialization and normalize x87 padding. Warning/error-state objects and all floating ABIs are not certified.
 
-Elements, filling and calendar casts passed **25,314 cases /645,992 exact checks**:11,813 item,10,801 fill and2,700 cast cases. The51 permanent Lua checks and new native test include logical C indices, coordinates, detached lossless values, GC, unaligned storage, scalar aliases, Boolean packing, empties, NaT, temporal scalar conversions and calendar limits. Lua item representation retains values/units and uses rank-zero arrays when the native number cannot fit a Lua scalar.
+Elements, filling and calendar casts passed **26, 844 cases /684, 401 exact checks**: 11, 813 item, 10, 801 fill and 4, 230 casting/metadata-resolution cases. The 56 permanent Lua checks and new native test include logical C indices, coordinates, detached lossless values, GC, unaligned storage, scalar aliases, Boolean packing, empties, NaT, temporal scalar conversions and calendar limits. Unit factors resolve before iteration, including zero elements; scalar and array false-mask shortcuts remain distinct. All 161 historical references pass again without changing their assertions.
 
-The directed ASan/UBSan run instrumented `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`,
-`lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi` and `ln_datetime`, plus the native matrix/comparison/elements tests and Lua runner. All maintained tests
-and all twenty-six cumulative matrix corpora passed. Other native dependencies were not fully
-instrumented; leak detection was disabled. This is a directed audit, not an
-all-dependency memory-safety certification.
+The directed ASan/UBSan run instrumented `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, plus the Lua runner and native matrix/comparison/elements harnesses. All maintained suites and all 26 cumulative reference corpora passed. Other dependencies were not fully instrumented; leak detection was disabled. Evidence records an executable-source fingerprint, which packaging verifies against the source tree.
 
 ## Release integrity
 

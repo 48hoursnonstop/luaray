@@ -929,6 +929,21 @@ ln_cast_same_value_one(const char *src, const ln_dtype_descr *from,
         break; \
     }
 
+int ln_dtype_validate_transfer(const ln_dtype_descr *from,const ln_dtype_descr *to,ln_error *err)
+{
+    if(!from||!to){set_transfer_error(err,"invalid dtype transfer");return -1;}
+    if((from->kind=='M'||from->kind=='m')&&from->kind==to->kind){
+        const ln_datetime_meta *a=ln_datetime_metadata(from),*b=ln_datetime_metadata(to);
+        if(!a||!b){set_transfer_error(err,"invalid datetime metadata");return -1;}
+        if(a->base!=b->base||a->num!=b->num){
+            int64_t numerator,denominator;
+            if(ln_datetime_conversion_factor(a,b,&numerator,&denominator,err)<0)return -1;
+            if(numerator<=0||denominator<=0){set_transfer_error(err,"invalid datetime conversion factor");return -1;}
+        }
+    }
+    return 0;
+}
+
 int
 ln_cast_strided_numeric(const char *src, ln_intp src_stride,
                         const ln_dtype *src_dtype,
@@ -940,6 +955,7 @@ ln_cast_strided_numeric(const char *src, ln_intp src_stride,
         set_transfer_error(err, "invalid dtype transfer");
         return -1;
     }
+    if(ln_dtype_validate_transfer(src_dtype,dst_dtype,err)<0)return -1;
     if (count == 0) return 0;
     if (!src || !dst) {
         set_transfer_error(err, "invalid dtype transfer pointer");
@@ -1025,10 +1041,13 @@ ln_cast_strided_numeric(const char *src, ln_intp src_stride,
         }
         const ln_datetime_meta *sm=ln_datetime_metadata(src_dtype), *dm=ln_datetime_metadata(dst_dtype);
         if(!sm||!dm){set_transfer_error(err,"invalid datetime metadata");return -1;}
+        int same_metadata=sm->base==dm->base&&sm->num==dm->num;
+        int64_t numerator,denominator;
+        if(!same_metadata&&ln_datetime_conversion_factor(sm,dm,&numerator,&denominator,err)<0)return -1;
         for(ln_intp i=0;i<count;++i,src+=src_stride,dst+=dst_stride){
             int64_t v,o;memcpy(&v,src,8);
-            if(src_dtype->type_num==LN_DATETIME&&(sm->base<=LN_FR_M||dm->base<=LN_FR_M)&&
-               (sm->base!=dm->base||sm->num!=dm->num)){
+            if(same_metadata)o=v;
+            else if(src_dtype->type_num==LN_DATETIME&&(sm->base<=LN_FR_M||dm->base<=LN_FR_M)){
                 ln_datetimestruct calendar;
                 if(ln_datetime_value_to_struct(v,sm,&calendar,err)<0||
                    ln_datetime_struct_to_value(&calendar,dm,&o,err)<0)return -1;

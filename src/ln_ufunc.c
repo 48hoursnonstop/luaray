@@ -871,6 +871,12 @@ ln_ufunc_execute_operands(const ln_ufunc *u,const ln_ufunc_operand *operands,
     if(!u->resolve||u->resolve(u,inputs,&method,err)<0||!method||!method->loop){for(int j=0;j<LN_UFUNC_MAXARGS;++j)free(dynamic_storage[j]);return -1;}
     ln_ufunc_resolution resolution;
     if(resolve_loop_descriptors(u,method,inputs,&resolution,err)<0){for(int j=0;j<LN_UFUNC_MAXARGS;++j)free(dynamic_storage[j]);return -1;}
+    for(int j=0;j<u->nin;++j)if(ln_dtype_validate_transfer(inputs[j]->descr,resolution.descrs[j],err)<0){
+        for(int k=0;k<LN_UFUNC_MAXARGS;++k)free(dynamic_storage[k]);return -1;
+    }
+    for(int j=0;j<u->nout;++j)if(outputs[j]&&ln_dtype_validate_transfer(resolution.descrs[u->nin+j],outputs[j]->descr,err)<0){
+        for(int k=0;k<LN_UFUNC_MAXARGS;++k)free(dynamic_storage[k]);return -1;
+    }
     void *loop_data=method->data;
     if(method->resolve_loop_data){
         loop_data=NULL;

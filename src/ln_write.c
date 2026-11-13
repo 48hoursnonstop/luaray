@@ -186,7 +186,9 @@ int ln_array_copyto(ln_array *dst,const ln_array *input,const ln_array *where,
     while(snd>dst->nd && s_dims[0]==1){--snd;++s_dims;++s_strides;}
     if(ln_broadcast_strides(dst->nd,dst->dimensions,snd,s_dims,s_strides,"source",ss,err)<0)goto fail;
     if(where && ln_broadcast_strides(dst->nd,dst->dimensions,where->nd,where->dimensions,where->strides,"where",ms,err)<0)goto fail;
-    if(!count || (!where && !scalar_where)){ln_array_free(temporary);return 0;}
+    if(input->nd>0&&!where&&!scalar_where){ln_array_free(temporary);return 0;}
+    if(ln_dtype_validate_transfer(src->descr,dst->descr,err)<0)goto fail;
+    if(!count||(!where&&!scalar_where)){ln_array_free(temporary);return 0;}
 
     /* Fastest destination axis first. Reverse source/mask coordinates together
      * with every negative destination stride, retaining stable C-order ties. */

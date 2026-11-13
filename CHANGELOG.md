@@ -14,6 +14,20 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.157.0-dev
+
+Added native packbits/unpackbits with big/little bit order, zero padding,
+C flattening or explicit axes, signed/noncanonical Boolean truth values,
+unpack count trimming/extension and independent uint8 results. Handles
+C/F, reversed, stepped, broadcast, read-only and unaligned inputs. Preserves
+the pinned source's explicit-axis rank limit and legacy bitorder parsing.
+
+Validated 37,640 NumPy 2.5.3 cases / 250,644 checks, 201 permanent Lua checks,
+a native harness and C++ header/link execution. The corpus regenerates exactly.
+Another 358 undefined source-output cases are excluded: expanding an empty
+packed axis to a positive count uses defined zeros in LuaRay, rather than
+NumPy 2.5.3's uninitialized output. Added executable English/Spanish guides.
+
 ## 0.156.0-dev
 
 Added native bincount for zero-origin category data, independent writable output,

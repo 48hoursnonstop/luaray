@@ -51,14 +51,14 @@ Los generadores recientes usan NumPy 2.5.3; los anteriores conservan su atribuci
 NumPy 2.3.5.
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 423 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 425 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.156.0-dev** aprobó **71 suites nativas**, **128 suites Lua**, siete ejemplos
-y 378 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.157.0-dev** aprobó **72 suites nativas**, **129 suites Lua**, siete ejemplos
+y 390 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -143,9 +143,11 @@ Las conversiones de índices aprobaron **40 822 casos /391 028 comprobaciones**:
 
 Bincount aprobó **6 937 casos /50 126 comprobaciones**, 93 comprobaciones Lua permanentes, una prueba nativa y cabeceras/enlace C++. Se comprueban bytes, dtype, forma, strides, flags, memoria independiente, entradas intactas, conversiones, valores extremos, acumulación secuencial, entradas vacías y layouts sin alinear/de solo lectura. Se excluyeron 48 casos de reserva enorme/desbordamiento del origen; no cuentan como aprobados. El corpus se regeneró exactamente. Los seis bytes de padding longdouble se normalizan al serializar, incluidos los buffers sin alinear; se conservan sus diez bytes significativos.
 
-La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, `ln_integer_math`, `ln_order`, `ln_index_math`, `lua_index_math`, `ln_bincount`, `lua_bincount`, además del runner Lua y dieciocho pruebas nativas. Aprobaron todas las suites mantenidas y los 60 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
+El empaquetado de bits aprobó **37 640 casos /250 644 comprobaciones**: 15 029 pack y 22 611 unpack; 7 958 entradas válidas y 29 682 rechazos esperados. Incluye 201 comprobaciones Lua permanentes, una prueba nativa y cabeceras/enlace C++. Se verifican bytes, dtype, forma, strides, flags, memoria independiente, entradas intactas, órdenes/ejes, count, límites y todos los bytes Boolean. Se adaptaron 16 804 ejes no negativos a posiciones Lua. El corpus se regeneró exactamente. Otros 358 estados del origen con salida sin inicializar se excluyen de paridad; la política LuaRay de ceros se prueba por separado.
 
-Se verificaron símbolos de inicialización ASan en los 66 objetos declarados (47 unidades de biblioteca, runner y 18 pruebas nativas). El driver reconstruye los objetos desde la misma lista que registra. El informe inicial de la 0.153 contaba una prueba instrumentada de más; su [reauditoría corregida](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) del mismo código aprobó todas las pruebas y 56 corpus, sin modificar sus paquetes.
+La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, `ln_integer_math`, `ln_order`, `ln_index_math`, `lua_index_math`, `ln_bincount`, `lua_bincount`, `ln_bits`, `lua_bits`, además del runner Lua y diecinueve pruebas nativas. Aprobaron todas las suites mantenidas y los 61 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
+
+Se verificaron símbolos de inicialización ASan en los 69 objetos declarados (49 unidades de biblioteca, runner y 19 pruebas nativas). El driver reconstruye los objetos desde la misma lista que registra. El informe inicial de la 0.153 contaba una prueba instrumentada de más; su [reauditoría corregida](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) del mismo código aprobó todas las pruebas y 56 corpus, sin modificar sus paquetes.
 
 ## Integridad de las entregas
 

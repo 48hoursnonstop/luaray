@@ -12,16 +12,16 @@ por dtype y cobertura de firmas/casos límite.
 
 | Grupo | Nombres | Invocables Lua | Bindings ausentes | Adaptación Lua |
 | --- | ---: | ---: | ---: | ---: |
-| numpy | 462 | 281 | 181 | 0 |
+| numpy | 462 | 283 | 179 | 0 |
 | numpy.fft | 18 | 18 | 0 | 0 |
 | numpy.linalg | 32 | 31 | 0 | 1 |
 | numpy.ndarray | 53 | 49 | 4 | 0 |
 | numpy.random | 60 | 1 | 59 | 0 |
 | numpy.random.Generator | 44 | 43 | 1 | 0 |
 | numpy.ufunc | 6 | 0 | 6 | 0 |
-| Total | 675 | 423 | 251 | 1 |
+| Total | 675 | 425 | 249 | 1 |
 
-**423 nombres invocables no establecen compatibilidad completa.** Los
+**425 nombres invocables no establecen compatibilidad completa.** Los
 nombres disponibles se clasifican `implemented_partial`. El comportamiento se
 verifica por separado mediante referencias originales y contratos de cada
 versión. Este inventario declara cero APIs completamente compatibles. Los nombres

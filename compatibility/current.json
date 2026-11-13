@@ -1,11 +1,12 @@
 {
-  "version": "0.156.0-dev",
+  "version": "0.157.0-dev",
   "upstream_source": "NumPy 2.5.3",
   "new_oracle": "NumPy2.5.3",
   "new_reference_cases": {
-    "bincount": 6937
+    "packbits": 15029,
+    "unpackbits": 22611
   },
-  "new_lua_regression_checks": 93,
+  "new_lua_regression_checks": 201,
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
@@ -13,24 +14,25 @@
   },
   "status": "implemented_partial",
   "apis": {
-    "numpy.bincount": "implemented_partial"
+    "numpy.packbits": "implemented_partial",
+    "numpy.unpackbits": "implemented_partial"
   },
   "evidence": [
-    "src/ln_bincount.c",
-    "src/ln_bincount.h",
-    "src/lua_bincount.c",
-    "src/lua_bincount.h",
+    "src/ln_bits.c",
+    "src/ln_bits.h",
+    "src/lua_bits.c",
+    "src/lua_bits.h",
     "src/lua_module.c",
-    "tests/native/test_bincount156_core.c",
-    "tests/lua/bincount_regression.lua",
-    "docs/bincount.md",
-    "docs/es/bincount.md",
+    "tests/native/test_bits157_core.c",
+    "tests/lua/bits_regression.lua",
+    "docs/bit_packing.md",
+    "docs/es/bit_packing.md",
     "compatibility/numpy-source.sha256"
   ],
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 423,
-    "missing_bindings": 251,
+    "available_callables": 425,
+    "missing_bindings": 249,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -195,14 +197,18 @@
     "The shared KEEPORDER helper preserves the existing iterator sort and handles minimum signed strides without signed absolute-value overflow; the generic ufunc operand cap remains unchanged. Six existing take/indexing multiplication guards now honor the overflow helper Boolean failure contract.",
     "Bincount counts zero-origin nonnegative integer/Boolean category data. All integer labels forcecast to native intp, including wide-unsigned wrap; negative converted labels and maximum-intp output-size overflow are rejected. Output is owned native intp or weighted float64.",
     "Weighted bincount accumulates sequentially in logical input order using safe typed conversion to float64. Empty labels still validate rank/dtype/minlength but ignore weights and return intp zeros. Read-only/unaligned/stepped/broadcast inputs remain unchanged.",
-    "Bincount exposes strict weights/minlength Lua options or positional arguments; typed scalar minlength, foreign/index protocols, numeric strings in ordinary weight sequences, Python warning/exception classes, enormous source allocations, every ABI and every input combination remain uncertified."
+    "Bincount exposes strict weights/minlength Lua options or positional arguments; typed scalar minlength, foreign/index protocols, numeric strings in ordinary weight sequences, Python warning/exception classes, enormous source allocations, every ABI and every input combination remain uncertified.",
+    "Packbits accepts integer/Boolean data, treats all nonzero bytes as true, and zero-pads its final byte. Unpackbits requires uint8 and supports count truncation, zero extension or negative tail trimming. Empty-axis padding returns before calculating input addresses, including extreme-stride views. Both return owned writable uint8 data, use C flattening by default and preserve source C/F output allocation rules for explicit axes.",
+    "The pinned source explicit-axis legacy iterator is limited to 32 dimensions; default flattening accepts supported arrays up to 64. Legacy bitorder parsing is reproduced: pack accepts big/little prefixes, unpack first b/l; embedded NUL and unknown Lua option keys are rejected.",
+    "Empty-axis unpacking with positive output count deliberately produces defined zeros instead of the pinned NumPy2.5.3 uninitialized output. Another 358 source states are excluded from parity, separately documented and tested under the native zero-fill contract.",
+    "Bit packing uses scalar native loops; equivalent SIMD performance, typed scalar axis/count, foreign/index/subclass protocols, Python scalar classes, exact warning/exception hierarchy, huge allocations, every ABI and every input combination remain uncertified."
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "8eac7cd4a79fd4069c36b802dcb80db64e68d692ba7774a6013d617e694fe9fc",
-      "files": 381
+      "sha256": "9e067631645e7663ddbe6860e3b2833e780e24bc41b22664f693d6819eb11447",
+      "files": 387
     },
-    "version": "0.156.0-dev",
+    "version": "0.157.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -251,7 +257,9 @@
       "ln_index_math",
       "lua_index_math",
       "ln_bincount",
-      "lua_bincount"
+      "lua_bincount",
+      "ln_bits",
+      "lua_bits"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -272,7 +280,8 @@
       "tests/native/test_zero_string153_core.c",
       "tests/native/test_integer154_core.c",
       "tests/native/test_index155_core.c",
-      "tests/native/test_bincount156_core.c"
+      "tests/native/test_bincount156_core.c",
+      "tests/native/test_bits157_core.c"
     ],
     "instrumentation_verification": {
       "asan_initialization_symbols": "verified in every listed object",
@@ -324,6 +333,8 @@
         "lua_index_math.o",
         "ln_bincount.o",
         "lua_bincount.o",
+        "ln_bits.o",
+        "lua_bits.o",
         "runner.o",
         "tests/test_matrix_core.o",
         "tests/test_comparison134_core.o",
@@ -342,7 +353,8 @@
         "tests/test_zero_string153_core.o",
         "tests/test_integer154_core.o",
         "tests/test_index155_core.o",
-        "tests/test_bincount156_core.o"
+        "tests/test_bincount156_core.o",
+        "tests/test_bits157_core.o"
       ],
       "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
     },
@@ -350,18 +362,21 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.156.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.157.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact values and raw payloads, output dtype string/character/type number, shape, strides, ownership/writeability/contiguity/alignment, independent storage and unchanged label/weight bytes. Ordinary and typed inputs, strided/read-only/broadcast/unaligned layouts, sequential floating accumulation, empty inputs, signed/wide-unsigned bounds and invalid conversions.",
-  "new_reference_checks": 50126,
+  "new_check_semantics": "Exact bit payloads, output dtype string/character/type number, shape, strides, flags, ownership, independent output and unchanged logical/backing input bytes. Includes Boolean raw-byte truth, signed/unsigned extremes, scalar/empty/high-rank data, empty-view extreme strides, C/F/transpose/reverse/step/broadcast/read-only/unaligned layouts, count trim/extension, legacy order parsing, SIMD reference boundaries and expected errors.",
+  "new_reference_checks": 250644,
   "new_reference_exclusions": {
-    "resource_or_source_overflow_cases": 48,
-    "reason": "Do not attempt source output allocation of >=4097 bins in maximum-label probes or source signed intp_max+1 overflow. Native-only checks reject maximum-intp labels and enormous minlength.",
-    "unsupported_language_inputs": "Foreign protocols, typed scalar minlength and numeric strings in ordinary weight sequences are not counted as compatible."
+    "uninitialized_source_outputs": 358,
+    "reason": "Pinned NumPy2.5.3 unpack_bits allocates positive output for count>0 on an empty packed axis, but its size-zero input iterator skips initialization. These cases are excluded from parity and not counted as passes.",
+    "native_policy": "LuaRay initializes every output byte to zero in that case; separate permanent Lua/native tests verify shape, values and independence.",
+    "source_issue_observed": "Aggregate experiments reproduced non-binary uninitialized bytes without storing raw memory. Source: compiled_base.c unpack_bits and iterators.c PyArray_IterAllButAxis.",
+    "not_certified": "Huge source allocations and axis-size multiplication overflow are not attempted against upstream; native regressions check the overflow guard and minimum signed count."
   },
   "new_reference_language_adaptations": {
-    "labels": "Numeric category data retain zero origin; Lua result element one counts category zero.",
-    "argument_protocol": "Positional weights/minlength or a strict Lua options table. Empty second table means empty weights. Omitted/nil minlength means zero; Boolean minlength is rejected.",
-    "extended_padding": "Fixture serializers zero six longdouble ABI padding bytes per component, including unaligned views; all ten significant bytes remain checked."
+    "nonnegative_axes_rebased": 16804,
+    "axis_policy": "NumPy nonnegative axes become one-based Lua axes; negative axes retain their meaning and Lua zero is invalid.",
+    "arguments": "Strict Lua options tables or positional controls; nil means omitted/default. Typed scalar axis/count and foreign protocols remain unsupported.",
+    "extended_padding": "Rejected longdouble input fixture comparisons omit six ABI padding bytes per component; all ten significant bytes remain checked."
   }
 }

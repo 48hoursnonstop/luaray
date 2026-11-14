@@ -1,7 +1,7 @@
 # Inventario de disponibilidad de API
 
 `compatibility/api_inventory.json` registra búsquedas reales de nombres invocables
-Lua frente a la API pública de NumPy 2.5.3. Se generó con el intérprete de
+Lua frente a la API pública de NumPy 2.5.4. Se generó con el intérprete de
 referencia y el módulo Lua compilado. Leer este registro de desarrollo no
 requiere Python ni NumPy.
 
@@ -37,7 +37,7 @@ automáticamente a otros tipos invocables ni se declara fidelidad completa de
 advertencias, subclases o clases de excepciones Python.
 
 El generador se conserva en el
-[paquete fuente 0.116](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev)
+[archivos opcionales de referencias](https://github.com/48hoursnonstop/luaray/releases)
 para un entorno de referencia NumPy separado. Consulta campos del módulo y
 prototipos reales de ndarray, Generator y ufunc, incluidos userdata invocables.
 No ejecuta todas las operaciones descubiertas. Las regresiones y suites

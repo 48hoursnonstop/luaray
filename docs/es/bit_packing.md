@@ -87,7 +87,7 @@ assert(source:get(1, 1) == 1 and not source.flags.writeable)
 ## Entradas vacías y controles admitidos
 
 Expandir un eje empaquetado vacío a una cantidad positiva produce ceros
-definidos en LuaRay. **Es una diferencia deliberada frente a NumPy 2.5.3**:
+definidos en LuaRay. **Es una diferencia deliberada frente a NumPy 2.5.3 y 2.5.4**:
 su iterador de entrada vacía puede omitir la inicialización y devolver bytes
 indefinidos. Esas salidas se excluyen de las comparaciones de paridad; la
 política de ceros tiene pruebas Lua y nativas permanentes separadas. No se calculan direcciones de entrada para un eje empaquetado vacío,

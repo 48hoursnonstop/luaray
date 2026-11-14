@@ -14,6 +14,24 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.158.0-dev
+
+Updated the primary behavioral reference to NumPy 2.5.4. Preserves historical
+source pins and oracle attribution. Empty retained axes and empty axis tuples
+now work in ordinary quantiles/medians, keepdims results have retained views
+with zero reduced-axis strides, medians preserve the source's K layout, and
+fraction-vector promotion preserves longdouble. Condition-number min/max norms
+now propagate inverse NaNs correctly; temporal accumulation validates output
+classes even for empty inputs.
+
+Validated 61,332 new focused cases / 617,872 checks against NumPy 2.5.4 plus
+2,700 regenerated historical quantile cases. Added 130 permanent Lua checks,
+a native harness, C++ header/link execution and executable EN/ES quantile guides.
+The immutable 0.116 reference archive remains unchanged; 40 explicit former
+rejections are updated to stronger source-defined success assertions after
+extraction. Every original numeric assertion is preserved. The NumPy empty-axis
+unpackbits defect was also reproduced with the actual 2.5.4 interpreter.
+
 ## 0.157.0-dev
 
 Added native packbits/unpackbits with big/little bit order, zero padding,

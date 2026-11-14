@@ -85,7 +85,7 @@ assert(source:get(1, 1) == 1 and not source.flags.writeable)
 ## Empty inputs and accepted controls
 
 Expanding an empty packed axis to a positive count produces defined zeros in
-LuaRay. **This deliberately differs from the pinned NumPy 2.5.3 implementation**:
+LuaRay. **This deliberately differs from NumPy 2.5.3 and 2.5.4**:
 its empty-input iterator can skip initialization and return undefined bytes.
 Those source outputs are excluded from parity comparisons; the zero-fill policy
 has separate permanent Lua and native tests. No input address arithmetic is performed for an empty packed axis,

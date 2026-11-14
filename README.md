@@ -57,8 +57,8 @@ options, copying, and memory ownership.
 
 ## Compatibility
 
-**Current release: [0.157.0-dev](https://github.com/48hoursnonstop/luaray/releases/tag/v0.157.0-dev).**
-LuaRay is under development. NumPy 2.5.3 is the primary behavioral reference;
+**Current release: [0.158.0-dev](https://github.com/48hoursnonstop/luaray/releases/tag/v0.158.0-dev).**
+LuaRay is under development. NumPy 2.5.4 is the primary behavioral reference;
 compatibility varies by operation, dtype, and option.
 
 The [API inventory](docs/api_inventory.md) records available names and known

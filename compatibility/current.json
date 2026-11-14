@@ -1,34 +1,12 @@
 {
-  "version": "0.157.0-dev",
-  "upstream_source": "NumPy 2.5.3",
-  "new_oracle": "NumPy2.5.3",
-  "new_reference_cases": {
-    "packbits": 15029,
-    "unpackbits": 22611
-  },
-  "new_lua_regression_checks": 201,
+  "version": "0.158.0-dev",
+  "upstream_source": "NumPy 2.5.4",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
     "take_hang": 3,
     "choose_unsafe_span": 2
   },
   "status": "implemented_partial",
-  "apis": {
-    "numpy.packbits": "implemented_partial",
-    "numpy.unpackbits": "implemented_partial"
-  },
-  "evidence": [
-    "src/ln_bits.c",
-    "src/ln_bits.h",
-    "src/lua_bits.c",
-    "src/lua_bits.h",
-    "src/lua_module.c",
-    "tests/native/test_bits157_core.c",
-    "tests/lua/bits_regression.lua",
-    "docs/bit_packing.md",
-    "docs/es/bit_packing.md",
-    "compatibility/numpy-source.sha256"
-  ],
   "availability_inventory": {
     "scoped_names": 675,
     "available_callables": 425,
@@ -201,14 +179,56 @@
     "Packbits accepts integer/Boolean data, treats all nonzero bytes as true, and zero-pads its final byte. Unpackbits requires uint8 and supports count truncation, zero extension or negative tail trimming. Empty-axis padding returns before calculating input addresses, including extreme-stride views. Both return owned writable uint8 data, use C flattening by default and preserve source C/F output allocation rules for explicit axes.",
     "The pinned source explicit-axis legacy iterator is limited to 32 dimensions; default flattening accepts supported arrays up to 64. Legacy bitorder parsing is reproduced: pack accepts big/little prefixes, unpack first b/l; embedded NUL and unknown Lua option keys are rejected.",
     "Empty-axis unpacking with positive output count deliberately produces defined zeros instead of the pinned NumPy2.5.3 uninitialized output. Another 358 source states are excluded from parity, separately documented and tested under the native zero-fill contract.",
-    "Bit packing uses scalar native loops; equivalent SIMD performance, typed scalar axis/count, foreign/index/subclass protocols, Python scalar classes, exact warning/exception hierarchy, huge allocations, every ABI and every input combination remain uncertified."
+    "Bit packing uses scalar native loops; equivalent SIMD performance, typed scalar axis/count, foreign/index/subclass protocols, Python scalar classes, exact warning/exception hierarchy, huge allocations, every ABI and every input combination remain uncertified.",
+    "NumPy2.5.4 is the primary reference, not a claim that every2.5.4 change is implemented. Object arrays, StringDType, masked arrays, Python warning/exception protocols, MSVC and all ABIs remain uncertified.",
+    "Quantiles currently support six methods, nonempty scalar/vector fractions, real numeric input, axis/keepdims/out; weights, overwrite_input and complete signatures remain unavailable. Typed longdouble fractions pass through double parameters even when output dtype remains longdouble."
+  ],
+  "new_oracle": "NumPy2.5.4",
+  "new_reference_cases": {
+    "empty_axes_and_median_layout": 50008,
+    "nonfinite_linalg": 4464,
+    "accumulation_outputs": 6860,
+    "regenerated_legacy_quantiles": 2700
+  },
+  "new_reference_checks": 617872,
+  "new_lua_regression_checks": 130,
+  "new_check_count_scope": "Three new focused corpora only; legacy2700-case assertion count not included.",
+  "apis": {
+    "numpy.median": "implemented_partial",
+    "numpy.quantile": "implemented_partial",
+    "numpy.percentile": "implemented_partial",
+    "numpy.nanmedian": "implemented_partial",
+    "numpy.nanquantile": "implemented_partial",
+    "numpy.nanpercentile": "implemented_partial",
+    "numpy.linalg.cond": "implemented_partial",
+    "numpy.linalg.svd": "implemented_partial",
+    "numpy.linalg.svdvals": "implemented_partial",
+    "numpy.linalg.lstsq": "implemented_partial",
+    "numpy.linalg.pinv": "implemented_partial",
+    "numpy.linalg.matrix_rank": "implemented_partial",
+    "numpy.cumsum": "implemented_partial",
+    "numpy.cumprod": "implemented_partial"
+  },
+  "evidence": [
+    "src/ln_quantile.c",
+    "src/ln_quantile.h",
+    "src/ln_linalg.c",
+    "src/ln_core.c",
+    "src/lua_module.c",
+    "tests/native/test_numpy158_core.c",
+    "tests/lua/numpy254_regression.lua",
+    "docs/quantiles.md",
+    "docs/es/quantiles.md",
+    "compatibility/numpy-source.sha256",
+    "compatibility/numpy-2.5.3-source.sha256",
+    "compatibility/numpy254-reference.patch"
   ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "9e067631645e7663ddbe6860e3b2833e780e24bc41b22664f693d6819eb11447",
-      "files": 387
+      "sha256": "d0d748354495d20d6a4ca9f2a4bad0e1f352b4ed905d3113538606f1a164f256",
+      "files": 389
     },
-    "version": "0.157.0-dev",
+    "version": "0.158.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -259,7 +279,9 @@
       "ln_bincount",
       "lua_bincount",
       "ln_bits",
-      "lua_bits"
+      "lua_bits",
+      "ln_quantile",
+      "ln_axis"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -281,7 +303,8 @@
       "tests/native/test_integer154_core.c",
       "tests/native/test_index155_core.c",
       "tests/native/test_bincount156_core.c",
-      "tests/native/test_bits157_core.c"
+      "tests/native/test_bits157_core.c",
+      "tests/native/test_numpy158_core.c"
     ],
     "instrumentation_verification": {
       "asan_initialization_symbols": "verified in every listed object",
@@ -335,6 +358,8 @@
         "lua_bincount.o",
         "ln_bits.o",
         "lua_bits.o",
+        "ln_quantile.o",
+        "ln_axis.o",
         "runner.o",
         "tests/test_matrix_core.o",
         "tests/test_comparison134_core.o",
@@ -354,7 +379,8 @@
         "tests/test_integer154_core.o",
         "tests/test_index155_core.o",
         "tests/test_bincount156_core.o",
-        "tests/test_bits157_core.o"
+        "tests/test_bits157_core.o",
+        "tests/test_numpy158_core.o"
       ],
       "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
     },
@@ -362,21 +388,22 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.157.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.158.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Exact bit payloads, output dtype string/character/type number, shape, strides, flags, ownership, independent output and unchanged logical/backing input bytes. Includes Boolean raw-byte truth, signed/unsigned extremes, scalar/empty/high-rank data, empty-view extreme strides, C/F/transpose/reverse/step/broadcast/read-only/unaligned layouts, count trim/extension, legacy order parsing, SIMD reference boundaries and expected errors.",
-  "new_reference_checks": 250644,
-  "new_reference_exclusions": {
-    "uninitialized_source_outputs": 358,
-    "reason": "Pinned NumPy2.5.3 unpack_bits allocates positive output for count>0 on an empty packed axis, but its size-zero input iterator skips initialization. These cases are excluded from parity and not counted as passes.",
-    "native_policy": "LuaRay initializes every output byte to zero in that case; separate permanent Lua/native tests verify shape, values and independence.",
-    "source_issue_observed": "Aggregate experiments reproduced non-binary uninitialized bytes without storing raw memory. Source: compiled_base.c unpack_bits and iterators.c PyArray_IterAllButAxis.",
-    "not_certified": "Huge source allocations and axis-size multiplication overflow are not attempted against upstream; native regressions check the overflow guard and minimum signed count."
+  "new_check_semantics": "Empty retained axes and empty axis selections; dtype/promotion, shape, strides, flags, ownership and significant bytes. Median K-order layout and retained keepdims views. Nonfinite SVD/lstsq guards and condition numbers, exact accumulate output-shape validation including empty temporal dtype resolution. Inputs/output backing states after rejection. Scalar keepdims and extreme empty-view strides exercised through Lua and native API.",
+  "new_reference_tolerances": {
+    "identity_controls": "absolute+relative3e-6 for single precision,2e-12 for wider linalg; exact metadata and nonfinite classification",
+    "legacy_quantile": "original absolute+relative0.002 retained unchanged",
+    "NaNs": "scalar and array results compare classification; payload/sign not certified",
+    "longdouble": "all ten significant x87 bytes checked; six padding bytes omitted"
   },
   "new_reference_language_adaptations": {
-    "nonnegative_axes_rebased": 16804,
-    "axis_policy": "NumPy nonnegative axes become one-based Lua axes; negative axes retain their meaning and Lua zero is invalid.",
-    "arguments": "Strict Lua options tables or positional controls; nil means omitted/default. Typed scalar axis/count and foreign protocols remain unsupported.",
-    "extended_padding": "Rejected longdouble input fixture comparisons omit six ABI padding bytes per component; all ten significant bytes remain checked."
+    "axes": "Nonnegative NumPy axes become one-based Lua positions; negative axes retain meaning.",
+    "scalar_results": "Existing Lua scalar-reduction convention retained; no Python scalar classes.",
+    "frozen_archive": "Immutable0.116 SHA checked before applying exact documented40 former-rejection updates to source-defined NumPy2.5.4 success assertions; all original numeric assertions preserved."
+  },
+  "new_reference_exclusions": {
+    "unpackbits_empty_source_bug": "The existing excluded uninitialized outputs were reproduced with actual NumPy2.5.4; not counted as parity. LuaRay retains explicit zero filling.",
+    "reference_versions": "Older frozen and cumulative corpora retain their original NumPy2.5.3/2.3.5 attribution. Updating the primary pin does not regenerate or recertify every API."
   }
 }

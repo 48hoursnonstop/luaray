@@ -1,6 +1,6 @@
 # Fuentes de referencia y licencias
 
-NumPy 2.5.3 es la referencia de comportamiento principal. Los fixtures anteriores
+NumPy 2.5.4 es la referencia de comportamiento principal. Los fixtures anteriores
 generados con NumPy 2.3.5 conservan esa atribución en sus cabeceras. La
 implementación importada originalmente registra el commit NumPy
 `286e698f1dcf601648b165f48485ceaeec9c6231`.
@@ -19,3 +19,7 @@ desarrollo: el runtime Lua no ejecuta Python ni NumPy.
 
 Conserva estos avisos al redistribuir código o binarios. Las notas originales y
 los generadores completos están en el [paquete fuente 0.116](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev).
+
+Los checksums anteriores de 2.5.3 se conservan en
+`compatibility/numpy-2.5.3-source.sha256`; los corpus históricos mantienen
+la versión del intérprete que los generó.

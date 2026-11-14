@@ -1571,8 +1571,8 @@ static double
 packed_matrix_norm(const void *p,int n,int complex_mode,ln_norm_kind kind,double ord)
 {
     if(kind==LN_NORM_FRO||kind==LN_NORM_DEFAULT){double ss=0;for(int j=0;j<n;j++)for(int i=0;i<n;i++){double a;if(complex_mode){ln_cdouble z=((const ln_cdouble*)p)[(size_t)j*n+i];a=hypot(z.real,z.imag);}else a=fabs(((const double*)p)[(size_t)j*n+i]);ss+=a*a;}return sqrt(ss);}
-    if(kind==LN_NORM_NUMBER&&(ord==1.0||ord==-1.0)){double best=ord<0?INFINITY:0;for(int j=0;j<n;j++){double s=0;for(int i=0;i<n;i++){if(complex_mode){ln_cdouble z=((const ln_cdouble*)p)[(size_t)j*n+i];s+=hypot(z.real,z.imag);}else s+=fabs(((const double*)p)[(size_t)j*n+i]);}if(ord>0){if(s>best)best=s;}else if(s<best)best=s;}return best;}
-    if(kind==LN_NORM_POSINF||kind==LN_NORM_NEGINF){double best=kind==LN_NORM_NEGINF?INFINITY:0;for(int i=0;i<n;i++){double s=0;for(int j=0;j<n;j++){if(complex_mode){ln_cdouble z=((const ln_cdouble*)p)[(size_t)j*n+i];s+=hypot(z.real,z.imag);}else s+=fabs(((const double*)p)[(size_t)j*n+i]);}if(kind==LN_NORM_POSINF){if(s>best)best=s;}else if(s<best)best=s;}return best;}
+    if(kind==LN_NORM_NUMBER&&(ord==1.0||ord==-1.0)){double best=ord<0?INFINITY:0;for(int j=0;j<n;j++){double s=0;for(int i=0;i<n;i++){if(complex_mode){ln_cdouble z=((const ln_cdouble*)p)[(size_t)j*n+i];s+=hypot(z.real,z.imag);}else s+=fabs(((const double*)p)[(size_t)j*n+i]);}if(isnan(s))return NAN;if(ord>0){if(s>best)best=s;}else if(s<best)best=s;}return best;}
+    if(kind==LN_NORM_POSINF||kind==LN_NORM_NEGINF){double best=kind==LN_NORM_NEGINF?INFINITY:0;for(int i=0;i<n;i++){double s=0;for(int j=0;j<n;j++){if(complex_mode){ln_cdouble z=((const ln_cdouble*)p)[(size_t)j*n+i];s+=hypot(z.real,z.imag);}else s+=fabs(((const double*)p)[(size_t)j*n+i]);}if(isnan(s))return NAN;if(kind==LN_NORM_POSINF){if(s>best)best=s;}else if(s<best)best=s;}return best;}
     return NAN;
 }
 

@@ -2561,7 +2561,12 @@ static const ln_dtype *
 resolve_accumulate_dtype(const ln_array *a, const ln_dtype *requested,
                          const ln_dtype *out_dtype,ln_reduce_op op)
 {
-    if(a->descr->kind=='m'||a->descr->kind=='M')return a->descr;
+    if(a->descr->kind=='m'||a->descr->kind=='M'){
+        /* The out operand participates in legacy addition resolution even
+         * when there are no elements to traverse. */
+        if(out_dtype&&out_dtype->kind!=a->descr->kind&&out_dtype->kind!='b'&&out_dtype->kind!='i'&&out_dtype->kind!='u')return NULL;
+        return a->descr;
+    }
     if(op==LN_REDUCE_SUM&&!out_dtype&&(a->descr->kind=='S'||a->descr->kind=='U'))return a->descr;
     if(requested&&requested->kind=='m'&&op==LN_REDUCE_SUM&&
        (a->descr->cls->flags&LN_DTYPE_CLASS_LEGACY_NUMERIC))return a->descr;

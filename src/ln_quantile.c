@@ -2,6 +2,9 @@
  * Only numeric real/bool dtypes; no Python runtime. Sorting never alters input. */
 #include "ln_quantile.h"
 #include "ln_dtype_transfer.h"
+#include "ln_axis.h"
+#include "ln_layout.h"
+#include "ln_order.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
@@ -23,6 +26,39 @@ static int shape_matches(const ln_array *a,int nd,const ln_intp *dims){
     if(!a || a->nd!=nd || !(a->flags&LN_ARRAY_WRITEABLE))return 0;
     for(int d=0;d<nd;d++)if(a->dimensions[d]!=dims[d])return 0;
     return 1;
+}
+/* Median partitions a K-order copy, then means over the selected axis.
+ * Multiple axes first follow _ureduce's moveaxis/explicit-product reshape. */
+static int median_layout(const ln_array *a,const uint8_t *red,int nr,
+                         ln_intp red_size,ln_array *out,int keepdims,ln_error *err)
+{
+    if(!ln_array_size(out))return 0;
+    int n=0,source_axes[LN_MAXDIMS],output_axes[LN_MAXDIMS];
+    ln_intp shape[LN_MAXDIMS],row[LN_MAXDIMS];
+    for(int d=0;d<a->nd;d++)if(!red[d]){
+        source_axes[n]=d;output_axes[n]=keepdims?d:n;
+        shape[n]=a->dimensions[d];row[n]=a->strides[d];n++;
+    }
+    ln_array *permuted=NULL,*reshaped=NULL;
+    if(nr!=1){
+        if(n>=LN_MAXDIMS){qerr(err,"too many dimensions for median axis reshape");return -1;}
+        int order[LN_MAXDIMS],j=0;
+        for(int d=0;d<a->nd;d++)if(!red[d])order[j++]=d;
+        for(int d=0;d<a->nd;d++)if(red[d])order[j++]=d;
+        permuted=ln_axis_permute(a,order,err);if(!permuted)return -1;
+        shape[n]=red_size;
+        reshaped=ln_layout_reshape(permuted,n+1,shape,'C',-1,err);
+        ln_array_free(permuted);if(!reshaped)return -1;
+        for(int d=0;d<n;d++)row[d]=reshaped->strides[d];
+    }
+    const ln_intp *rows[]={row};int axes[LN_MAXDIMS];
+    if(ln_keeporder_axes(n,1,rows,axes,err)<0){ln_array_free(reshaped);return -1;}
+    ln_intp step=(ln_intp)out->descr->elsize;
+    for(int i=0;i<n;i++){
+        int d=axes[i];out->strides[output_axes[d]]=step;
+        step*=a->dimensions[source_axes[d]];
+    }
+    ln_update_contiguous_flags(out);ln_array_free(reshaped);return 0;
 }
 ln_array *ln_quantile(const ln_array *a,const uint8_t *axis_flags,
     int keepdims,const double *q,ln_intp nq,int scalar_q,
@@ -54,16 +90,13 @@ ln_array *ln_quantile(const ln_array *a,const uint8_t *axis_flags,
             if(ln_mul_sizes_with_overflow(&output_base,output_base,a->dimensions[d])){qerr(err,"result too large");return NULL;}
         }
     }
-    if(!omit_nan && reduce_nd>1 && ln_array_size(a)==0 && (method!=6 || output_base==0)){
-        qerr(err,"empty multi-axis quantile reduction is unsupported by NumPy");return NULL;
-    }
-    if(!omit_nan && reduce_nd==0 && ln_array_size(a)==0){
-        qerr(err,"cannot compute quantile with no reduced axes on empty input");return NULL;
-    }
-    if(!omit_nan && red_size==0 && output_base>0 && method!=6){qerr(err,"cannot compute quantile from empty reduction");return NULL;}
+    /* NumPy 2.5.4 _ureduce uses an explicit reduced-axis product rather
+     * than inferred -1, so zero-length kept axes are valid results. */
+    if(!omit_nan && red_size==0 && method!=6){qerr(err,"cannot compute quantile from empty reduction");return NULL;}
     if(red_size<0 || (uintmax_t)red_size > SIZE_MAX/sizeof(qitem)){
         qerr(err,"reduction too large");return NULL;
     }
+    if(!omit_nan&&reduce_nd==0&&a->nd>=LN_MAXDIMS){qerr(err,"too many dimensions for quantile axis reshape");return NULL;}
     int emit_q_axis = !scalar_q && !(omit_nan && ln_array_size(a)==0);
     if(emit_q_axis){
         if(ond>=LN_MAXDIMS){qerr(err,"too many output dimensions");return NULL;}
@@ -98,6 +131,7 @@ ln_array *ln_quantile(const ln_array *a,const uint8_t *axis_flags,
     }
     ln_array *res=ln_array_new(ond,odims,dt,0,0,err);
     if(!res)return NULL;
+    if(method==6&&!emit_q_axis&&median_layout(a,red,reduce_nd,red_size,res,keepdims,err)<0){ln_array_free(res);return NULL;}
     qitem *items=(qitem *)malloc((size_t)(red_size?red_size:1)*sizeof(*items));
     if(!items){qerr(err,"out of memory");ln_array_free(res);return NULL;}
     int keep_axes[LN_MAXDIMS]={0},nkeep=0,red_axes[LN_MAXDIMS]={0},nred=0;
@@ -111,7 +145,9 @@ ln_array *ln_quantile(const ln_array *a,const uint8_t *axis_flags,
     int failed=0;
     for(ln_intp row=0;row<output_base&&!failed;row++){
         const char *base=a->data;
-        for(int d=0;d<nkeep;d++)base+=outer_coord[d]*a->strides[keep_axes[d]];
+        /* No source elements exist for an empty reduction, regardless of
+         * arbitrary strides on its retained dimensions. */
+        if(red_size>0)for(int d=0;d<nkeep;d++)base+=outer_coord[d]*a->strides[keep_axes[d]];
         ln_intp inner_coord[LN_MAXDIMS]={0};
         ln_intp valid_size=0;
         for(ln_intp i=0;i<red_size;i++){
@@ -182,6 +218,14 @@ ln_array *ln_quantile(const ln_array *a,const uint8_t *axis_flags,
             }
             advance(ond,odims,coord);
         }
+    }
+    if(keepdims&&!out&&!omit_nan){
+        /* _ureduce inserts reduced dimensions as newaxis views. */
+        ln_intp strides[LN_MAXDIMS];
+        if(ond)memcpy(strides,res->strides,(size_t)ond*sizeof(*strides));
+        for(int d=0;d<a->nd;d++)if(red[d])strides[d+(emit_q_axis?1:0)]=0;
+        ln_array *view=ln_array_view(res,ond,odims,strides,res->data,err);
+        ln_array_free(res);return view;
     }
     return res;
 }

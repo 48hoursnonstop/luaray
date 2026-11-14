@@ -3503,10 +3503,10 @@ static int quantile_api(lua_State *L,int which,int omit_nan){
      * Scalar Lua floating fractions are weakly typed, like Python scalars. */
     const ln_dtype *preferred=NULL;
     if(which!=0 && (method==0||method==4)){
-        if(q_vector_table)preferred=ln_dtype_by_num(LN_DOUBLE);
+        if(q_vector_table)preferred=u->a->descr->kind=='f'&&u->a->descr->elsize>sizeof(double)?u->a->descr:ln_dtype_by_num(LN_DOUBLE);
         else if(q_dtype && q_dtype->kind=='f' && !scalar_q){
-            int sr=u->a->descr->elsize<=2?2:(u->a->descr->elsize<=4?4:8);
-            int qr=q_dtype->elsize<=2?2:(q_dtype->elsize<=4?4:8);
+            int sr=u->a->descr->elsize<=2?2:(u->a->descr->elsize<=4?4:(u->a->descr->elsize<=8?8:16));
+            int qr=q_dtype->elsize<=2?2:(q_dtype->elsize<=4?4:(q_dtype->elsize<=8?8:16));
             int rank=qr;
             if(u->a->descr->kind=='f'){
                 if(sr>rank)rank=sr;
@@ -3514,7 +3514,7 @@ static int quantile_api(lua_State *L,int which,int omit_nan){
                 if(sr>=8)rank=8;
                 else if(rank<4)rank=4;
             }
-            preferred=ln_dtype_by_num(rank<=2?LN_HALF:(rank<=4?LN_FLOAT:LN_DOUBLE));
+            preferred=ln_dtype_by_num(rank<=2?LN_HALF:(rank<=4?LN_FLOAT:(rank<=8?LN_DOUBLE:LN_LONGDOUBLE)));
         }
     }
     ln_error e={0};
@@ -8148,7 +8148,7 @@ int luaopen_luaray_core(lua_State*L){
     for(int i=0;names[i];i++){lua_pushstring(L,names[i]);lua_setfield(L,-2,names[i]);}
     push_index_token(L,LN_INDEX_NEWAXIS);lua_setfield(L,-2,"newaxis");
     push_index_token(L,LN_INDEX_ELLIPSIS);lua_setfield(L,-2,"ellipsis");
-    lua_pushstring(L,"0.157.0-dev");lua_setfield(L,-2,"_version");
+    lua_pushstring(L,"0.158.0-dev");lua_setfield(L,-2,"_version");
     lua_pushstring(L,"286e698f1dcf601648b165f48485ceaeec9c6231");lua_setfield(L,-2,"_numpy_upstream_commit");
     return 1;
 }

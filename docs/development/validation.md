@@ -30,13 +30,17 @@ make reference-test
 obtains the immutable 0.116 source archive, verifies SHA-256, and executes its
 161 differential fixture files plus extended random and formatting references
 against the current engine. The generated data is cached outside the tracked tree.
-Both targets run without Python or NumPy.
+After archive verification, `compatibility/numpy254-reference.patch` explicitly
+updates 40 former quantile rejections to NumPy 2.5.4 success assertions. Every
+original numeric assertion is preserved. Both targets run without Python or
+NumPy; this adaptation requires the `patch` utility.
 
 The complete oracle generators and directed sanitizer tooling remain in the
 [released source package](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev).
 Use that separate workspace to regenerate fixtures or reproduce the historical
-`sanitize-vector116` audit. Recent generators assert NumPy 2.5.3; older fixtures
-retain their original NumPy 2.3.5 attribution.
+`sanitize-vector116` audit. New corpora use NumPy 2.5.4; historical fixtures retain NumPy 2.5.3 or 2.3.5
+attribution. Recent generators and serializers are supplied in each optional
+reference archive on the [releases page](https://github.com/48hoursnonstop/luaray/releases).
 
 `compatibility/current.json` records the release-specific behavioral evidence.
 `compatibility/api_inventory.json` records runtime availability. The latter
@@ -45,8 +49,8 @@ as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.157.0-dev** passed **72 native suites**, **129 Lua suites**, seven public
-examples and 390 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
+LuaRay **0.158.0-dev** passed **73 native suites**, **130 Lua suites**, seven public
+examples and 402 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
 passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
 metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
@@ -132,9 +136,11 @@ Bincount passed **6,937 cases /50,126 checks**, 93 permanent Lua checks, a nativ
 
 Bit packing passed **37,640 cases /250,644 checks**: 15,029 pack and 22,611 unpack cases; 7,958 valid inputs and 29,682 expected rejections. Permanent regressions add 201 Lua checks, a native harness and C++ header/link execution. Checks include bytes, dtype, shape, strides, flags, independent output, unchanged inputs, orders/axes, count, boundaries and every Boolean byte payload. Another 16,804 nonnegative axes were adapted to Lua positions. The corpus regenerated exactly. Another 358 upstream states with uninitialized output are excluded from parity; LuaRay zero filling is tested separately.
 
-The directed ASan/UBSan run instrumented `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, `ln_integer_math`, `ln_order`, `ln_index_math`, `lua_index_math`, `ln_bincount`, `lua_bincount`, `ln_bits`, `lua_bits`, plus the Lua runner and nineteen native harnesses. All maintained suites and all 61 cumulative reference corpora passed. Other dependencies were not fully instrumented; leak detection was disabled. Packaging verifies the executable-source fingerprint.
+The NumPy 2.5.4 migration passed **61,332 new focused cases /617,872 checks**, plus **2,700 regenerated historical quantile cases** (their individual assertion count is excluded from617,872). It covers empty retained axes, empty axis selections, median K-order layout, retained keepdims views, dtype promotion, nonfinite linear algebra and accumulation output validation. Another130 permanent Lua checks and the native harness cover scalar keepdims, retained storage and extreme strides on empty reductions. NaN outputs compare numerical classification; x87 padding is omitted. Finite linalg controls use absolute+relative3e-6 for single precision and2e-12 for wider types; the historical quantile tolerance remains0.002. All four corpora regenerated exactly.
 
-ASan initialization symbols were verified in all 69 declared objects (49 library units, runner and 19 native harnesses). The driver rebuilds objects from the same list that it reports. The initial 0.153 report overcounted instrumented harnesses by one; its [corrected repeat audit](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) of the same code passed all tests and 56 corpora without changing the source packages.
+The directed ASan/UBSan run instrumented `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, `ln_integer_math`, `ln_order`, `ln_index_math`, `lua_index_math`, `ln_bincount`, `lua_bincount`, `ln_bits`, `lua_bits`, `ln_quantile`, `ln_axis`, plus the Lua runner and twenty native harnesses. All maintained suites and all 65 cumulative reference corpora passed. Other dependencies were not fully instrumented; leak detection was disabled. Packaging verifies the executable-source fingerprint.
+
+ASan initialization symbols were verified in all 72 declared objects (51 library units, runner and 20 native harnesses). The driver rebuilds objects from the same list that it reports. The initial 0.153 report overcounted instrumented harnesses by one; its [corrected repeat audit](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) of the same code passed all tests and 56 corpora without changing the source packages.
 
 ## Release integrity
 

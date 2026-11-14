@@ -21,13 +21,18 @@ stage=$(mktemp -d "$root/.dev/reference-run.XXXXXX")
 trap 'rm -rf -- "$stage"' EXIT HUP INT TERM
 tar -xzf "$archive" -C "$stage"
 reference="$stage/luaray-$version"
-# Frozen numeric assertions are unchanged; adapt only historical version gates.
+# Adapt historical version gates before the explicit upstream expectation patch.
 runtime_version=$(cat "$root/VERSION")
 for fixture in "$reference"/tests/*.lua; do
     if grep -q '0\.116\.0-dev' "$fixture"; then
         sed -i "s/0\.116\.0-dev/$runtime_version/g" "$fixture"
     fi
 done
+# NumPy 2.5.4 makes 40 formerly rejected empty-axis quantile cases valid.
+# Patch only those exact assertions; preserve every frozen numeric assertion.
+patch --batch --fuzz=0 --forward --quiet -p1 -d "$reference" \
+    < "$root/compatibility/numpy254-reference.patch"
+printf 'Applied 40 documented NumPy 2.5.4 expectation updates\n'
 (
     cd "$reference"
     count=0

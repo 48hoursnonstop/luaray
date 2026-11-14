@@ -1,4 +1,7 @@
 import { defineConfig } from 'vitepress'
+import { readFileSync } from 'node:fs'
+
+const version = readFileSync(new URL('../../VERSION', import.meta.url), 'utf8').trim()
 
 const repo = 'https://github.com/48hoursnonstop/luaray'
 const pages = [
@@ -112,7 +115,7 @@ export default defineConfig({
         nav: [
           { text: 'Guide', link: '/getting-started' },
           { text: 'Reference', link: '/creation' },
-          { text: '0.158.0-dev', link: `${repo}/releases/tag/v0.158.0-dev` },
+          { text: version, link: `${repo}/releases/tag/v${version}` },
         ],
         sidebar: sidebar(),
       },
@@ -123,7 +126,7 @@ export default defineConfig({
         nav: [
           { text: 'Guía', link: '/es/getting-started' },
           { text: 'Referencia', link: '/es/creation' },
-          { text: '0.158.0-dev', link: `${repo}/releases/tag/v0.158.0-dev` },
+          { text: version, link: `${repo}/releases/tag/v${version}` },
         ],
         sidebar: sidebar(true),
         outline: { label: 'En esta página', level: [2, 3] },

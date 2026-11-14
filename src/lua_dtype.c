@@ -62,11 +62,8 @@ static int equal(lua_State *L)
     lua_pushboolean(L,ln_dtype_equivalent(a,b));return 1;
 }
 static int describe(lua_State *L){return representation(L,input(L),0,1);}
-int ln_lua_dtype_constructor(lua_State *L)
+int ln_lua_push_dtype(lua_State *L,const ln_dtype *d)
 {
-    int argc=lua_gettop(L);if(argc>1)return luaL_error(L,"dtype accepts one optional string or descriptor");
-    if(argc==1&&ln_lua_test_dtype(L,1)){lua_pushvalue(L,1);return 1;}
-    const ln_dtype *d=argc==0||lua_type(L,1)==LUA_TNIL?ln_dtype_by_num(LN_DOUBLE):ln_lua_check_dtype(L,1);
     if(luaL_newmetatable(L,DTYPE_MT)){
         lua_pushcfunction(L,get);lua_setfield(L,-2,"__index");
         lua_pushcfunction(L,immutable);lua_setfield(L,-2,"__newindex");
@@ -75,4 +72,12 @@ int ln_lua_dtype_constructor(lua_State *L)
     }
     lua_pop(L,1);lua_dtype *value=lua_newuserdatauv(L,sizeof(*value),0);value->descriptor=d;
     luaL_setmetatable(L,DTYPE_MT);return 1;
+}
+
+int ln_lua_dtype_constructor(lua_State *L)
+{
+    int argc=lua_gettop(L);if(argc>1)return luaL_error(L,"dtype accepts one optional string or descriptor");
+    if(argc==1&&ln_lua_test_dtype(L,1)){lua_pushvalue(L,1);return 1;}
+    const ln_dtype *d=argc==0||lua_type(L,1)==LUA_TNIL?ln_dtype_by_num(LN_DOUBLE):ln_lua_check_dtype(L,1);
+    return ln_lua_push_dtype(L,d);
 }

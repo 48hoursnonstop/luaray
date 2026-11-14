@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.159.0-dev')
+assert(np._version=='0.160.0-dev')
 for _,dtype in ipairs({'float32','float64'}) do
   local rng=np.random.default_rng(202680)
   local n=20000

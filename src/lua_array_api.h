@@ -29,4 +29,5 @@ int ln_lua_assign_exact_sequence(lua_State *L,int index,ln_array *destination);
 ln_array *ln_lua_assignment_values(lua_State *L,int index,const ln_dtype *dtype);
 /* Pack a single Lua value into borrowed typed storage; raises on failure. */
 void ln_lua_pack_scalar(lua_State *L,int index,const ln_dtype *dtype,char *destination);
+int ln_lua_push_dtype(lua_State *L,const ln_dtype *dtype);
 #endif

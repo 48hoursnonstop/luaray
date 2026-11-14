@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.159.0-dev')
+assert(np._version=='0.160.0-dev')
 local function eq(a,b) assert(a==b,tostring(a)..' != '..tostring(b)) end
 local function arr(a, b)
   local aa=a:tolist()

@@ -14,6 +14,20 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.160.0-dev
+
+Added native finfo/iinfo records using host format constants and checked integer
+endpoints. Complex formats resolve to their real component and share the finfo
+cache. Records are immutable Lua userdata; longdouble fields and the uint64
+maximum return independent typed rank-zero arrays to preserve precision/range.
+Dtype descriptors and ordinary Lua scalar inference are supported.
+
+Validated 260 NumPy 2.5.4 cases /2,849 checks, 62 permanent Lua checks,
+a native limits harness and C++ header/link execution. Added executable EN/ES
+guides. Lua scalar return types, record immutability and short representations
+are explicit adaptations; all Python class/mutation/formatting and host ABI
+behavior remains uncertified.
+
 ## 0.159.0-dev
 
 Added native fromiter with checked geometric buffer growth, count-limited or

@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.159.0-dev')
+assert(np._version=='0.160.0-dev')
 local rng=np.random.default_rng(42)
 local a=rng:chisquare(2,{2,3})
 local b=rng:f(3,5,{2,3})

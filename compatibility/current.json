@@ -1,5 +1,5 @@
 {
-  "version": "0.159.0-dev",
+  "version": "0.160.0-dev",
   "upstream_source": "NumPy 2.5.4",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -9,8 +9,8 @@
   "status": "implemented_partial",
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 426,
-    "missing_bindings": 248,
+    "available_callables": 428,
+    "missing_bindings": 246,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -182,24 +182,25 @@
     "Bit packing uses scalar native loops; equivalent SIMD performance, typed scalar axis/count, foreign/index/subclass protocols, Python scalar classes, exact warning/exception hierarchy, huge allocations, every ABI and every input combination remain uncertified.",
     "NumPy2.5.4 is the primary reference, not a claim that every2.5.4 change is implemented. Object arrays, StringDType, masked arrays, Python warning/exception protocols, MSVC and all ABIs remain uncertified.",
     "Quantiles currently support six methods, nonempty scalar/vector fractions, real numeric input, axis/keepdims/out; weights, overwrite_input and complete signatures remain unavailable. Typed longdouble fractions pass through double parameters even when output dtype remains longdouble.",
-    "Fromiter supports fixed native scalar dtypes and strict Lua callback iteration; structured/subarray/object/variableStringDType, like, Python iteration/length-hint protocols and higher-rank elements remain unsupported. Temporal scalar userdata retain existing construction limits; typed rank-zero arrays use raw casting. The constructor cannot suspend across a callback; coroutine.wrap producers run on their own coroutine."
+    "Fromiter supports fixed native scalar dtypes and strict Lua callback iteration; structured/subarray/object/variableStringDType, like, Python iteration/length-hint protocols and higher-rank elements remain unsupported. Temporal scalar userdata retain existing construction limits; typed rank-zero arrays use raw casting. The constructor cannot suspend across a callback; coroutine.wrap producers run on their own coroutine.",
+    "Finfo/iinfo constants were verified on Linux x86 native formats only. Full Python scalar classes, mutable/cached-property behavior and multiline representations, custom/non-native-endian dtypes and every ABI remain uncertified. Wide constants use documented independent typed scalar adaptations."
   ],
   "new_oracle": "NumPy2.5.4",
   "new_reference_cases": {
-    "fromiter_packing_and_consumption": 9127,
-    "fromiter_errors_and_ordering": 2240
+    "numeric_limits": 260
   },
-  "new_reference_checks": 153738,
-  "new_lua_regression_checks": 58,
+  "new_reference_checks": 2849,
+  "new_lua_regression_checks": 62,
   "apis": {
-    "numpy.fromiter": "implemented_partial"
+    "numpy.finfo": "implemented_partial",
+    "numpy.iinfo": "implemented_partial"
   },
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "b46a56e8199d0d5c7eabc3f557c5828e73373981a1e9eb78e6c1df4234549a3d",
-      "files": 395
+      "sha256": "2d30760f809f297200ca30a69cd898b06c293f5c3f238c83e8dcb5bfcb0dbdd9",
+      "files": 401
     },
-    "version": "0.159.0-dev",
+    "version": "0.160.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -254,7 +255,9 @@
       "ln_quantile",
       "ln_axis",
       "ln_fromiter",
-      "lua_fromiter"
+      "lua_fromiter",
+      "ln_limits",
+      "lua_limits"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -278,7 +281,8 @@
       "tests/native/test_bincount156_core.c",
       "tests/native/test_bits157_core.c",
       "tests/native/test_numpy158_core.c",
-      "tests/native/test_fromiter159_core.c"
+      "tests/native/test_fromiter159_core.c",
+      "tests/native/test_limits160_core.c"
     ],
     "instrumentation_verification": {
       "asan_initialization_symbols": "verified in every listed object",
@@ -336,6 +340,8 @@
         "ln_axis.o",
         "ln_fromiter.o",
         "lua_fromiter.o",
+        "ln_limits.o",
+        "lua_limits.o",
         "runner.o",
         "tests/test_matrix_core.o",
         "tests/test_comparison134_core.o",
@@ -357,7 +363,8 @@
         "tests/test_bincount156_core.o",
         "tests/test_bits157_core.o",
         "tests/test_numpy158_core.o",
-        "tests/test_fromiter159_core.o"
+        "tests/test_fromiter159_core.o",
+        "tests/test_limits160_core.o"
       ],
       "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
     },
@@ -365,32 +372,30 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.159.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.160.0-dev-sanitizers.log"
   },
   "evidence": [
-    "src/ln_fromiter.c",
-    "src/ln_fromiter.h",
-    "src/lua_fromiter.c",
-    "src/lua_fromiter.h",
+    "src/ln_limits.c",
+    "src/ln_limits.h",
+    "src/lua_limits.c",
+    "src/lua_limits.h",
+    "src/lua_dtype.c",
     "src/lua_array_api.h",
     "src/lua_module.c",
-    "src/lua_compat.h",
-    "tests/native/test_fromiter159_core.c",
-    "tests/lua/fromiter_regression.lua",
-    "docs/fromiter.md",
-    "docs/es/fromiter.md",
+    "tests/native/test_limits160_core.c",
+    "tests/lua/limits_regression.lua",
+    "docs/limits.md",
+    "docs/es/limits.md",
     "compatibility/numpy-source.sha256"
   ],
-  "new_check_semantics": "Exact dtype/shape/strides/flags/ownership, significant raw values, strict scalar packing versus rank-zero casting, consumed values and next-call counts, failure prefixes and original Lua error object. Includes count limits, early EOF, unsized dtype rejection, allocator growth boundaries, final shrink, wide integers, extended precision, Unicode/raw strings, temporal casts, mutable unaligned and readonly scalar sources, GC and coroutine producers.",
+  "new_check_semantics": "Exact floating constants and integer endpoints, dtype/aliases, scalar inference, complex-to-real mapping, cache identity, immutable Lua records and independent wide scalar copies. All public numeric fields, dtype strings/characters/type numbers, invalid kinds and missing/extra arguments. Longdouble significant bytes and uint64 maximum retain native precision. Native and C++ tests exercise host limits and invalid pointers/types.",
   "new_reference_tolerances": {
-    "numeric": "Exact significant bytes;20 real NaN arrays compare numerical classification, payload/sign not certified. Complex nonfinite values and other defined bytes remain exact.",
-    "extended": "Ten significant x87 bytes checked; six ABI padding bytes per component omitted.",
-    "source_values": "Ordinary NaN Lua literals explicitly preserve the sign of the source input; raw typed values avoid Lua double conversion."
+    "numeric": "Exact Lua values and all significant raw bytes; no tolerance required.",
+    "extended": "Ten significant x87 bytes checked; six padding bytes omitted. Other ABIs not certified."
   },
   "new_reference_language_adaptations": {
-    "iterator": "Lua closure or callable with function __call; nil/no result is EOF; false is data; extra return values ignored. No Python length hints or iterator objects.",
-    "count": "Strict Lua integers; optional count table; -1 unlimited, below-1 returns empty as in pinned source.",
-    "scalar_types": "Lua integer/number/Boolean/complex/string versus raw typed rank-zero array; strings map to Unicode or bytes according to target dtype; no separate Python bytes/str classes.",
-    "errors": "Original Lua callback error value is rethrown; Python exception classes are not reproduced."
+    "records": "Immutable Lua userdata; cached floating records by resolved real dtype, fresh integer records. Short Lua string representation, not the source multiline formatting.",
+    "values": "Half/float32/float64 fields are Lua numbers. Longdouble floating fields and uint64 max are independent typed rank-zero arrays; all other integer endpoints are Lua integers.",
+    "input": "Supported dtype strings/descriptors and ordinary Lua numeric/complex instances; actual ndarrays reject, as in source. Python scalar class objects and foreign dtype protocols remain unavailable."
   }
 }

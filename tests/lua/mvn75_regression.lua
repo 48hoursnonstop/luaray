@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.158.0-dev')
+assert(np._version=='0.159.0-dev')
 local function bad(f)
   local ok,e=pcall(f)
   assert(not ok,'expected a rejection but operation succeeded')

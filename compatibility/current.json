@@ -1,5 +1,5 @@
 {
-  "version": "0.158.0-dev",
+  "version": "0.159.0-dev",
   "upstream_source": "NumPy 2.5.4",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -9,8 +9,8 @@
   "status": "implemented_partial",
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 425,
-    "missing_bindings": 249,
+    "available_callables": 426,
+    "missing_bindings": 248,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -181,54 +181,25 @@
     "Empty-axis unpacking with positive output count deliberately produces defined zeros instead of the pinned NumPy2.5.3 uninitialized output. Another 358 source states are excluded from parity, separately documented and tested under the native zero-fill contract.",
     "Bit packing uses scalar native loops; equivalent SIMD performance, typed scalar axis/count, foreign/index/subclass protocols, Python scalar classes, exact warning/exception hierarchy, huge allocations, every ABI and every input combination remain uncertified.",
     "NumPy2.5.4 is the primary reference, not a claim that every2.5.4 change is implemented. Object arrays, StringDType, masked arrays, Python warning/exception protocols, MSVC and all ABIs remain uncertified.",
-    "Quantiles currently support six methods, nonempty scalar/vector fractions, real numeric input, axis/keepdims/out; weights, overwrite_input and complete signatures remain unavailable. Typed longdouble fractions pass through double parameters even when output dtype remains longdouble."
+    "Quantiles currently support six methods, nonempty scalar/vector fractions, real numeric input, axis/keepdims/out; weights, overwrite_input and complete signatures remain unavailable. Typed longdouble fractions pass through double parameters even when output dtype remains longdouble.",
+    "Fromiter supports fixed native scalar dtypes and strict Lua callback iteration; structured/subarray/object/variableStringDType, like, Python iteration/length-hint protocols and higher-rank elements remain unsupported. Temporal scalar userdata retain existing construction limits; typed rank-zero arrays use raw casting. The constructor cannot suspend across a callback; coroutine.wrap producers run on their own coroutine."
   ],
   "new_oracle": "NumPy2.5.4",
   "new_reference_cases": {
-    "empty_axes_and_median_layout": 50008,
-    "nonfinite_linalg": 4464,
-    "accumulation_outputs": 6860,
-    "regenerated_legacy_quantiles": 2700
+    "fromiter_packing_and_consumption": 9127,
+    "fromiter_errors_and_ordering": 2240
   },
-  "new_reference_checks": 617872,
-  "new_lua_regression_checks": 130,
-  "new_check_count_scope": "Three new focused corpora only; legacy2700-case assertion count not included.",
+  "new_reference_checks": 153738,
+  "new_lua_regression_checks": 58,
   "apis": {
-    "numpy.median": "implemented_partial",
-    "numpy.quantile": "implemented_partial",
-    "numpy.percentile": "implemented_partial",
-    "numpy.nanmedian": "implemented_partial",
-    "numpy.nanquantile": "implemented_partial",
-    "numpy.nanpercentile": "implemented_partial",
-    "numpy.linalg.cond": "implemented_partial",
-    "numpy.linalg.svd": "implemented_partial",
-    "numpy.linalg.svdvals": "implemented_partial",
-    "numpy.linalg.lstsq": "implemented_partial",
-    "numpy.linalg.pinv": "implemented_partial",
-    "numpy.linalg.matrix_rank": "implemented_partial",
-    "numpy.cumsum": "implemented_partial",
-    "numpy.cumprod": "implemented_partial"
+    "numpy.fromiter": "implemented_partial"
   },
-  "evidence": [
-    "src/ln_quantile.c",
-    "src/ln_quantile.h",
-    "src/ln_linalg.c",
-    "src/ln_core.c",
-    "src/lua_module.c",
-    "tests/native/test_numpy158_core.c",
-    "tests/lua/numpy254_regression.lua",
-    "docs/quantiles.md",
-    "docs/es/quantiles.md",
-    "compatibility/numpy-source.sha256",
-    "compatibility/numpy-2.5.3-source.sha256",
-    "compatibility/numpy254-reference.patch"
-  ],
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "d0d748354495d20d6a4ca9f2a4bad0e1f352b4ed905d3113538606f1a164f256",
-      "files": 389
+      "sha256": "b46a56e8199d0d5c7eabc3f557c5828e73373981a1e9eb78e6c1df4234549a3d",
+      "files": 395
     },
-    "version": "0.158.0-dev",
+    "version": "0.159.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -281,7 +252,9 @@
       "ln_bits",
       "lua_bits",
       "ln_quantile",
-      "ln_axis"
+      "ln_axis",
+      "ln_fromiter",
+      "lua_fromiter"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -304,7 +277,8 @@
       "tests/native/test_index155_core.c",
       "tests/native/test_bincount156_core.c",
       "tests/native/test_bits157_core.c",
-      "tests/native/test_numpy158_core.c"
+      "tests/native/test_numpy158_core.c",
+      "tests/native/test_fromiter159_core.c"
     ],
     "instrumentation_verification": {
       "asan_initialization_symbols": "verified in every listed object",
@@ -360,6 +334,8 @@
         "lua_bits.o",
         "ln_quantile.o",
         "ln_axis.o",
+        "ln_fromiter.o",
+        "lua_fromiter.o",
         "runner.o",
         "tests/test_matrix_core.o",
         "tests/test_comparison134_core.o",
@@ -380,7 +356,8 @@
         "tests/test_index155_core.o",
         "tests/test_bincount156_core.o",
         "tests/test_bits157_core.o",
-        "tests/test_numpy158_core.o"
+        "tests/test_numpy158_core.o",
+        "tests/test_fromiter159_core.o"
       ],
       "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
     },
@@ -388,22 +365,32 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.158.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.159.0-dev-sanitizers.log"
   },
-  "new_check_semantics": "Empty retained axes and empty axis selections; dtype/promotion, shape, strides, flags, ownership and significant bytes. Median K-order layout and retained keepdims views. Nonfinite SVD/lstsq guards and condition numbers, exact accumulate output-shape validation including empty temporal dtype resolution. Inputs/output backing states after rejection. Scalar keepdims and extreme empty-view strides exercised through Lua and native API.",
+  "evidence": [
+    "src/ln_fromiter.c",
+    "src/ln_fromiter.h",
+    "src/lua_fromiter.c",
+    "src/lua_fromiter.h",
+    "src/lua_array_api.h",
+    "src/lua_module.c",
+    "src/lua_compat.h",
+    "tests/native/test_fromiter159_core.c",
+    "tests/lua/fromiter_regression.lua",
+    "docs/fromiter.md",
+    "docs/es/fromiter.md",
+    "compatibility/numpy-source.sha256"
+  ],
+  "new_check_semantics": "Exact dtype/shape/strides/flags/ownership, significant raw values, strict scalar packing versus rank-zero casting, consumed values and next-call counts, failure prefixes and original Lua error object. Includes count limits, early EOF, unsized dtype rejection, allocator growth boundaries, final shrink, wide integers, extended precision, Unicode/raw strings, temporal casts, mutable unaligned and readonly scalar sources, GC and coroutine producers.",
   "new_reference_tolerances": {
-    "identity_controls": "absolute+relative3e-6 for single precision,2e-12 for wider linalg; exact metadata and nonfinite classification",
-    "legacy_quantile": "original absolute+relative0.002 retained unchanged",
-    "NaNs": "scalar and array results compare classification; payload/sign not certified",
-    "longdouble": "all ten significant x87 bytes checked; six padding bytes omitted"
+    "numeric": "Exact significant bytes;20 real NaN arrays compare numerical classification, payload/sign not certified. Complex nonfinite values and other defined bytes remain exact.",
+    "extended": "Ten significant x87 bytes checked; six ABI padding bytes per component omitted.",
+    "source_values": "Ordinary NaN Lua literals explicitly preserve the sign of the source input; raw typed values avoid Lua double conversion."
   },
   "new_reference_language_adaptations": {
-    "axes": "Nonnegative NumPy axes become one-based Lua positions; negative axes retain meaning.",
-    "scalar_results": "Existing Lua scalar-reduction convention retained; no Python scalar classes.",
-    "frozen_archive": "Immutable0.116 SHA checked before applying exact documented40 former-rejection updates to source-defined NumPy2.5.4 success assertions; all original numeric assertions preserved."
-  },
-  "new_reference_exclusions": {
-    "unpackbits_empty_source_bug": "The existing excluded uninitialized outputs were reproduced with actual NumPy2.5.4; not counted as parity. LuaRay retains explicit zero filling.",
-    "reference_versions": "Older frozen and cumulative corpora retain their original NumPy2.5.3/2.3.5 attribution. Updating the primary pin does not regenerate or recertify every API."
+    "iterator": "Lua closure or callable with function __call; nil/no result is EOF; false is data; extra return values ignored. No Python length hints or iterator objects.",
+    "count": "Strict Lua integers; optional count table; -1 unlimited, below-1 returns empty as in pinned source.",
+    "scalar_types": "Lua integer/number/Boolean/complex/string versus raw typed rank-zero array; strings map to Unicode or bytes according to target dtype; no separate Python bytes/str classes.",
+    "errors": "Original Lua callback error value is rethrown; Python exception classes are not reproduced."
   }
 }

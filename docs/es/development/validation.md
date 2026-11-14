@@ -56,14 +56,14 @@ NumPy 2.5.3 o 2.3.5. Los generadores recientes y sus serializadores se entregan
 en el archivo opcional de referencias de cada [versión](https://github.com/48hoursnonstop/luaray/releases).
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 425 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 426 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.158.0-dev** aprobó **73 suites nativas**, **130 suites Lua**, siete ejemplos
-y 402 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.159.0-dev** aprobó **74 suites nativas**, **131 suites Lua**, siete ejemplos
+y 414 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -152,9 +152,11 @@ El empaquetado de bits aprobó **37 640 casos /250 644 comprobaciones**: 15 029 
 
 La migración a NumPy 2.5.4 aprobó **61 332 casos nuevos /617 872 comprobaciones**, más **2 700 casos históricos de cuantiles regenerados** (sus aserciones individuales no se incluyen en617 872). Incluye ejes conservados vacíos, selección vacía de ejes, orden K de medianas, vistas keepdims, promoción, álgebra lineal no finita y validación de acumulaciones. Otras130 comprobaciones Lua y la prueba nativa cubren keepdims escalar, vida de memoria y strides extremos en reducciones vacías. Los NaN se comparan por clasificación numérica y se omite padding x87. Los controles finitos de álgebra lineal usan tolerancia absoluta+relativa3e-6 para precisión simple y2e-12 para tipos amplios; la tolerancia histórica de cuantiles permanece0.002. Los cuatro corpus se regeneraron exactamente.
 
-La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, `ln_integer_math`, `ln_order`, `ln_index_math`, `lua_index_math`, `ln_bincount`, `lua_bincount`, `ln_bits`, `lua_bits`, `ln_quantile`, `ln_axis`, además del runner Lua y veinte pruebas nativas. Aprobaron todas las suites mantenidas y los 65 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
+Fromiter aprobó **11 367 casos /153 738 comprobaciones** contra NumPy2.5.4:6 874 entradas válidas y4 493 errores esperados, con58 comprobaciones Lua, una prueba nativa de crecimiento/desbordamiento y cabeceras/enlace C++. Se comparan bytes significativos exactos, dtype/disposición/flags, estados de entrada, orden count/EOF/error y valores consumidos; los errores del callback conservan el objeto Lua original. Veinte arrays NaN reales usan clasificación numérica; se omite padding ABI x87. Los dos corpus se regeneraron exactamente.
 
-Se verificaron símbolos de inicialización ASan en los 72 objetos declarados (51 unidades de biblioteca, runner y 20 pruebas nativas). El driver reconstruye los objetos desde la misma lista que registra. El informe inicial de la 0.153 contaba una prueba instrumentada de más; su [reauditoría corregida](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) del mismo código aprobó todas las pruebas y 56 corpus, sin modificar sus paquetes.
+La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, `ln_integer_math`, `ln_order`, `ln_index_math`, `lua_index_math`, `ln_bincount`, `lua_bincount`, `ln_bits`, `lua_bits`, `ln_quantile`, `ln_axis`, `ln_fromiter`, `lua_fromiter`, además del runner Lua y veintiuna pruebas nativas. Aprobaron todas las suites mantenidas y los 67 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
+
+Se verificaron símbolos de inicialización ASan en los 75 objetos declarados (53 unidades de biblioteca, runner y 21 pruebas nativas). El driver reconstruye los objetos desde la misma lista que registra. El informe inicial de la 0.153 contaba una prueba instrumentada de más; su [reauditoría corregida](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) del mismo código aprobó todas las pruebas y 56 corpus, sin modificar sus paquetes.
 
 ## Integridad de las entregas
 

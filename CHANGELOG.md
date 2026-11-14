@@ -14,6 +14,20 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.159.0-dev
+
+Added native fromiter with checked geometric buffer growth, count-limited or
+end-of-stream consumption, direct scalar packing and original Lua callback
+error propagation. Typed rank-zero values retain native precision and casting;
+ordinary values retain strict scalar bounds. Accepts callable Lua objects and
+coroutine.wrap producers; buffers remain rooted during callbacks and GC.
+
+Validated 11,367 NumPy 2.5.4 cases /153,738 checks, 58 permanent Lua checks,
+a native allocation/overflow harness and C++ header/link execution. New English
+and Spanish guides execute their examples. Python object/length-hint protocols,
+like dispatch, structured/subarray dtypes and higher-rank elements remain
+unsupported. Counts are strict Lua integers and nil marks end of stream.
+
 ## 0.158.0-dev
 
 Updated the primary behavioral reference to NumPy 2.5.4. Preserves historical

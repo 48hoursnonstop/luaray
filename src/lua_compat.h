@@ -28,6 +28,8 @@ extern lua_Number lua_tonumberx(lua_State *L, int idx, int *isnum);
 extern const char *lua_tolstring(lua_State *L, int idx, size_t *len);
 extern int lua_isinteger(lua_State *L, int idx);
 extern size_t lua_rawlen(lua_State *L, int idx);
+extern int lua_rawget(lua_State *L,int index);
+extern int lua_error(lua_State *L);
 extern int lua_rawgeti(lua_State *L,int index,lua_Integer n);
 extern lua_State *lua_tothread(lua_State *L,int index);
 extern int luaL_ref(lua_State *L,int index);

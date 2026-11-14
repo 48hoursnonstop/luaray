@@ -12,6 +12,7 @@ const pages = [
   ['Arrays and memory', 'Arrays y memoria', [
     ['Creation and copying', 'Creación y copias', 'creation'],
     ['Array constructor', 'Constructor de arrays', 'ndarray'],
+    ['Arrays from an iterator', 'Arrays desde un iterador', 'fromiter'],
     ['Shape and layout', 'Forma y disposición', 'layout'],
     ['Resizing arrays', 'Cambiar tamaño de arrays', 'resize'],
     ['Indexing and assignment', 'Índices y asignación', 'writing'],

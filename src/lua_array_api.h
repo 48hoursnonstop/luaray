@@ -27,4 +27,6 @@ int ln_lua_assign_exact_sequence(lua_State *L,int index,ln_array *destination);
  * Ordinary Lua sequences/scalars are converted directly with assignment bounds
  * checks and rooted on the stack, preserving Python scalar/ndarray distinctions. */
 ln_array *ln_lua_assignment_values(lua_State *L,int index,const ln_dtype *dtype);
+/* Pack a single Lua value into borrowed typed storage; raises on failure. */
+void ln_lua_pack_scalar(lua_State *L,int index,const ln_dtype *dtype,char *destination);
 #endif

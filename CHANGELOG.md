@@ -14,6 +14,21 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.161.0-dev
+
+Added native isdtype scalar-class/category selection and common_type inexact
+precision selection. Dense Lua selector sequences validate every element,
+including entries after a match. Class matching ignores string widths and time
+units but distinguishes equal-width scalar classes. Common type returns a dtype
+descriptor, selects at least float64 for integer/duration inputs, and examines
+metadata without reading array values.
+
+Validated 5,468 NumPy 2.5.4 cases /18,625 checks, 39 permanent Lua checks,
+a native classification/precision harness and C++ header/link execution.
+Added executable EN/ES guides. Python scalar class returns adapt to Lua dtype
+descriptors; foreign/object/structured/StringDType and all ABI behavior remain
+uncertified.
+
 ## 0.160.0-dev
 
 Added native finfo/iinfo records using host format constants and checked integer

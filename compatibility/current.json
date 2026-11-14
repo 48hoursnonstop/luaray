@@ -1,5 +1,5 @@
 {
-  "version": "0.160.0-dev",
+  "version": "0.161.0-dev",
   "upstream_source": "NumPy 2.5.4",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -9,8 +9,8 @@
   "status": "implemented_partial",
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 428,
-    "missing_bindings": 246,
+    "available_callables": 430,
+    "missing_bindings": 244,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -183,24 +183,26 @@
     "NumPy2.5.4 is the primary reference, not a claim that every2.5.4 change is implemented. Object arrays, StringDType, masked arrays, Python warning/exception protocols, MSVC and all ABIs remain uncertified.",
     "Quantiles currently support six methods, nonempty scalar/vector fractions, real numeric input, axis/keepdims/out; weights, overwrite_input and complete signatures remain unavailable. Typed longdouble fractions pass through double parameters even when output dtype remains longdouble.",
     "Fromiter supports fixed native scalar dtypes and strict Lua callback iteration; structured/subarray/object/variableStringDType, like, Python iteration/length-hint protocols and higher-rank elements remain unsupported. Temporal scalar userdata retain existing construction limits; typed rank-zero arrays use raw casting. The constructor cannot suspend across a callback; coroutine.wrap producers run on their own coroutine.",
-    "Finfo/iinfo constants were verified on Linux x86 native formats only. Full Python scalar classes, mutable/cached-property behavior and multiline representations, custom/non-native-endian dtypes and every ABI remain uncertified. Wide constants use documented independent typed scalar adaptations."
+    "Finfo/iinfo constants were verified on Linux x86 native formats only. Full Python scalar classes, mutable/cached-property behavior and multiline representations, custom/non-native-endian dtypes and every ABI remain uncertified. Wide constants use documented independent typed scalar adaptations.",
+    "Isdtype/common_type do not claim Python scalar class returns, subclass/foreign dispatch, object/structured/variableStringDType or every ABI. Isdtype matches scalar classes; descriptor equivalence has different semantics. Common_type is metadata-only and does not validate element convertibility."
   ],
   "new_oracle": "NumPy2.5.4",
   "new_reference_cases": {
-    "numeric_limits": 260
+    "isdtype": 3148,
+    "common_type": 2320
   },
-  "new_reference_checks": 2849,
-  "new_lua_regression_checks": 62,
+  "new_reference_checks": 18625,
+  "new_lua_regression_checks": 39,
   "apis": {
-    "numpy.finfo": "implemented_partial",
-    "numpy.iinfo": "implemented_partial"
+    "numpy.isdtype": "implemented_partial",
+    "numpy.common_type": "implemented_partial"
   },
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "2d30760f809f297200ca30a69cd898b06c293f5c3f238c83e8dcb5bfcb0dbdd9",
-      "files": 401
+      "sha256": "7694c982a897783984ae8ae03e53fde6dcd4379fc13c47ac1c3bc7061db9c158",
+      "files": 407
     },
-    "version": "0.160.0-dev",
+    "version": "0.161.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -257,7 +259,9 @@
       "ln_fromiter",
       "lua_fromiter",
       "ln_limits",
-      "lua_limits"
+      "lua_limits",
+      "ln_type_check",
+      "lua_type_check"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -282,7 +286,8 @@
       "tests/native/test_bits157_core.c",
       "tests/native/test_numpy158_core.c",
       "tests/native/test_fromiter159_core.c",
-      "tests/native/test_limits160_core.c"
+      "tests/native/test_limits160_core.c",
+      "tests/native/test_type_check161_core.c"
     ],
     "instrumentation_verification": {
       "asan_initialization_symbols": "verified in every listed object",
@@ -342,6 +347,8 @@
         "lua_fromiter.o",
         "ln_limits.o",
         "lua_limits.o",
+        "ln_type_check.o",
+        "lua_type_check.o",
         "runner.o",
         "tests/test_matrix_core.o",
         "tests/test_comparison134_core.o",
@@ -364,7 +371,8 @@
         "tests/test_bits157_core.o",
         "tests/test_numpy158_core.o",
         "tests/test_fromiter159_core.o",
-        "tests/test_limits160_core.o"
+        "tests/test_limits160_core.o",
+        "tests/test_type_check161_core.o"
       ],
       "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
     },
@@ -372,30 +380,28 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.160.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.161.0-dev-sanitizers.log"
   },
   "evidence": [
-    "src/ln_limits.c",
-    "src/ln_limits.h",
-    "src/lua_limits.c",
-    "src/lua_limits.h",
-    "src/lua_dtype.c",
-    "src/lua_array_api.h",
+    "src/ln_type_check.c",
+    "src/ln_type_check.h",
+    "src/lua_type_check.c",
+    "src/lua_type_check.h",
     "src/lua_module.c",
-    "tests/native/test_limits160_core.c",
-    "tests/lua/limits_regression.lua",
-    "docs/limits.md",
-    "docs/es/limits.md",
+    "tests/native/test_type_check161_core.c",
+    "tests/lua/type_check_regression.lua",
+    "docs/type_selection.md",
+    "docs/es/type_selection.md",
     "compatibility/numpy-source.sha256"
   ],
-  "new_check_semantics": "Exact floating constants and integer endpoints, dtype/aliases, scalar inference, complex-to-real mapping, cache identity, immutable Lua records and independent wide scalar copies. All public numeric fields, dtype strings/characters/type numbers, invalid kinds and missing/extra arguments. Longdouble significant bytes and uint64 maximum retain native precision. Native and C++ tests exercise host limits and invalid pointers/types.",
+  "new_check_semantics": "Exact dtype scalar-class identity (not storage equivalence), seven categories, complete selector validation including errors after a match, empty/nested/invalid selectors, typed string widths and temporal units, aliases, source dtype inference, common inexact precision from zero to three source arguments and256 permanent Lua arguments. Input bytes and dtype output strings/characters/type numbers compare exactly. Empty/reversed/readonly inputs and an empty extreme-stride regression use metadata without reading values.",
   "new_reference_tolerances": {
-    "numeric": "Exact Lua values and all significant raw bytes; no tolerance required.",
-    "extended": "Ten significant x87 bytes checked; six padding bytes omitted. Other ABIs not certified."
+    "numeric": "Exact booleans, acceptance, dtype metadata and significant input bytes. No numerical tolerance.",
+    "extended": "Input x87 padding omitted, all significant bytes checked; other ABIs not certified."
   },
   "new_reference_language_adaptations": {
-    "records": "Immutable Lua userdata; cached floating records by resolved real dtype, fresh integer records. Short Lua string representation, not the source multiline formatting.",
-    "values": "Half/float32/float64 fields are Lua numbers. Longdouble floating fields and uint64 max are independent typed rank-zero arrays; all other integer endpoints are Lua integers.",
-    "input": "Supported dtype strings/descriptors and ordinary Lua numeric/complex instances; actual ndarrays reject, as in source. Python scalar class objects and foreign dtype protocols remain unavailable."
+    "isdtype": "Actual Lua dtype descriptor required first; concrete selectors are descriptors, category names are strings, dense Lua sequences represent source tuples. Nil cannot be an element; nested and sparse sequences reject. No Python list/tuple class distinction.",
+    "common_type": "Actual ndarrays are required; returns a dtype descriptor instead of Python scalar class. No-argument result is float16 as in source.",
+    "duration": "Source timedelta64 is an integer subclass for common_type (at least float64) but is excluded from isdtype integral/numeric category sets."
   }
 }

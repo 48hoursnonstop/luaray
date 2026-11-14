@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.160.0-dev')
+assert(np._version=='0.161.0-dev')
 local r=np.random.default_rng(42)
 local expect={0.30471707975443135,-1.0399841062404955,0.7504511958064572,0.9405647163912139,-1.9510351886538364}
 for i=1,#expect do assert(r:standard_normal()==expect[i]) end

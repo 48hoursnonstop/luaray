@@ -11,6 +11,7 @@ const pages = [
     ['Array fundamentals', 'Fundamentos de arrays', 'arrays'],
     ['Dtype descriptors', 'Descriptores dtype', 'dtypes'],
     ['Numeric limits', 'Límites numéricos', 'limits'],
+    ['Classifying and selecting types', 'Clasificar y seleccionar tipos', 'type_selection'],
     ['Shape and size queries', 'Consultas de forma y tamaño', 'metadata'],
   ]],
   ['Arrays and memory', 'Arrays y memoria', [

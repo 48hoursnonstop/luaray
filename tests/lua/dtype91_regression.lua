@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.160.0-dev')
+assert(np._version=='0.161.0-dev')
 -- NumPy resolves multi-operand promotion by kind, not left-to-right.
 assert(np.result_type('int8','uint16','float16')=='float32')
 assert(np.promote_types('int32','uint64')=='float64')

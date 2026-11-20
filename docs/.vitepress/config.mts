@@ -47,6 +47,7 @@ const pages = [
   ['Mathematics', 'Matemáticas', [
     ['Unary operations', 'Operaciones unarias', 'unary_math'],
     ['Binary operations', 'Operaciones binarias', 'binary_math'],
+    ['Floating-point neighbors and stable sums', 'Vecinos de punto flotante y sumas estables', 'floating_functions'],
     ['Counting categories', 'Contar categorías', 'bincount'],
     ['Integer operations', 'Operaciones enteras', 'integer_math'],
     ['Quantiles and medians', 'Cuantiles y medianas', 'quantiles'],

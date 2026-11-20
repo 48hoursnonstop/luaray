@@ -14,6 +14,12 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.167.0-dev
+
+Adds the real ufuncs `nextafter`, `spacing`, `heaviside`, `logaddexp` and
+`logaddexp2`. Includes binary16 bit-level stepping and dtype-specific spacing.
+Adds English and Spanish guides.
+
 ## 0.166.0-dev
 
 Adds `cumulative_sum` and `cumulative_prod` with an optional initial identity,

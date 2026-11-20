@@ -1,5 +1,5 @@
 {
-  "version": "0.169.0-dev",
+  "version": "0.170.0-dev",
   "upstream_source": "NumPy 2.5.5",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -8,8 +8,8 @@
   "status": "implemented_partial",
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 450,
-    "missing_bindings": 224,
+    "available_callables": 451,
+    "missing_bindings": 223,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -187,17 +187,14 @@
     "Ordinary scalar to clongdouble packing follows the source double-component conversion. This is not an assertion of full scalar/array casting fidelity; source Python class protocols, warnings, every ABI and every operation remain uncertified."
   ],
   "apis": {
-    "numpy.matvec": "implemented_partial",
-    "numpy.vecmat": "implemented_partial",
-    "numpy.vecdot": "implemented_partial",
-    "numpy.vdot": "implemented_partial"
+    "numpy.lexsort": "implemented_partial"
   },
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "87f782a8d6bbf1e53568d675d1d356e193781cba698fa83487478638c9e3ed7d",
-      "files": 428
+      "sha256": "97b061d41ac1044a9871dc7f94fb9ce7bac99faca9ca9377878c1fcc507f2dfa",
+      "files": 429
     },
-    "version": "0.169.0-dev",
+    "version": "0.170.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -261,6 +258,7 @@
       "ln_type_check",
       "lua_type_check",
       "ln_matmul",
+      "ln_sort",
       "ln_raw_file",
       "lua_raw_file",
       "ln_half",
@@ -362,6 +360,7 @@
         "ln_type_check.o",
         "lua_type_check.o",
         "ln_matmul.o",
+        "ln_sort.o",
         "runner.o",
         "tests/test_matrix_core.o",
         "tests/test_comparison134_core.o",
@@ -480,14 +479,15 @@
       "matrix166-cumulative.lua",
       "matrix167-floating.lua",
       "matrix168-layout.lua",
-      "matrix169-products.lua"
+      "matrix169-products.lua",
+      "matrix170-lexsort.lua"
     ],
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.169.0-dev-sanitizers.log",
+    "log": "artifacts/matrix-0.170.0-dev-sanitizers.log",
     "audit_phases": {
-      "cumulative_corpus_original_objects": 90,
-      "objects_after_targeted_rebuild": 95,
+      "cumulative_corpus_original_objects": 91,
+      "objects_after_targeted_rebuild": 96,
       "additional_units": [
         "ln_raw_file",
         "lua_raw_file",
@@ -501,20 +501,20 @@
         "matrix163-migration.lua",
         "matrix165-rawfile.lua",
         "matrix167-floating.lua",
-        "matrix169-products.lua"
+        "matrix170-lexsort.lua"
       ],
-      "focused_log": "artifacts/matrix-0.169.0-dev-sanitizers-focused.log"
+      "focused_log": "artifacts/matrix-0.170.0-dev-sanitizers-focused.log"
     }
   },
   "evidence": [
-    "src/ln_matmul.c",
-    "src/ln_linalg.c",
-    "tests/lua/vector_products_regression.lua"
+    "src/ln_sort.c",
+    "src/lua_module.c",
+    "tests/lua/lexsort_regression.lua"
   ],
   "new_oracle": "NumPy 2.5.5",
   "new_reference_cases": {
-    "products": 2326
+    "lexsort": 2626
   },
-  "new_reference_checks": 25300,
-  "new_check_semantics": "The tests compare typed conjugation, batch broadcasting, strided and overlapping outputs, empty contractions, scalar products and rank-64 inputs. The existing linalg matrix corpus also ran against the new contraction path."
+  "new_reference_checks": 38702,
+  "new_check_semantics": "The results preserve stable ties across numeric, complex, temporal and fixed text keys. Cases include NaN, NaT, non-native Unicode, ndarray keys, strided views and scalar or empty inputs."
 }

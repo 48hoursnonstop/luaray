@@ -56,14 +56,14 @@ NumPy 2.5.3 o 2.3.5. Los generadores recientes y sus serializadores se entregan
 en el archivo opcional de referencias de cada [versión](https://github.com/48hoursnonstop/luaray/releases).
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 456 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 457 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.171.0-dev** aprobó **79 suites nativas**, **143 suites Lua**, siete ejemplos
-y 490 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.172.0-dev** aprobó **80 suites nativas**, **144 suites Lua**, siete ejemplos
+y 494 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -178,7 +178,9 @@ Aprobaron **2 626 casos / 38 702 comprobaciones** con NumPy 2.5.5. Los resultado
 
 Aprobaron **3 138 casos / 139 230 comprobaciones** con NumPy 2.5.5. Se comprueban valores, primeros índices, mapas inversos, conteos y cortes por eje. También se cubren reglas de NaN y NaT según el dtype, strides vacíos, texto fijo y resultados de Array API.
 
-La auditoría ASan/UBSan cubrió 96 objetos de 67 unidades de biblioteca, el runner de Lua y 28 pruebas nativas. Aprobaron todas las suites mantenidas y 81 corpus de referencia. El JSON de verificación de la entrega lista los objetos instrumentados y la huella del código ejecutado. La instrumentación de otras dependencias fue parcial. La detección de fugas estaba desactivada.
+Aprobaron **3 194 casos / 53 252 comprobaciones** con NumPy 2.5.5. Las pruebas cubren búsqueda entera y ordenación, máscaras invertidas, límites de enteros con y sin signo, igualdad tipada y entradas con strides.
+
+La auditoría ASan/UBSan cubrió 99 objetos de 69 unidades de biblioteca, el runner de Lua y 29 pruebas nativas. Aprobaron todas las suites mantenidas y 82 corpus de referencia. El JSON de verificación de la entrega lista los objetos instrumentados y la huella del código ejecutado. La instrumentación de otras dependencias fue parcial. La detección de fugas estaba desactivada.
 
 La [reauditoría corregida de 0.153](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) se conserva en los archivos de la entrega.
 

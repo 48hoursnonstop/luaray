@@ -1,5 +1,5 @@
 {
-  "version": "0.171.0-dev",
+  "version": "0.172.0-dev",
   "upstream_source": "NumPy 2.5.5",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -8,8 +8,8 @@
   "status": "implemented_partial",
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 456,
-    "missing_bindings": 218,
+    "available_callables": 457,
+    "missing_bindings": 217,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -187,18 +187,14 @@
     "Ordinary scalar to clongdouble packing follows the source double-component conversion. This is not an assertion of full scalar/array casting fidelity; source Python class protocols, warnings, every ABI and every operation remain uncertified."
   ],
   "apis": {
-    "numpy.unique": "implemented_partial",
-    "numpy.unique_all": "implemented_partial",
-    "numpy.unique_values": "implemented_partial",
-    "numpy.unique_counts": "implemented_partial",
-    "numpy.unique_inverse": "implemented_partial"
+    "numpy.isin": "implemented_partial"
   },
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "c1007c9156a2152e6ae45c3634c93bdd38b8dafe3e73fee1d37f08c978b749c2",
-      "files": 431
+      "sha256": "317f3dbf98f719276889125daa60e98ab079e52802b82a56880de0d64166514f",
+      "files": 439
     },
-    "version": "0.171.0-dev",
+    "version": "0.172.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -267,7 +263,9 @@
       "ln_unary_math",
       "ln_ufunc_loops",
       "ln_matmul",
-      "ln_sort"
+      "ln_sort",
+      "ln_membership",
+      "lua_membership"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -298,7 +296,8 @@
       "tests/native/test_nanquantile_core.c",
       "tests/native/test_take100_core.c",
       "tests/native/test_fromstring_core.c",
-      "tests/native/test_raw_file_core.c"
+      "tests/native/test_raw_file_core.c",
+      "tests/native/test_membership_core.c"
     ],
     "instrumentation_verification": {
       "asan_initialization_symbols": "verified in every listed object",
@@ -370,6 +369,8 @@
         "ln_ufunc_loops.o",
         "ln_matmul.o",
         "ln_sort.o",
+        "ln_membership.o",
+        "lua_membership.o",
         "runner.o",
         "tests/test_matrix_core.o",
         "tests/test_comparison134_core.o",
@@ -398,7 +399,8 @@
         "tests/test_nanquantile_core.o",
         "tests/test_take100_core.o",
         "tests/test_fromstring_core.o",
-        "tests/test_raw_file_core.o"
+        "tests/test_raw_file_core.o",
+        "tests/test_membership_core.o"
       ],
       "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
     },
@@ -485,20 +487,23 @@
       "matrix168-layout.lua",
       "matrix169-products.lua",
       "matrix170-lexsort.lua",
-      "matrix171-unique.lua"
+      "matrix171-unique.lua",
+      "matrix172-membership.lua"
     ],
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.171.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.172.0-dev-sanitizers.log"
   },
   "evidence": [
-    "lua/luaray/unique.lua",
-    "tests/lua/unique_regression.lua"
+    "lua/luaray/membership.lua",
+    "src/ln_membership.c",
+    "src/lua_membership.c",
+    "tests/lua/membership_regression.lua"
   ],
   "new_oracle": "NumPy 2.5.5",
   "new_reference_cases": {
-    "unique": 3138
+    "membership": 3194
   },
-  "new_reference_checks": 139230,
-  "new_check_semantics": "The checks cover values, first indices, inverse maps, counts and axis slices. They also exercise dtype-specific NaN and NaT behavior, empty array strides, fixed text and Array API result records."
+  "new_reference_checks": 53252,
+  "new_check_semantics": "The checks exercise integer lookup and sort routes, inverted masks, mixed signed and unsigned limits, typed equality and strided inputs."
 }

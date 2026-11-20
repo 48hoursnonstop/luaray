@@ -49,6 +49,7 @@ const pages = [
     ['Existing buffers', 'Buffers existentes', 'buffers'],
     ['Memory flags', 'Flags de memoria', 'flags'],
     ['Memory requirements', 'Requisitos de memoria', 'requirements'],
+    ['Padding arrays', 'Relleno de arreglos', 'padding'],
   ]],
   ['Mathematics', 'Matemáticas', [
     ['Unary operations', 'Operaciones unarias', 'unary_math'],

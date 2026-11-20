@@ -49,6 +49,7 @@ const pages = [
     ['Existing buffers', 'Buffers existentes', 'buffers'],
     ['Memory flags', 'Flags de memoria', 'flags'],
     ['Memory requirements', 'Requisitos de memoria', 'requirements'],
+    ['Block assembly and zero trimming', 'Bloques y recorte de ceros', 'block_layout'],
     ['Padding arrays', 'Relleno de arreglos', 'padding'],
   ]],
   ['Mathematics', 'Matemáticas', [

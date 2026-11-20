@@ -14,6 +14,11 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.177.0-dev
+
+Adds histogram counts and densities with uniform and explicit bins, typed
+weights and English and Spanish guides.
+
 ## 0.176.0-dev
 
 Adds `histogram_bin_edges` for fixed counts, explicit boundaries and the eight

@@ -40,3 +40,5 @@ Se admiten enteros, booleanos, flotantes reales, complex64, complex128 y ticks
 enteros para dtypes temporales. El texto entero sigue las reglas de conversión
 del lector nativo. Las cadenas de ancho fijo y clongdouble carecen de un
 lector en el origen. Para datos binarios, usa `frombuffer`.
+
+La lectura de texto aprobó **8 848 casos / 50 732 comprobaciones** con NumPy 2.5.5. Incluye 60 casos de seguridad con un count mayor que el número de valores disponibles. LuaRay rechaza esas solicitudes. Los demás casos cubren valores, dtype, forma, separadores, desbordamiento, precisión extendida, componentes complejos, entradas grandes y texto inválido. También pasaron las regresiones en Lua y C.

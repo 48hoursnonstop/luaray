@@ -1,5 +1,5 @@
 {
-  "version": "0.163.0-dev",
+  "version": "0.164.0-dev",
   "upstream_source": "NumPy 2.5.5",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -8,8 +8,8 @@
   "status": "implemented_partial",
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 432,
-    "missing_bindings": 242,
+    "available_callables": 433,
+    "missing_bindings": 241,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -187,20 +187,14 @@
     "Ordinary scalar to clongdouble packing follows the source double-component conversion. This is not an assertion of full scalar/array casting fidelity; source Python class protocols, warnings, every ABI and every operation remain uncertified."
   ],
   "apis": {
-    "numpy.isposinf": "implemented_partial",
-    "numpy.isneginf": "implemented_partial",
-    "numpy.nanquantile": "implemented_partial",
-    "numpy.nanpercentile": "implemented_partial",
-    "numpy.sqrt": "implemented_partial",
-    "numpy.take": "implemented_partial",
-    "numpy.negative": "implemented_partial"
+    "numpy.fromstring": "implemented_partial"
   },
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "839bd92e495c9af656f1505d574e5f66ba62a4b352482e92688dbc54339708f6",
-      "files": 410
+      "sha256": "9365b806343be53be5baf0c68af232c983cccd29b189f7a048d715f187754e38",
+      "files": 416
     },
-    "version": "0.163.0-dev",
+    "version": "0.164.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -257,6 +251,8 @@
       "ln_axis",
       "ln_fromiter",
       "lua_fromiter",
+      "ln_fromstring",
+      "lua_fromstring",
       "ln_limits",
       "lua_limits",
       "ln_type_check",
@@ -289,7 +285,8 @@
       "tests/native/test_type_check161_core.c",
       "tests/native/test_scalar162_core.c",
       "tests/native/test_nanquantile_core.c",
-      "tests/native/test_take100_core.c"
+      "tests/native/test_take100_core.c",
+      "tests/native/test_fromstring_core.c"
     ],
     "instrumentation_verification": {
       "asan_initialization_symbols": "verified in every listed object",
@@ -348,6 +345,8 @@
         "ln_axis.o",
         "ln_fromiter.o",
         "lua_fromiter.o",
+        "ln_fromstring.o",
+        "lua_fromstring.o",
         "ln_limits.o",
         "lua_limits.o",
         "ln_type_check.o",
@@ -378,7 +377,8 @@
         "tests/test_type_check161_core.o",
         "tests/test_scalar162_core.o",
         "tests/test_nanquantile_core.o",
-        "tests/test_take100_core.o"
+        "tests/test_take100_core.o",
+        "tests/test_fromstring_core.o"
       ],
       "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
     },
@@ -386,25 +386,20 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.163.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.164.0-dev-sanitizers.log"
   },
   "evidence": [
-    "lua/luaray/infinity.lua",
-    "src/ln_quantile.c",
-    "src/ln_complex_math.c",
-    "src/ln_take.c",
-    "tests/lua/infinity_regression.lua",
-    "compatibility/numpy255-nanquantile.patch"
+    "src/ln_fromstring.c",
+    "src/lua_fromstring.c",
+    "tests/native/test_fromstring_core.c",
+    "tests/lua/fromstring_regression.lua",
+    "docs/fromstring.md",
+    "docs/es/fromstring.md"
   ],
   "new_oracle": "NumPy 2.5.5",
   "new_reference_cases": {
-    "signed_infinity": 8460,
-    "nanquantile_promotion": 384,
-    "take_empty": 840,
-    "complex_sqrt": 36,
-    "strided_negative": 432
+    "fromstring": 8848
   },
-  "new_reference_checks": 83001,
-  "new_lua_regression_checks": 38,
-  "new_check_semantics": "Exact dtype promotion, values and shape for all-NaN slices. Exact significant bytes and layout for complex square root, negative with strided destinations and signed infinity. Empty take matches NumPy 2.5.5 including the three previously excluded wrap calls. Out identity, rejection rollback and shared storage are checked."
+  "new_reference_checks": 50732,
+  "new_check_semantics": "Exact significant bytes for fully defined numeric parses, shape and flags, accepted and rejected input, multi-character separators and whitespace, native integer overflow and signed zero. Real NaNs compare by classification. Sixty source short-count calls are checked without reading their uninitialized tails. LuaRay rejects them."
 }

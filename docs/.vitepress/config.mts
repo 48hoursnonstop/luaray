@@ -83,6 +83,7 @@ const pages = [
     ['Linear interpolation', 'Interpolación lineal', 'interpolation'],
     ['Polynomial coefficient operations', 'Operaciones con coeficientes polinómicos', 'polynomial'],
     ['Polynomial roots and characteristic polynomials', 'Raíces y polinomios característicos', 'polynomial_roots'],
+    ['Fitting polynomials', 'Ajuste polinómico', 'polyfit'],
     ['Phases and angles', 'Fases y ángulos', 'phase'],
     ['Convolution and cross-correlation', 'Convolución y correlación cruzada', 'convolution'],
     ['FFT helpers', 'Funciones FFT', 'fft_helpers'],

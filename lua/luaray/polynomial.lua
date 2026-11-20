@@ -67,6 +67,61 @@ return function(lr)
     return p
   end
 
+  function lr.polyfit(points,observations,degree,options)
+    if options==nil then options={} end
+    if type(options)~='table' then error('polyfit options must be a table',2) end
+    for key,value in pairs(options) do
+      if key=='full' then
+        if type(value)~='boolean' then error('full must be boolean',2) end
+      elseif key=='cov' then
+        if type(value)~='boolean' and value~='unscaled' then error('invalid covariance option',2) end
+      elseif key~='rcond' and key~='w' then
+        error('unknown polyfit option',2)
+      end
+    end
+    if type(degree)~='number' or degree<0 then error('degree must be nonnegative',2) end
+    local n=order(degree)
+    if n==math.maxinteger then error('degree exceeds native limits',2) end
+    n=n+1
+    local x=lr.add(lr.asanyarray(points),0.0)
+    local rhs=lr.add(lr.asanyarray(observations),0.0)
+    if x.ndim~=1 or x.size==0 then error('polyfit x must be a nonempty vector',2) end
+    if (rhs.ndim~=1 and rhs.ndim~=2) or rhs.shape[1]~=x.size then
+      error('observations must be a vector or matrix matching the number of points',2)
+    end
+    local rcond=options.rcond
+    if rcond==nil then rcond=x.size*lr.finfo(x.dtype).eps end
+    if type(rcond)=='userdata' and rcond.ndim==0 then rcond=rcond:tolist() end
+    if type(rcond)~='number' then error('rcond must be a real scalar',2) end
+
+    local lhs=lr.vander(x,n)
+    if options.w~=nil then
+      local weights=lr.add(lr.asanyarray(options.w),0.0)
+      if weights.ndim~=1 or weights.size~=x.size then error('weights must match x',2) end
+      local columns=lr.expand_dims(weights,2)
+      lr.multiply(lhs,columns,{out=lhs})
+      lr.multiply(rhs,rhs.ndim==2 and columns or weights,{out=rhs})
+    end
+
+    local scale=lr.sqrt(lr.sum(lr.multiply(lhs,lhs),{axis=1}))
+    lr.true_divide(lhs,scale,{out=lhs})
+    local coefficients,residuals,rank,singular=lr.linalg.lstsq(lhs,rhs,rcond)
+    local factors=rhs.ndim==2 and lr.expand_dims(scale,2) or scale
+    coefficients=lr.true_divide(coefficients,factors)
+    if options.full then return coefficients,residuals,rank,singular,rcond end
+    if not options.cov then return coefficients end
+
+    local variances=lr.linalg.inv(lr.dot(lr.transpose(lhs),lhs))
+    lr.true_divide(variances,lr.outer(scale,scale),{out=variances})
+    local covariance_scale=1
+    if options.cov~='unscaled' then
+      if x.size<=n then error('more data points than coefficients are required for scaled covariance',2) end
+      covariance_scale=lr.true_divide(residuals,x.size-n)
+    end
+    if rhs.ndim==2 then variances=lr.expand_dims(variances,3) end
+    return coefficients,lr.multiply(variances,covariance_scale)
+  end
+
   function lr.polyval(input,points)
     local p=lr.asanyarray(input)
     if p.ndim==0 then error('polyval coefficients require at least one dimension',2) end

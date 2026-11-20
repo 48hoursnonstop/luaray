@@ -56,14 +56,14 @@ NumPy 2.5.3 o 2.3.5. Los generadores recientes y sus serializadores se entregan
 en el archivo opcional de referencias de cada [versión](https://github.com/48hoursnonstop/luaray/releases).
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 437 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 442 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.166.0-dev** aprobó **79 suites nativas**, **138 suites Lua**, siete ejemplos
-y 470 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.167.0-dev** aprobó **79 suites nativas**, **139 suites Lua**, siete ejemplos
+y 474 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -168,7 +168,9 @@ Aprobaron **2 826 casos / 34 186 comprobaciones** con NumPy 2.5.5. La batería c
 
 Aprobaron **6 492 casos / 81 720 comprobaciones** con NumPy 2.5.5. Las pruebas comparan dtype, forma, strides, elementos de identidad, casos escalares y vacíos, y toda la memoria base de salidas con strides o solapamiento. El acumulador nativo valida la conversión del texto existente antes de sustituir los valores de salida.
 
-La auditoría ASan/UBSan cubrió las suites mantenidas y 76 corpus de referencia con 89 objetos instrumentados. Una recompilación dirigida añadió `ln_raw_file`, `lua_raw_file` y elevó el total verificado a 91. Volvieron a aprobar las suites mantenidas y 2 archivos de referencia afectados. El JSON de la entrega registra ambas pasadas y la huella del código. La instrumentación de otras dependencias fue parcial. La detección de fugas estaba desactivada.
+Aprobaron **1 532 casos / 41 016 comprobaciones** con NumPy 2.5.5. Las pruebas recorren todos los patrones float16 con spacing y nextafter, incluidos ceros con signo y NaN. Otros casos cubren promoción, escalares débiles, extremos reales, salida con máscara y vistas solapadas. Los NaN de mayor precisión se comparan por clasificación.
+
+La auditoría ASan/UBSan cubrió las suites mantenidas y 77 corpus de referencia con 89 objetos instrumentados. Una recompilación dirigida añadió `ln_raw_file`, `lua_raw_file`, `ln_half`, `ln_unary_math`, `ln_ufunc_loops` y elevó el total verificado a 94. Volvieron a aprobar las suites mantenidas y 4 archivos de referencia afectados. El JSON de la entrega registra ambas pasadas y la huella del código. La instrumentación de otras dependencias fue parcial. La detección de fugas estaba desactivada.
 
 La [reauditoría corregida de 0.153](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) se conserva en los archivos de la entrega.
 

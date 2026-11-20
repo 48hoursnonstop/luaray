@@ -1,5 +1,5 @@
 {
-  "version": "0.166.0-dev",
+  "version": "0.167.0-dev",
   "upstream_source": "NumPy 2.5.5",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -8,8 +8,8 @@
   "status": "implemented_partial",
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 437,
-    "missing_bindings": 237,
+    "available_callables": 442,
+    "missing_bindings": 232,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -187,15 +187,18 @@
     "Ordinary scalar to clongdouble packing follows the source double-component conversion. This is not an assertion of full scalar/array casting fidelity; source Python class protocols, warnings, every ABI and every operation remain uncertified."
   ],
   "apis": {
-    "numpy.cumulative_sum": "implemented_partial",
-    "numpy.cumulative_prod": "implemented_partial"
+    "numpy.nextafter": "implemented_partial",
+    "numpy.spacing": "implemented_partial",
+    "numpy.heaviside": "implemented_partial",
+    "numpy.logaddexp": "implemented_partial",
+    "numpy.logaddexp2": "implemented_partial"
   },
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "1307efc6c9a7a2a0c18cc8850cabff4331e0c2255cd9ad4d20e81f2fed373314",
-      "files": 424
+      "sha256": "4e62142789223528f5c590cc35a456182a3d4ba584bb648d19756786065ee4d5",
+      "files": 425
     },
-    "version": "0.166.0-dev",
+    "version": "0.167.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -259,7 +262,10 @@
       "ln_type_check",
       "lua_type_check",
       "ln_raw_file",
-      "lua_raw_file"
+      "lua_raw_file",
+      "ln_half",
+      "ln_unary_math",
+      "ln_ufunc_loops"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -385,7 +391,10 @@
         "tests/test_fromstring_core.o",
         "tests/test_raw_file_core.o",
         "ln_raw_file.o",
-        "lua_raw_file.o"
+        "lua_raw_file.o",
+        "ln_half.o",
+        "ln_unary_math.o",
+        "ln_ufunc_loops.o"
       ],
       "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
     },
@@ -393,31 +402,37 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.166.0-dev-sanitizers.log",
+    "log": "artifacts/matrix-0.167.0-dev-sanitizers.log",
     "audit_phases": {
       "cumulative_corpus_original_objects": 89,
-      "objects_after_targeted_rebuild": 91,
+      "objects_after_targeted_rebuild": 94,
       "additional_units": [
         "ln_raw_file",
-        "lua_raw_file"
+        "lua_raw_file",
+        "ln_half",
+        "ln_unary_math",
+        "ln_ufunc_loops"
       ],
       "focused_maintained_suites": "passed",
       "focused_reference_files": [
+        "matrix163-infinity.lua",
+        "matrix163-migration.lua",
         "matrix165-rawfile.lua",
-        "matrix166-cumulative.lua"
+        "matrix167-floating.lua"
       ],
-      "focused_log": "artifacts/matrix-0.166.0-dev-sanitizers-focused.log"
+      "focused_log": "artifacts/matrix-0.167.0-dev-sanitizers-focused.log"
     }
   },
   "evidence": [
-    "lua/luaray/cumulative.lua",
-    "src/ln_core.c",
-    "tests/lua/array_api_cumulative_regression.lua"
+    "src/ln_half.c",
+    "src/ln_ufunc_loops.c",
+    "src/ln_unary_math.c",
+    "tests/lua/floating_functions_regression.lua"
   ],
   "new_oracle": "NumPy 2.5.5",
   "new_reference_cases": {
-    "cumulative": 6492
+    "floating": 1532
   },
-  "new_reference_checks": 81720,
-  "new_check_semantics": "The checks compare accumulator dtype, shape, strides, identity cells, scalar and empty cases, and the full backing state of strided and overlapping outputs. The native accumulation loop validates the conversion from existing text at an output before it writes replacement values."
+  "new_reference_checks": 41016,
+  "new_check_semantics": "The checks exhaust every float16 bit pattern for spacing and nextafter, including signed zero and NaN encodings. Additional cases cover floating dtype and weak-scalar promotion, real extreme values, masked output and overlapping views. Wider NaNs are compared by classification."
 }

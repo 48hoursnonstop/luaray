@@ -14,6 +14,12 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.173.0-dev
+
+Adds `union1d`, `intersect1d`, `setdiff1d`, and `setxor1d`. Intersections
+can return the first original positions in both input arrays. Adds English
+and Spanish guides.
+
 ## 0.172.0-dev
 
 Adds `isin` with exact signed and unsigned integer lookup, direct comparison,

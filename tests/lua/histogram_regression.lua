@@ -1,0 +1,25 @@
+local lr=require('luaray')
+local x=lr.array({-1,0,1,2,2.9,3,4})
+local counts,edges=lr.histogram(x,{bins=3,range={0,3}})
+assert(table.concat(counts:tolist(),',')=='1,1,3')
+assert(edges[1]==0 and edges[4]==3)
+local weighted,w_edges=lr.histogram({1,2,2,3},{
+  bins={1,2,3},weights=lr.array({2,5,7,11},'int16')
+})
+assert(weighted.dtype=='int16' and weighted[1]==2 and weighted[2]==23)
+assert(w_edges[3]==3)
+
+local dens,bins=lr.histogram({0,1,2,3,4},{bins={0,1,4},density=true})
+assert(math.abs(lr.sum(lr.multiply(dens,lr.diff(bins)))-1)<2e-15)
+local c=lr.histogram({0,1,1},{
+  bins=2,weights=lr.array({lr.complex(2,3),lr.complex(1,-1),lr.complex(4,2)},'complex64')
+})
+assert(c[1]==lr.complex(2,3) and c[2]==lr.complex(5,1))
+
+local many=lr.zeros({65539},'uint8')
+local n=lr.histogram(many,{bins=1,range={0,1},weights=lr.ones(many.shape,'int32')})
+assert(n.dtype=='int32' and n[1]==65539)
+assert(not pcall(lr.histogram,x,{weights={1,2}}))
+assert(not pcall(lr.histogram,x,{bins='auto',weights=lr.ones(x.shape)}))
+assert(not pcall(lr.histogram,x,{density='yes'}))
+print('Histogram regression passed')

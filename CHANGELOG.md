@@ -14,6 +14,88 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.192.0-dev
+
+Adds native business-day interval counting with broadcast date ranges, sorted holidays and overflow-checked spans. Adds bilingual guides.
+
+## 0.191.0-dev
+
+Adds immutable business-day calendars and vectorized day queries with normalized holidays, weekmasks and bilingual guides.
+
+## 0.190.0-dev
+
+Adds lazy broadcast iteration and indexed enumeration with one-based coordinate tables and bilingual examples.
+
+## 0.189.0-dev
+
+Adds LAPACK-backed polynomial least-squares fitting with weights, rank diagnostics and coefficient covariance. Adds bilingual guides.
+
+## 0.188.0-dev
+
+Adds monic and characteristic polynomial coefficients, LAPACK-backed polynomial roots and legacy type code selection. Adds bilingual guides.
+
+## 0.187.0-dev
+
+Adds polynomial coefficient arithmetic, differentiation and integration, and Horner evaluation. Adds English and Spanish guides.
+
+## 0.186.0-dev
+
+Adds nonfinite replacements, piecewise functions and numeric aliases with bilingual examples.
+
+## 0.185.0-dev
+
+Fixes sort, argsort and selection for temporal and fixed-width text dtypes. Adds sort_complex and bilingual ordering guides.
+
+## 0.184.0-dev
+
+Adds nested block assembly and zero-boundary trimming with one-based axes and bilingual guides.
+
+## 0.183.0-dev
+
+Adds direct native Einstein summation with strided operands, ellipses, repeated labels, typed contractions and writable output arrays. Adds bilingual guides.
+
+## 0.182.0-dev
+
+Adds per-axis array padding with constant, edge, wrap, reflection, ramp, statistical, empty and callback modes. Adds English and Spanish guides.
+
+## 0.181.0-dev
+
+Adds Bartlett, Blackman, Hamming, Hann and Kaiser windows, modified Bessel I0 and normalized sinc with bilingual guides.
+
+## 0.180.0-dev
+
+Adds two-dimensional and multidimensional histograms with typed edge vectors, weighted counts, density normalization and bilingual guides.
+
+## 0.179.0-dev
+
+Adds covariance and Pearson correlation, including frequency and amplitude weights, complex data and bilingual guides.
+
+## 0.178.0-dev
+
+Adds one-dimensional convolution and conjugating cross-correlation, with default, full, same and valid modes. Adds English and Spanish guides.
+
+## 0.177.0-dev
+
+Adds histogram counts and densities with uniform and explicit bins, typed
+weights and English and Spanish guides.
+
+## 0.176.0-dev
+
+Adds `histogram_bin_edges` for fixed counts, explicit boundaries and the eight
+NumPy width estimators. Adds English and Spanish guides.
+
+## 0.175.0-dev
+
+Adds `digitize` for increasing and decreasing intervals. Native
+`searchsorted` now handles fixed-width text and temporal descriptors and
+matches the NumPy 2.5.5 pivot schedules. Adds English and Spanish guides.
+
+## 0.174.0-dev
+
+Adds `save` and `load` for typed NPY files and open Lua streams. Supports
+NPY versions 1.0 to 3.0, C and Fortran storage, and bounded header parsing.
+Adds English and Spanish guides.
+
 ## 0.173.0-dev
 
 Adds `union1d`, `intersect1d`, `setdiff1d`, and `setxor1d`. Intersections

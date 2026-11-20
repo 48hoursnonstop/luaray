@@ -36,4 +36,44 @@ return function(lr)
       return result
     end
   end
+
+  function lr.ndenumerate(input)
+    local array=lr.asanyarray(input)
+    local coordinates=lr.ndindex(array.shape)
+    return function()
+      local coordinate=coordinates()
+      if coordinate then return coordinate,array:item(coordinate) end
+    end
+  end
+
+  function lr.broadcast(...)
+    local args=table.pack(...)
+    local views=lr.broadcast_arrays(table.unpack(args,1,args.n))
+    local first=views[1]
+    local shape,size={},1
+    if first then shape,size=first.shape,first.size end
+    local coordinates,count=lr.ndindex(shape),0
+    local function reset()
+      coordinates,count=lr.ndindex(shape),0
+    end
+    local function advance()
+      local coordinate=coordinates()
+      if not coordinate then return nil end
+      local operands={}
+      for i,array in ipairs(views) do operands[i]=array:item(coordinate) end
+      count=count+1
+      return operands
+    end
+    local properties={size=size,nd=#shape,ndim=#shape,numiter=#views,
+                      reset=reset,next=advance}
+    return setmetatable({},{
+      __call=advance,
+      __index=function(_,key)
+        if key=='index' then return count end
+        if key=='shape' then return {table.unpack(shape)} end
+        return properties[key]
+      end,
+      __newindex=function() error('broadcast properties are read-only',2) end,
+    })
+  end
 end

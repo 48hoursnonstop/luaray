@@ -1,0 +1,28 @@
+local lr = require("luaray")
+
+local ticks = {3, 1, math.mininteger, -1, 2}
+local d = lr.array(ticks, "datetime64[D]")
+assert(lr.array_equal(lr.sort(d):view("int64"), {-1, 1, 2, 3, math.mininteger}))
+assert(lr.array_equal(lr.sort(d, {descending=true}):view("int64"), {3, 2, 1, -1, math.mininteger}))
+assert(lr.array_equal(lr.argsort(d), {4, 2, 5, 1, 3}))
+local interval = d:view("timedelta64[D]")
+assert(lr.array_equal(lr.partition(interval, 3):view("int64"), {-1, 1, 2, 3, math.mininteger}))
+assert(lr.array_equal(lr.argpartition(interval, 3), {4, 2, 5, 1, 3}))
+assert(lr.array_equal(d:view("int64"), ticks))
+
+local wide = lr.array({"z", "ab", "a", "a\0c", "A"}, "S60")
+assert(lr.array_equal(lr.sort(wide), lr.array({"A", "a", "a\0c", "ab", "z"}, "S60")))
+assert(lr.array_equal(lr.argsort(wide), {5, 3, 4, 2, 1}))
+local u = lr.array({{"Ω", "a", "α"}, {"Ā", "z", "A"}}, "U20")
+local reversed = lr.flip(u, 2)
+assert(lr.array_equal(lr.sort(reversed), lr.array({{"a", "Ω", "α"}, {"A", "z", "Ā"}}, "U20")))
+local p = lr.argpartition(lr.array({9, 1, 4}), lr.empty({0}, "intp"))
+assert(lr.array_equal(p, {1, 2, 3}))
+
+local small = lr.sort_complex(lr.array({4, 2, 1}, "int16"))
+assert(small.dtype=="complex64" and lr.array_equal(lr.real(small), {1, 2, 4}))
+assert(lr.sort_complex(lr.array({4, 2, 1}, "longdouble")).dtype=="complex256")
+local complex = lr.sort_complex({lr.complex(2, -1), lr.complex(1, 4), lr.complex(1, -3)})
+assert(lr.array_equal(lr.real(complex), {1, 1, 2}))
+assert(lr.array_equal(lr.imag(complex), {-3, 4, -1}))
+print("Typed ordering and complex sort regression passed")

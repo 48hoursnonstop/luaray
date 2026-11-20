@@ -2344,6 +2344,15 @@ static int np_array(lua_State *L) {
     return np_array_legacy(L);
 }
 
+static void
+reserve_join_inputs(lua_State *L,size_t count)
+{
+    /* Keep one owning Lua value per input until the native join returns. */
+    if(count>SIZE_MAX/sizeof(const ln_array*) || count>INT_MAX-4)
+        luaL_error(L,"too many input arrays");
+    luaL_checkstack(L,(int)count+4,"too many input arrays");
+}
+
 /* NumPy concatenate/stack: the Lua boundary parses 1-based axes and
  * optional ndarray/table operands; the join/casting loop is host-neutral C. */
 static int
@@ -2353,8 +2362,7 @@ join_function(lua_State *L, int stack)
     luaL_checktype(L,1,LUA_TTABLE);
     size_t n=lua_rawlen(L,1);
     if (!n) return luaL_error(L,"need at least one array to concatenate/stack");
-    if (n > (SIZE_MAX / sizeof(const ln_array *)))
-        return luaL_error(L,"too many input arrays");
+    reserve_join_inputs(L,n);
     const ln_array **inputs=(const ln_array **)lua_newuserdatauv(L,n*sizeof(*inputs),0);
     int array_nd=-1;
     for (size_t i=0;i<n;++i) {
@@ -2364,13 +2372,13 @@ join_function(lua_State *L, int stack)
             lua_pushcfunction(L,np_array);
             lua_pushvalue(L,-2);
             if (lua_pcall(L,1,1,0)!=LUA_OK)
-                return luaL_error(L,"cannot convert input array %llu: %s",
-                    (unsigned long long)i+1,lua_tostring(L,-1));
+                return luaL_error(L,"cannot convert input array %I: %s",
+                    (lua_Integer)i+1,lua_tostring(L,-1));
             lua_remove(L,-2);
         }
         lua_array *u=test_array(L,-1);
-        if(!u)return luaL_error(L,"input %llu must be an ndarray or Lua array table",
-                               (unsigned long long)i+1);
+        if(!u)return luaL_error(L,"input %I must be an ndarray or Lua array table",
+                               (lua_Integer)i+1);
         inputs[i]=u->a;
         if(i==0)array_nd=u->a->nd;
         /* Keep converted array userdata rooted on the Lua stack until return. */
@@ -2440,7 +2448,7 @@ static int shape_stack_function(lua_State *L, ln_stack_kind kind) {
     luaL_checktype(L,1,LUA_TTABLE);
     size_t n=lua_rawlen(L,1);
     if(n==0) return luaL_error(L,"need at least one array to stack");
-    if(n>SIZE_MAX/sizeof(const ln_array*))return luaL_error(L,"too many input arrays");
+    reserve_join_inputs(L,n);
     if(nargs>2 || (nargs==2 && lua_type(L,2)!=LUA_TNIL && lua_type(L,2)!=LUA_TTABLE))
         return luaL_error(L,"stack options must be a table with dtype/casting");
     const ln_dtype_descr *dtype=NULL;
@@ -2470,8 +2478,8 @@ static int shape_stack_function(lua_State *L, ln_stack_kind kind) {
             lua_pushcfunction(L,np_array);
             lua_pushvalue(L,-2);
             if(lua_pcall(L,1,1,0)!=LUA_OK)
-                return luaL_error(L,"cannot convert stack input %llu: %s",
-                    (unsigned long long)i+1,lua_tostring(L,-1));
+                return luaL_error(L,"cannot convert stack input %I: %s",
+                    (lua_Integer)i+1,lua_tostring(L,-1));
             lua_remove(L,-2);
             u=check_array(L,-1);
         }
@@ -2496,7 +2504,8 @@ static int shape_stack_function(lua_State *L, ln_stack_kind kind) {
         }
         if(!view)return fail(L,&e);
         inputs[i]=view;
-        push_array(L,view); /* ensure every temporary view gets finalized */
+        push_array(L,view);
+        lua_remove(L,-2); /* the view retains its input buffer */
     }
     ln_error e={0};
     ln_array *result=ln_join_arrays(inputs,n,axis,0,dtype,casting,NULL,&e);

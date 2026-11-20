@@ -1,4 +1,5 @@
 -- NumPy 2.5.5 _arraysetops_impl.py: table, direct, and stable-sort membership.
+local empty_shape_view=require("luaray.layout_view")
 return function(lr)
   local table_membership=lr._isin_table
   lr._isin_table=nil
@@ -51,15 +52,7 @@ return function(lr)
 
   local function restore_shape(result,shape)
     if result.size==0 and #shape>1 then
-      local strides={}
-      local width=1
-      for i=#shape,1,-1 do
-        strides[i]=width
-        local extent=math.max(1,shape[i])
-        if width>math.maxinteger//extent then error('membership layout exceeds native range',3) end
-        width=width*extent
-      end
-      return lr.ndarray(shape,{dtype='bool',buffer=result,strides=strides})
+      return empty_shape_view(lr,result,shape)
     end
     return lr.reshape(result,shape)
   end

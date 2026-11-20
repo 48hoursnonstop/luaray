@@ -14,6 +14,12 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.174.0-dev
+
+Adds `save` and `load` for typed NPY files and open Lua streams. Supports
+NPY versions 1.0 to 3.0, C and Fortran storage, and bounded header parsing.
+Adds English and Spanish guides.
+
 ## 0.173.0-dev
 
 Adds `union1d`, `intersect1d`, `setdiff1d`, and `setxor1d`. Intersections

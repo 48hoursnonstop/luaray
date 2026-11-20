@@ -1,4 +1,5 @@
 -- NumPy 2.5.5 lib/_format_impl.py, for fixed-width ndarray descriptors.
+local empty_shape_view=require("luaray.layout_view")
 return function(lr)
   local magic=string.char(147)..'NUMPY'
   local length_formats={'<I2','<I4','<I4'}
@@ -134,19 +135,11 @@ return function(lr)
     end)
   end
 
-  local function loaded_shape(array,shape,order)
+  local function loaded_shape(array,shape)
     if array.size==0 and #shape>1 then
-      local strides={}
-      local width=array.itemsize
-      for d=#shape,1,-1 do
-        strides[d]=width
-        local extent=math.max(1,shape[d])
-        if width>math.maxinteger//extent then error('NPY strides exceed native range',3) end
-        width=width*extent
-      end
-      return lr.ndarray(shape,{dtype=array.dtype,buffer=array,strides=strides})
+      return empty_shape_view(lr,array,shape)
     end
-    return lr.reshape(array,shape,{order=order})
+    return lr.reshape(array,shape)
   end
 
   function lr.load(file,options)
@@ -183,9 +176,9 @@ return function(lr)
       if header.fortran_order then
         local reversed={}
         for i=#shape,1,-1 do reversed[#reversed+1]=shape[i] end
-        return lr.transpose(loaded_shape(flat,reversed,'C'))
+        return lr.transpose(loaded_shape(flat,reversed))
       end
-      return loaded_shape(flat,shape,'C')
+      return loaded_shape(flat,shape)
     end)
   end
 end

@@ -56,14 +56,14 @@ NumPy 2.5.3 o 2.3.5. Los generadores recientes y sus serializadores se entregan
 en el archivo opcional de referencias de cada [versión](https://github.com/48hoursnonstop/luaray/releases).
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 433 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 435 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.164.0-dev** aprobó **78 suites nativas**, **134 suites Lua**, siete ejemplos
-y 462 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.165.0-dev** aprobó **79 suites nativas**, **137 suites Lua**, siete ejemplos
+y 466 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -164,9 +164,11 @@ La migración a NumPy 2.5.5 aprobó **10 152 casos / 83 001 comprobaciones**. Lo
 
 La lectura de texto aprobó **8 848 casos / 50 732 comprobaciones** con NumPy 2.5.5. Incluye 60 casos de seguridad con un count mayor que el número de valores disponibles. LuaRay rechaza esas solicitudes. Los demás casos cubren valores, dtype, forma, separadores, desbordamiento, precisión extendida, componentes complejos, entradas grandes y texto inválido. También pasaron las regresiones en Lua y C.
 
-La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, `ln_integer_math`, `ln_order`, `ln_index_math`, `lua_index_math`, `ln_bincount`, `lua_bincount`, `ln_bits`, `lua_bits`, `ln_quantile`, `ln_complex_math`, `ln_axis`, `ln_fromiter`, `lua_fromiter`, `ln_fromstring`, `lua_fromstring`, `ln_limits`, `lua_limits`, `ln_type_check`, `lua_type_check`, además del runner Lua y veintisiete pruebas nativas. Aprobaron todas las suites mantenidas y los 74 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
+Aprobaron **2 826 casos / 34 186 comprobaciones** con NumPy 2.5.5. La batería compara bytes, dtype y forma, conteos, offsets con signo, posición final del archivo y escritura en orden C desde arrays transpuestos, invertidos y de solo lectura. La lectura binaria usa descriptores nativos con itemsize distinto de cero. Los formatos de texto tienen un alcance de compatibilidad separado.
 
-Se verificaron símbolos de inicialización ASan en los 88 objetos declarados (60 unidades de biblioteca, runner y 27 pruebas nativas). El driver reconstruye los objetos desde la misma lista que registra. El informe inicial de la 0.153 contaba una prueba instrumentada de más; su [reauditoría corregida](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) del mismo código aprobó todas las pruebas y 56 corpus, sin modificar sus paquetes.
+La auditoría ASan/UBSan cubrió las suites mantenidas y 75 corpus de referencia con 89 objetos instrumentados. Una recompilación dirigida añadió `ln_raw_file`, `lua_raw_file` y elevó el total verificado a 91. Volvieron a aprobar las suites mantenidas y 1 archivos de referencia afectados. El JSON de la entrega registra ambas pasadas y la huella del código. La instrumentación de otras dependencias fue parcial. La detección de fugas estaba desactivada.
+
+La [reauditoría corregida de 0.153](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) se conserva en los archivos de la entrega.
 
 ## Integridad de las entregas
 

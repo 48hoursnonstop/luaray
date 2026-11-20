@@ -1,5 +1,5 @@
 {
-  "version": "0.164.0-dev",
+  "version": "0.165.0-dev",
   "upstream_source": "NumPy 2.5.5",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -8,8 +8,8 @@
   "status": "implemented_partial",
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 433,
-    "missing_bindings": 241,
+    "available_callables": 435,
+    "missing_bindings": 239,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -187,14 +187,15 @@
     "Ordinary scalar to clongdouble packing follows the source double-component conversion. This is not an assertion of full scalar/array casting fidelity; source Python class protocols, warnings, every ABI and every operation remain uncertified."
   ],
   "apis": {
-    "numpy.fromstring": "implemented_partial"
+    "numpy.fromfile": "implemented_partial",
+    "numpy.ndarray.tofile": "implemented_partial"
   },
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "9365b806343be53be5baf0c68af232c983cccd29b189f7a048d715f187754e38",
-      "files": 416
+      "sha256": "d0f194c8b82b25693bca95cc4b48b0ca9a04d5180f505f2c1dccb70d967b6583",
+      "files": 422
     },
-    "version": "0.164.0-dev",
+    "version": "0.165.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -256,7 +257,9 @@
       "ln_limits",
       "lua_limits",
       "ln_type_check",
-      "lua_type_check"
+      "lua_type_check",
+      "ln_raw_file",
+      "lua_raw_file"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -286,7 +289,8 @@
       "tests/native/test_scalar162_core.c",
       "tests/native/test_nanquantile_core.c",
       "tests/native/test_take100_core.c",
-      "tests/native/test_fromstring_core.c"
+      "tests/native/test_fromstring_core.c",
+      "tests/native/test_raw_file_core.c"
     ],
     "instrumentation_verification": {
       "asan_initialization_symbols": "verified in every listed object",
@@ -378,7 +382,10 @@
         "tests/test_scalar162_core.o",
         "tests/test_nanquantile_core.o",
         "tests/test_take100_core.o",
-        "tests/test_fromstring_core.o"
+        "tests/test_fromstring_core.o",
+        "tests/test_raw_file_core.o",
+        "ln_raw_file.o",
+        "lua_raw_file.o"
       ],
       "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
     },
@@ -386,20 +393,31 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.164.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.165.0-dev-sanitizers.log",
+    "audit_phases": {
+      "cumulative_corpus_original_objects": 89,
+      "objects_after_targeted_rebuild": 91,
+      "additional_units": [
+        "ln_raw_file",
+        "lua_raw_file"
+      ],
+      "focused_maintained_suites": "passed",
+      "focused_reference_files": [
+        "matrix165-rawfile.lua"
+      ],
+      "focused_log": "artifacts/matrix-0.165.0-dev-sanitizers-focused.log"
+    }
   },
   "evidence": [
-    "src/ln_fromstring.c",
-    "src/lua_fromstring.c",
-    "tests/native/test_fromstring_core.c",
-    "tests/lua/fromstring_regression.lua",
-    "docs/fromstring.md",
-    "docs/es/fromstring.md"
+    "src/ln_raw_file.c",
+    "src/lua_raw_file.c",
+    "tests/native/test_raw_file_core.c",
+    "tests/lua/raw_file_regression.lua"
   ],
   "new_oracle": "NumPy 2.5.5",
   "new_reference_cases": {
-    "fromstring": 8848
+    "rawfile": 2826
   },
-  "new_reference_checks": 50732,
-  "new_check_semantics": "Exact significant bytes for fully defined numeric parses, shape and flags, accepted and rejected input, multi-character separators and whitespace, native integer overflow and signed zero. Real NaNs compare by classification. Sixty source short-count calls are checked without reading their uninitialized tails. LuaRay rejects them."
+  "new_reference_checks": 34186,
+  "new_check_semantics": "The suite compares binary bytes, dtype and shape, counts, signed offsets, final stream position, and C-order writes from transposed, reversed and read-only arrays. Binary I/O accepts native descriptors with nonzero itemsize. Text streams and additional file formats have separate compatibility scopes."
 }

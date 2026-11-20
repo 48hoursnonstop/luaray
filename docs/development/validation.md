@@ -44,13 +44,13 @@ reference archive on the [releases page](https://github.com/48hoursnonstop/luara
 
 `compatibility/current.json` records the release-specific behavioral evidence.
 `compatibility/api_inventory.json` records runtime availability. The latter
-reports 433 of 675 scoped names as available and classifies all available APIs
+reports 435 of 675 scoped names as available and classifies all available APIs
 as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.164.0-dev** passed **78 native suites**, **136 Lua suites**, seven public
-examples and 462 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
+LuaRay **0.165.0-dev** passed **79 native suites**, **137 Lua suites**, seven public
+examples and 466 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
 passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
 metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
@@ -150,9 +150,11 @@ The NumPy 2.5.5 migration passed **10,152 cases / 83,001 checks**. Signed infini
 
 Text ingestion passed **8,848 cases / 50,732 checks** with NumPy 2.5.5. This includes 60 short-count safety cases. LuaRay rejects these requests before returning any array. The remaining cases cover raw values, dtype and shape, delimiter grammar, overflow, extended precision, complex components, large inputs and malformed data. The Lua regression and native span tests passed.
 
-The directed ASan/UBSan run instrumented `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, `ln_integer_math`, `ln_order`, `ln_index_math`, `lua_index_math`, `ln_bincount`, `lua_bincount`, `ln_bits`, `lua_bits`, `ln_quantile`, `ln_complex_math`, `ln_axis`, `ln_fromiter`, `lua_fromiter`, `ln_fromstring`, `lua_fromstring`, `ln_limits`, `lua_limits`, `ln_type_check`, `lua_type_check`, plus the Lua runner and twenty-seven native harnesses. All maintained suites and all 74 cumulative reference corpora passed. Other dependencies were not fully instrumented; leak detection was disabled. Packaging verifies the executable-source fingerprint.
+**2,826 cases / 34,186 checks** passed with NumPy 2.5.5. The suite compares binary bytes, dtype and shape, counts, signed offsets, final stream position, and C-order writes from transposed, reversed and read-only arrays. Binary I/O accepts native descriptors with nonzero itemsize. Text streams and additional file formats have separate compatibility scopes.
 
-ASan initialization symbols were verified in all 88 declared objects (60 library units, runner and 27 native harnesses). The driver rebuilds objects from the same list that it reports. The initial 0.153 report overcounted instrumented harnesses by one; its [corrected repeat audit](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) of the same code passed all tests and 56 corpora without changing the source packages.
+The ASan/UBSan audit covered the maintained suites and 75 reference corpora with 89 instrumented objects. A focused rebuild added `ln_raw_file`, `lua_raw_file`, bringing the checked total to 91. The maintained suites and 1 affected reference files passed again. The release JSON lists both passes and their executable-source fingerprint. Other dependencies were partially instrumented. Leak detection was disabled.
+
+The [corrected repeat audit for 0.153](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) is preserved as a release asset.
 
 ## Release integrity
 

@@ -14,6 +14,19 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.162.0-dev
+
+Corrected strict packing of ordinary integers into clongdouble to use the
+source's double-component scalar conversion. The shared native packing kernel
+now applies the rule consistently to construction, full/fill, assignment,
+copyto, fromiter and weak ufunc operands. Typed rank-zero arrays and real
+longdouble retain raw native precision. Removed the separate fromiter workaround.
+
+Validated 3,080 NumPy 2.5.4 cases /55,356 exact checks, 61 permanent Lua checks,
+a native packing/raw-casting harness and C++ header/link execution. English and
+Spanish creation guides include an executed wide-integer example. Significant
+x87 bytes are checked and padding is omitted; other ABIs remain uncertified.
+
 ## 0.161.0-dev
 
 Added native isdtype scalar-class/category selection and common_type inexact

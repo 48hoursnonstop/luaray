@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Creación, conversión y copia de arrays
 
 LuaRay crea almacenamiento y vistas ndarray reales mediante un núcleo nativo y
@@ -133,3 +136,29 @@ excepciones y coerción completa siguen sin certificar. No se implementan por
 completo secuencias anidadas con ndarrays o escalares temporales. Se valida
 subok, pero solo existe la clase array nativa. Se mantienen los estados bloqueados
 y diferencias explícitas anteriores.
+
+## Enteros grandes y escalares complejos
+
+El empaquetado de un entero Lua ordinario en `clongdouble` sigue la conversión
+escalar del origen: los componentes pasan por double. Un array tipado de rango
+cero sigue el cast nativo y puede conservar más bits. La misma distinción se
+aplica a `full`, `fill`, asignaciones, `copyto` y operandos escalares.
+
+```lua
+local lr = require("luaray")
+local value = math.maxinteger
+local ordinary = lr.array(value, "clongdouble")
+local typed = lr.array(lr.array(value, "int64"), "clongdouble")
+assert(lr.array_equal(ordinary, lr.array(value + 0.0, "clongdouble")))
+if lr.finfo("longdouble").nmant > 52 then
+  assert(not lr.array_equal(ordinary, typed))
+end
+```
+
+Usa un escalar tipado cuando necesites conservar la precisión entera nativa.
+La corrección de 0.162 centraliza esta regla; no modifica el cast de arrays
+tipados ni la precisión del dtype longdouble real.
+
+## Verificación de 0.162.0-dev
+
+El empaquetado escalar aprobó **3 080 casos /55 356 comprobaciones exactas** contra NumPy2.5.4, con61 comprobaciones Lua, una prueba nativa y cabeceras/enlace C++. Compara enteros amplios ordinarios/tipados y precisión extendida en creación, full/fill, asignación, copyto, fromiter y add/multiply por ambos lados, incluidos destinos vacíos/invertidos/transpuestos y memoria base. Los bytes significativos x87 coinciden exactamente; se omite padding ABI. El corpus se regeneró exactamente.

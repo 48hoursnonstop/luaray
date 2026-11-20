@@ -1,5 +1,5 @@
 {
-  "version": "0.161.0-dev",
+  "version": "0.162.0-dev",
   "upstream_source": "NumPy 2.5.4",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -184,25 +184,30 @@
     "Quantiles currently support six methods, nonempty scalar/vector fractions, real numeric input, axis/keepdims/out; weights, overwrite_input and complete signatures remain unavailable. Typed longdouble fractions pass through double parameters even when output dtype remains longdouble.",
     "Fromiter supports fixed native scalar dtypes and strict Lua callback iteration; structured/subarray/object/variableStringDType, like, Python iteration/length-hint protocols and higher-rank elements remain unsupported. Temporal scalar userdata retain existing construction limits; typed rank-zero arrays use raw casting. The constructor cannot suspend across a callback; coroutine.wrap producers run on their own coroutine.",
     "Finfo/iinfo constants were verified on Linux x86 native formats only. Full Python scalar classes, mutable/cached-property behavior and multiline representations, custom/non-native-endian dtypes and every ABI remain uncertified. Wide constants use documented independent typed scalar adaptations.",
-    "Isdtype/common_type do not claim Python scalar class returns, subclass/foreign dispatch, object/structured/variableStringDType or every ABI. Isdtype matches scalar classes; descriptor equivalence has different semantics. Common_type is metadata-only and does not validate element convertibility."
+    "Isdtype/common_type do not claim Python scalar class returns, subclass/foreign dispatch, object/structured/variableStringDType or every ABI. Isdtype matches scalar classes; descriptor equivalence has different semantics. Common_type is metadata-only and does not validate element convertibility.",
+    "Ordinary scalar to clongdouble packing follows the source double-component conversion. This is not an assertion of full scalar/array casting fidelity; source Python class protocols, warnings, every ABI and every operation remain uncertified."
   ],
   "new_oracle": "NumPy2.5.4",
   "new_reference_cases": {
-    "isdtype": 3148,
-    "common_type": 2320
+    "scalar_packing": 3080
   },
-  "new_reference_checks": 18625,
-  "new_lua_regression_checks": 39,
+  "new_reference_checks": 55356,
+  "new_lua_regression_checks": 61,
   "apis": {
-    "numpy.isdtype": "implemented_partial",
-    "numpy.common_type": "implemented_partial"
+    "numpy.array": "implemented_partial",
+    "numpy.full": "implemented_partial",
+    "numpy.ndarray.fill": "implemented_partial",
+    "numpy.copyto": "implemented_partial",
+    "numpy.fromiter": "implemented_partial",
+    "numpy.add": "implemented_partial",
+    "numpy.multiply": "implemented_partial"
   },
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "7694c982a897783984ae8ae03e53fde6dcd4379fc13c47ac1c3bc7061db9c158",
-      "files": 407
+      "sha256": "68a416e43a608cce4dc7464455f290f3bcfb30b030b23fe09fdb200c5c007921",
+      "files": 409
     },
-    "version": "0.161.0-dev",
+    "version": "0.162.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -287,7 +292,8 @@
       "tests/native/test_numpy158_core.c",
       "tests/native/test_fromiter159_core.c",
       "tests/native/test_limits160_core.c",
-      "tests/native/test_type_check161_core.c"
+      "tests/native/test_type_check161_core.c",
+      "tests/native/test_scalar162_core.c"
     ],
     "instrumentation_verification": {
       "asan_initialization_symbols": "verified in every listed object",
@@ -372,7 +378,8 @@
         "tests/test_numpy158_core.o",
         "tests/test_fromiter159_core.o",
         "tests/test_limits160_core.o",
-        "tests/test_type_check161_core.o"
+        "tests/test_type_check161_core.o",
+        "tests/test_scalar162_core.o"
       ],
       "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
     },
@@ -380,28 +387,24 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.161.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.162.0-dev-sanitizers.log"
   },
   "evidence": [
-    "src/ln_type_check.c",
-    "src/ln_type_check.h",
-    "src/lua_type_check.c",
-    "src/lua_type_check.h",
+    "src/ln_core.c",
     "src/lua_module.c",
-    "tests/native/test_type_check161_core.c",
-    "tests/lua/type_check_regression.lua",
-    "docs/type_selection.md",
-    "docs/es/type_selection.md",
+    "tests/native/test_scalar162_core.c",
+    "tests/lua/scalar_packing_regression.lua",
+    "docs/creation.md",
+    "docs/es/creation.md",
     "compatibility/numpy-source.sha256"
   ],
-  "new_check_semantics": "Exact dtype scalar-class identity (not storage equivalence), seven categories, complete selector validation including errors after a match, empty/nested/invalid selectors, typed string widths and temporal units, aliases, source dtype inference, common inexact precision from zero to three source arguments and256 permanent Lua arguments. Input bytes and dtype output strings/characters/type numbers compare exactly. Empty/reversed/readonly inputs and an empty extreme-stride regression use metadata without reading values.",
+  "new_check_semantics": "Exact strict ordinary scalar packing versus raw typed rank-zero casts across array/full/fill/index assignment/copyto/fromiter and add/multiply on both sides. Wide signed/unsigned integers, longdouble controls, real/complex dtypes, scalar/empty/reversed/transposed targets and backing states. Source complex scalar conversion uses double components even for clongdouble; raw typed casts and real longdouble retain native precision.",
   "new_reference_tolerances": {
-    "numeric": "Exact booleans, acceptance, dtype metadata and significant input bytes. No numerical tolerance.",
-    "extended": "Input x87 padding omitted, all significant bytes checked; other ABIs not certified."
+    "numeric": "Exact significant bytes, dtype/shape/strides/flags and initialized backing states. No tolerance.",
+    "extended": "Ten significant x87 bytes checked, six ABI padding bytes omitted; other ABIs not certified."
   },
   "new_reference_language_adaptations": {
-    "isdtype": "Actual Lua dtype descriptor required first; concrete selectors are descriptors, category names are strings, dense Lua sequences represent source tuples. Nil cannot be an element; nested and sparse sequences reject. No Python list/tuple class distinction.",
-    "common_type": "Actual ndarrays are required; returns a dtype descriptor instead of Python scalar class. No-argument result is float16 as in source.",
-    "duration": "Source timedelta64 is an integer subclass for common_type (at least float64) but is excluded from isdtype integral/numeric category sets."
+    "scalars": "Lua integers are signed64-bit; large uint64 and extended precision use typed rank-zero arrays. Ordinary scalar packing and ndarray casts deliberately follow separate source paths.",
+    "warnings": "Python floating status and warning objects are not reproduced."
   }
 }

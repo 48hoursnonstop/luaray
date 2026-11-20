@@ -7679,15 +7679,7 @@ void ln_lua_pack_scalar(lua_State *L,int index,const ln_dtype *dtype,char *desti
         if(ln_array_pack_number(&cell,NULL,0,lua_rawlen(L,index)!=0,1,&error)<0)fail(L,&error);
         return;
     }
-    /* arraytypes.c.src complex setitem goes through Py_complex (two
-     * doubles), even for clongdouble. Typed rank-zero values above instead
-     * follow raw scalar casting and retain their extended precision. */
-    if(dtype->type_num==LN_CLONGDOUBLE&&lua_isinteger(L,index)){
-        lua_pushnumber(L,(double)lua_tointegerx(L,index,NULL));
-        ln_intp indices[LN_MAXDIMS]={0};write98_fill(L,-1,&cell,0,indices,1);lua_pop(L,1);
-    }else{
-        ln_intp indices[LN_MAXDIMS]={0};write98_fill(L,index,&cell,0,indices,1);
-    }
+    ln_intp indices[LN_MAXDIMS]={0};write98_fill(L,index,&cell,0,indices,1);
 }
 static int np_put(lua_State *L) {
     ln_array *dst=check_array(L,1)->a;
@@ -8187,7 +8179,7 @@ int luaopen_luaray_core(lua_State*L){
     for(int i=0;names[i];i++){lua_pushstring(L,names[i]);lua_setfield(L,-2,names[i]);}
     push_index_token(L,LN_INDEX_NEWAXIS);lua_setfield(L,-2,"newaxis");
     push_index_token(L,LN_INDEX_ELLIPSIS);lua_setfield(L,-2,"ellipsis");
-    lua_pushstring(L,"0.161.0-dev");lua_setfield(L,-2,"_version");
+    lua_pushstring(L,"0.162.0-dev");lua_setfield(L,-2,"_version");
     lua_pushstring(L,"286e698f1dcf601648b165f48485ceaeec9c6231");lua_setfield(L,-2,"_numpy_upstream_commit");
     return 1;
 }

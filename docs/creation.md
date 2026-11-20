@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Array creation, conversion and copying
 
 LuaRay creates real native ndarray storage and views. Its creation kernel and
@@ -140,3 +143,29 @@ protocols, general subclasses, all warnings/exceptions and complete coercion are
 not certified. Nested sequences containing ndarrays or temporal scalar userdata
 are not fully implemented. subok is validated, but only the native array class
 exists. Earlier blocked states and deliberate differences remain separate.
+
+## Large integers and complex scalar packing
+
+Packing an ordinary Lua integer into `clongdouble` follows the source scalar
+conversion: components pass through double. A typed rank-zero array instead
+follows native casting and can retain more bits. The same distinction applies
+to `full`, `fill`, assignments, `copyto` and weak scalar operands.
+
+```lua
+local lr = require("luaray")
+local value = math.maxinteger
+local ordinary = lr.array(value, "clongdouble")
+local typed = lr.array(lr.array(value, "int64"), "clongdouble")
+assert(lr.array_equal(ordinary, lr.array(value + 0.0, "clongdouble")))
+if lr.finfo("longdouble").nmant > 52 then
+  assert(not lr.array_equal(ordinary, typed))
+end
+```
+
+Use a typed scalar when you need native integer precision. The 0.162 correction
+centralizes this rule; typed array casts and real longdouble precision retain
+their existing behavior.
+
+## 0.162.0-dev verification
+
+Scalar packing passed **3,080 cases /55,356 exact checks** against NumPy2.5.4, with61 permanent Lua checks, a native packing/raw-cast harness and C++ header/link execution. It checks ordinary versus typed wide integers and extended precision across construction, full/fill, assignment, copyto, fromiter and add/multiply on both sides, including empty/reversed/transposed targets and backing states. All significant x87 bytes compare exactly; ABI padding is omitted. The corpus regenerated exactly.

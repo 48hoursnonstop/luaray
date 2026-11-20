@@ -1139,6 +1139,10 @@ int ln_array_pack_number(ln_array *a,const ln_intp *indices0,double v,int64_t vi
         if(d->type_num==LN_DATETIME&&ln_datetime_metadata(d)->base==LN_FR_GENERIC) {
             seterr(err,"Cannot create a NumPy datetime other than NaT with generic units");return -1;
         }
+        /* Complex scalar setitem uses Py_complex's double components,
+         * including a Python/Lua integer targeting clongdouble. Raw ndarray
+         * casts use their separate transfer path and keep native precision. */
+        if(d->type_num==LN_CLONGDOUBLE&&is_integer){v=(double)vi;is_integer=0;}
         write_number(p,d,v,vi,is_integer); return 0;
     }
     if(is_integer){

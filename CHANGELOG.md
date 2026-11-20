@@ -14,6 +14,12 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.170.0-dev
+
+Adds `lexsort` with stable multi-key order over numeric, fixed text and
+temporal arrays. Returns one-based indices for every slice along an axis.
+Adds English and Spanish guides.
+
 ## 0.169.0-dev
 
 Adds `matvec`, `vecmat`, `vecdot` and `vdot`, with complex conjugation,

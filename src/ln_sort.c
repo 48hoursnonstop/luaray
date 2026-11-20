@@ -2,6 +2,7 @@
 #include "ln_dtype_transfer.h"
 #include "ln_half.h"
 #include "ln_complex.h"
+#include "ln_string.h"
 
 #include <math.h>
 #include <stdint.h>
@@ -440,6 +441,168 @@ ln_array *ln_argsort(const ln_array *a,int axis,int descending,ln_error *err)
         advance_coord_skip(a->nd,a->dimensions,axis,coord);
     }
     free(values);free(idx);return out;
+}
+
+/* NumPy 2.5.5 PyArray_LexSort applies stable indirect sorts from least
+ * to most significant key. Comparing keys in reverse order produces the
+ * same ordering with one stable merge sort and no array-sized value copies. */
+typedef struct lex_key {
+    const ln_dtype *dtype;
+    const char *base;
+    ln_intp stride;
+} lex_key;
+
+static int lex_swapped_unicode(const char *a,const char *b,const ln_dtype *dtype)
+{
+    /* LexSort's upstream buffer swaps the entire item. For multi-code-point
+     * non-native Unicode keys this reverses the code-point priority. */
+    for(size_t offset=dtype->elsize;offset;offset-=4){
+        const unsigned char *x=(const unsigned char *)a+offset-4;
+        const unsigned char *y=(const unsigned char *)b+offset-4;
+        for(int pos=0;pos<4;++pos){
+            int i=dtype->byteorder=='>'?pos:3-pos;
+            if(x[i]!=y[i])return x[i]<y[i]?-1:1;
+        }
+    }
+    return 0;
+}
+
+static int lex_compare_cell(const lex_key *key,ln_intp left,ln_intp right)
+{
+    const char *a=key->base+left*key->stride;
+    const char *b=key->base+right*key->stride;
+    if(key->dtype->kind=='S'||key->dtype->kind=='U'){
+        if(key->dtype->kind=='U'){
+            const uint16_t one=1;
+            char native=*(const unsigned char *)&one ? '<' : '>';
+            if(key->dtype->byteorder!=native)
+                return lex_swapped_unicode(a,b,key->dtype);
+        }
+        int cmp=0;
+        ln_string_compare_one(a,key->dtype,b,key->dtype,&cmp,NULL);
+        return cmp;
+    }
+    if(key->dtype->kind=='m'||key->dtype->kind=='M'){
+        int64_t x,y;
+        memcpy(&x,a,sizeof x);
+        memcpy(&y,b,sizeof y);
+        if(x==y)return 0;
+        if(x==INT64_MIN)return 1;
+        if(y==INT64_MIN)return -1;
+        return x<y?-1:1;
+    }
+    if(item_less_ascending(a,b,key->dtype))return -1;
+    if(item_less_ascending(b,a,key->dtype))return 1;
+    return 0;
+}
+
+static int lex_less(const lex_key *keys,size_t count,ln_intp left,ln_intp right)
+{
+    for(size_t pos=count;pos>0;--pos){
+        int cmp=lex_compare_cell(&keys[pos-1],left,right);
+        if(cmp)return cmp<0;
+    }
+    return 0;
+}
+
+static ln_intp *lex_sort_indices(const lex_key *keys,size_t count,
+                                ln_intp *indices,ln_intp *scratch,ln_intp length)
+{
+    for(ln_intp j=0;j<length;++j)indices[j]=j;
+    for(ln_intp width=1;width<length;width=width>length/2?length:2*width){
+        ln_intp first=0;
+        while(first<length){
+            ln_intp middle=length-first>width?first+width:length;
+            ln_intp end=length-middle>width?middle+width:length;
+            ln_intp left=first,right=middle,out=first;
+            while(left<middle && right<end){
+                if(lex_less(keys,count,indices[right],indices[left]))
+                    scratch[out++]=indices[right++];
+                else scratch[out++]=indices[left++];
+            }
+            while(left<middle)scratch[out++]=indices[left++];
+            while(right<end)scratch[out++]=indices[right++];
+            first=end;
+        }
+        ln_intp *swap=indices;
+        indices=scratch;
+        scratch=swap;
+    }
+    return indices;
+}
+
+ln_array *ln_lexsort(const ln_array *const *keys,size_t count,int axis,ln_error *err)
+{
+    if(!keys||!count||!keys[0]){
+        sort_error(err,"lexsort requires a nonempty sequence of keys");
+        return NULL;
+    }
+    const ln_array *first=keys[0];
+    for(size_t j=0;j<count;++j){
+        const ln_array *key=keys[j];
+        if(!key||key->nd!=first->nd){
+            sort_error(err,"lexsort keys must have identical shapes");
+            return NULL;
+        }
+        for(int d=0;d<first->nd;++d){
+            if(key->dimensions[d]!=first->dimensions[d]){
+                sort_error(err,"lexsort keys must have identical shapes");
+                return NULL;
+            }
+        }
+        if(!strchr("biufcSUMm",key->descr->kind)){
+            sort_error(err,"lexsort key dtype does not have an ordering");
+            return NULL;
+        }
+    }
+    if(first->nd==0){
+        if(axis!=0&&axis!=-1){
+            sort_error(err,"axis out of bounds for scalar lexsort keys");
+            return NULL;
+        }
+    }else if(!valid_axis(first,axis,err))return NULL;
+    ln_array *out=ln_array_new(first->nd,first->dimensions,intp_dtype(),0,0,err);
+    if(!out||ln_array_size(out)==0)return out;
+    if(first->nd==0){
+        ln_intp one=1;
+        memcpy(out->data,&one,sizeof one);
+        return out;
+    }
+
+    axis=normalize_axis(first,axis);
+    ln_intp length=first->dimensions[axis];
+    if(count>SIZE_MAX/sizeof(lex_key)||(size_t)length>SIZE_MAX/(2*sizeof(ln_intp))){
+        ln_array_free(out);
+        sort_error(err,"lexsort workspace exceeds native range");
+        return NULL;
+    }
+    lex_key *row=malloc(count*sizeof *row);
+    ln_intp *work=malloc(2*(size_t)length*sizeof *work);
+    if(!row||!work){
+        free(row);
+        free(work);
+        ln_array_free(out);
+        sort_error(err,"out of memory during lexsort");
+        return NULL;
+    }
+    for(size_t j=0;j<count;++j){
+        row[j].dtype=keys[j]->descr;
+        row[j].stride=keys[j]->strides[axis];
+    }
+    ln_intp outer=outer_count(first,axis),coord[LN_MAXDIMS]={0};
+    for(ln_intp i=0;i<outer;++i){
+        for(size_t j=0;j<count;++j)row[j].base=coord_ptr_skip(keys[j],coord,axis);
+        ln_intp *order=lex_sort_indices(row,count,work,work+length,length);
+        char *dest=coord_ptr_skip(out,coord,axis);
+        for(ln_intp j=0;j<length;++j){
+            ln_intp public_index=order[j]+1;
+            memcpy(dest+j*out->strides[axis],&public_index,sizeof public_index);
+        }
+        advance_coord_skip(first->nd,first->dimensions,axis,coord);
+    }
+    free(row);
+    free(work);
+    return out;
 }
 
 /* ----- introselect port ----- */

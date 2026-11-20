@@ -35,6 +35,7 @@ const pages = [
     ['Callbacks over several axes', 'Callbacks sobre varios ejes', 'over_axes'],
     ['Zero-width string sums', 'Sumas de cadenas de ancho cero', 'zero_string_sum'],
     ['Choosing values', 'Selección con choose', 'choose'],
+    ['Sorting by multiple keys', 'Ordenar por varias claves', 'lexsort'],
     ['Conditions and extraction', 'Condiciones y extracción', 'condition_selection'],
     ['Selection and broadcasting', 'Selección y broadcasting', 'selection'],
     ['Typed views and bytes', 'Vistas tipadas y bytes', 'byte_views'],

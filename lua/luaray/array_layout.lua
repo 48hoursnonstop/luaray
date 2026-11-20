@@ -23,4 +23,9 @@ return function(lr)
     end
     return pieces
   end
+  local lexsort=lr.lexsort
+  function lr.lexsort(keys,axis)
+    if type(keys)=='userdata' then keys=lr.unstack(keys) end
+    return lexsort(keys,axis)
+  end
 end

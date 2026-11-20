@@ -14,6 +14,10 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.187.0-dev
+
+Adds polynomial coefficient arithmetic, differentiation and integration, and Horner evaluation. Adds English and Spanish guides.
+
 ## 0.186.0-dev
 
 Adds nonfinite replacements, piecewise functions and numeric aliases with bilingual examples.

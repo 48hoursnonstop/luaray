@@ -78,6 +78,7 @@ const pages = [
     ['Sequences and sampling', 'Secuencias y muestreo', 'sampling'],
     ['Numeric ranges', 'Rangos numéricos', 'arange'],
     ['Date and duration ranges', 'Rangos de fechas y duraciones', 'temporal_ranges'],
+    ['Business day calendars', 'Calendarios de días hábiles', 'business_days'],
     ['Finite differences', 'Diferencias finitas', 'differences'],
     ['Numerical gradients', 'Gradientes numéricos', 'gradient'],
     ['Trapezoidal integration', 'Integración trapezoidal', 'integration'],

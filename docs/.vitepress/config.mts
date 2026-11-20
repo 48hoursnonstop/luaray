@@ -81,6 +81,7 @@ const pages = [
     ['Numerical gradients', 'Gradientes numéricos', 'gradient'],
     ['Trapezoidal integration', 'Integración trapezoidal', 'integration'],
     ['Linear interpolation', 'Interpolación lineal', 'interpolation'],
+    ['Polynomial coefficient operations', 'Operaciones con coeficientes polinómicos', 'polynomial'],
     ['Phases and angles', 'Fases y ángulos', 'phase'],
     ['Convolution and cross-correlation', 'Convolución y correlación cruzada', 'convolution'],
     ['FFT helpers', 'Funciones FFT', 'fft_helpers'],

@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Gathering and writing along an axis
 
 LuaRay 0.101.0-dev implements `lr.take_along_axis` and `lr.put_along_axis`

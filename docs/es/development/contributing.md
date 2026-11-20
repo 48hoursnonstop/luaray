@@ -59,6 +59,10 @@ npm run dev
 npm run build
 ```
 
+Tras compilar el módulo nativo, ejecuta `npm run check:examples --prefix docs`
+desde la raíz. Añade `docs_examples: true` a los metadatos iniciales de las
+guías con bloques Lua ejecutables. Los bloques de cada guía se ejecutan en orden.
+
 Los archivos ingleses están en `docs/` y sus traducciones en `docs/es/`, con
 nombres iguales. Actualiza el menú en `.vitepress/config.mts` al añadir páginas.
 Usa enlaces Markdown relativos entre páginas y ejecuta los ejemplos Lua nuevos.

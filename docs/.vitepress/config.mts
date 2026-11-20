@@ -9,6 +9,8 @@ const pages = [
     ['Overview', 'Introducción', ''],
     ['Getting started', 'Primeros pasos', 'getting-started'],
     ['Array fundamentals', 'Fundamentos de arrays', 'arrays'],
+    ['Reference by topic', 'Referencia por tema', 'reference'],
+    ['Changes in 0.192', 'Cambios en 0.192', 'release_192'],
     ['Dtype descriptors', 'Descriptores dtype', 'dtypes'],
     ['Numeric limits', 'Límites numéricos', 'limits'],
     ['Classifying and selecting types', 'Clasificar y seleccionar tipos', 'type_selection'],
@@ -90,6 +92,7 @@ const pages = [
     ['Phases and angles', 'Fases y ángulos', 'phase'],
     ['Convolution and cross-correlation', 'Convolución y correlación cruzada', 'convolution'],
     ['FFT helpers', 'Funciones FFT', 'fft_helpers'],
+    ['Fourier transforms', 'Transformadas de Fourier', 'fft'],
     ['Window functions and sinc', 'Ventanas y función sinc', 'windows'],
     ['Vectors and grids', 'Vectores y mallas', 'vectors_and_grids'],
     ['Diagonals and matrices', 'Diagonales y matrices', 'matrices'],
@@ -102,6 +105,8 @@ const pages = [
     ['Fill a diagonal', 'Rellenar una diagonal', 'fill_diagonal'],
     ['Kronecker product', 'Producto de Kronecker', 'kron'],
     ['Matrix and vector products', 'Productos de matrices y vectores', 'vector_products'],
+    ['Linear algebra', 'Álgebra lineal', 'linalg'],
+    ['Random generators', 'Generadores aleatorios', 'random'],
     ['Einstein summation', 'Sumación de Einstein', 'einsum'],
     ['Tensor contractions', 'Contracciones tensoriales', 'tensordot'],
     ['Scale durations', 'Escalar duraciones', 'temporal_scaling'],
@@ -146,7 +151,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Guide', link: '/getting-started' },
-          { text: 'Reference', link: '/creation' },
+          { text: 'Reference', link: '/reference' },
           { text: version, link: `${repo}/releases/tag/v${version}` },
         ],
         sidebar: sidebar(),
@@ -157,7 +162,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Guía', link: '/es/getting-started' },
-          { text: 'Referencia', link: '/es/creation' },
+          { text: 'Referencia', link: '/es/reference' },
           { text: version, link: `${repo}/releases/tag/v${version}` },
         ],
         sidebar: sidebar(true),

@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # FFT frequencies, spectrum shifts and Hermitian transforms
 
 The `lr.fft` namespace executes through native LuaRay arrays, C helpers and the
@@ -59,9 +62,12 @@ It composes a KEEPORDER conjugate copy with irfft and a swapped normalization.
 `ihfft(a, options)` composes rfft and output conjugation. Both support:
 
 ```lua
-lr.fft.hfft(a, {n=8, axis=-1, norm='ortho', out=destination})
-lr.fft.ihfft(a, 8, -1, 'backward', destination)
-lr.fft.fft(a, nil, 1, 'forward') -- nil n retains subsequent arguments
+local a = lr.array({1, 2, 3}, "float64")
+local destination = lr.empty({8}, "float64")
+assert(lr.fft.hfft(a, {n=8, axis=-1, norm='ortho', out=destination}) == destination)
+local inverse = lr.empty({5}, "complex128")
+assert(lr.fft.ihfft(destination, 8, -1, 'backward', inverse) == inverse)
+lr.fft.fft(a, nil, 1, 'forward')
 ```
 
 Options: n, axis, norm and out. Default axis is the last. Default hfft n is

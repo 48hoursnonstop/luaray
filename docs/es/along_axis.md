@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Extracción y escritura a lo largo de un eje
 
 LuaRay 0.101.0-dev implementa `lr.take_along_axis` y `lr.put_along_axis` con

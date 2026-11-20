@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Reality predicates and real_if_close
 
 LuaRay 0.112.0-dev implements five NumPy 2.5.3 functions natively, building on

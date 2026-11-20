@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Binary mathematics and input coercion
 
 LuaRay 0.109.0-dev adds native `fmod` and `float_power`, broadens ordinary Lua

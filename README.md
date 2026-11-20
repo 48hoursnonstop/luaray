@@ -54,12 +54,13 @@ reference tests, and release verification. Source archives are available under
 - Generate random samples, coordinate grids, and batched vector products.
 
 Positive indices and axes start at **1**. Negative indices count from the end.
-The [reference guides](docs/README.md) explain Lua argument conventions, supported
+The [reference guides](https://48hoursnonstop.github.io/luaray/reference) explain Lua argument conventions, supported
 options, copying, and memory ownership.
 
 ## Compatibility
 
-**Current release: [0.173.0-dev](https://github.com/48hoursnonstop/luaray/releases/tag/v0.173.0-dev).**
+**Current release: [0.192.0-dev](https://github.com/48hoursnonstop/luaray/releases/tag/v0.192.0-dev).**
+See the [changes since 0.173](https://48hoursnonstop.github.io/luaray/release_192).
 LuaRay is under development. NumPy 2.5.5 is the primary behavioral reference;
 compatibility varies by operation, dtype, and option.
 

@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Linear, logarithmic and geometric sampling
 
 LuaRay's native sequence engine composes its ndarray iterator, dtype resolver,

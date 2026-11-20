@@ -1,5 +1,13 @@
 # Portabilidad numérica
 
+LuaRay usa la biblioteca matemática del sistema, BLAS y LAPACK. Para resultados
+en punto flotante, usa la tolerancia documentada para cada operación. Al comprobar
+una factorización, compara la matriz reconstruida, el residuo o el subespacio cuando
+los signos y las bases puedan variar. La página de [verificación](development/validation.md)
+registra las pruebas ejecutadas para esta entrega.
+
+## Muestreo exponencial float32
+
 LuaRay 0.99.1 corrige la exponencial inversa float32 y conserva la entrada
 uniforme de 24 bits y el consumo exacto de PCG64. Algunas implementaciones
 antiguas de `log1pf` difieren en una ULP float32. En glibc 2.39 de Ubuntu, el

@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Productos vectoriales y mallas de coordenadas
 
 LuaRay0.116.0-dev añade `lr.cross` y `lr.meshgrid` nativos. El `lr.linalg.cross`

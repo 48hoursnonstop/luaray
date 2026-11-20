@@ -1,5 +1,5 @@
 {
-  "version": "0.173.0-dev",
+  "version": "0.192.0-dev",
   "upstream_source": "NumPy 2.5.5",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -8,8 +8,8 @@
   "status": "implemented_partial",
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 461,
-    "missing_bindings": 213,
+    "available_callables": 503,
+    "missing_bindings": 171,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -187,17 +187,14 @@
     "Ordinary scalar to clongdouble packing follows the source double-component conversion. This is not an assertion of full scalar/array casting fidelity; source Python class protocols, warnings, every ABI and every operation remain uncertified."
   ],
   "apis": {
-    "numpy.union1d": "implemented_partial",
-    "numpy.intersect1d": "implemented_partial",
-    "numpy.setdiff1d": "implemented_partial",
-    "numpy.setxor1d": "implemented_partial"
+    "numpy.busday_count": "implemented_partial"
   },
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "164b8f47d6946365f4ebbc7bbb7fc660e5b13ff91b6e2bfb173644024843d067",
-      "files": 441
+      "sha256": "e07c01461860104cd3058bba036864f259a2e1662e1a04d840300aa6b190f1ab",
+      "files": 482
     },
-    "version": "0.173.0-dev",
+    "version": "0.192.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -268,7 +265,11 @@
       "ln_matmul",
       "ln_sort",
       "ln_membership",
-      "lua_membership"
+      "lua_membership",
+      "ln_einsum",
+      "lua_einsum",
+      "ln_busday",
+      "lua_busday"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -300,7 +301,9 @@
       "tests/native/test_take100_core.c",
       "tests/native/test_fromstring_core.c",
       "tests/native/test_raw_file_core.c",
-      "tests/native/test_membership_core.c"
+      "tests/native/test_membership_core.c",
+      "tests/native/test_einsum_core.c",
+      "tests/native/test_busday_core.c"
     ],
     "instrumentation_verification": {
       "asan_initialization_symbols": "verified in every listed object",
@@ -374,6 +377,10 @@
         "ln_sort.o",
         "ln_membership.o",
         "lua_membership.o",
+        "ln_einsum.o",
+        "lua_einsum.o",
+        "ln_busday.o",
+        "lua_busday.o",
         "runner.o",
         "tests/test_matrix_core.o",
         "tests/test_comparison134_core.o",
@@ -403,7 +410,9 @@
         "tests/test_take100_core.o",
         "tests/test_fromstring_core.o",
         "tests/test_raw_file_core.o",
-        "tests/test_membership_core.o"
+        "tests/test_membership_core.o",
+        "tests/test_einsum_core.o",
+        "tests/test_busday_core.o"
       ],
       "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
     },
@@ -492,20 +501,210 @@
       "matrix170-lexsort.lua",
       "matrix171-unique.lua",
       "matrix172-membership.lua",
-      "matrix173-sets.lua"
+      "matrix173-sets.lua",
+      "matrix174-npy.lua",
+      "matrix175-digitize.lua",
+      "matrix176-histogram-edges.lua",
+      "matrix177-histogram.lua",
+      "matrix178-convolution.lua",
+      "matrix179-covariance.lua",
+      "matrix180-multidimensional-histograms.lua",
+      "matrix181-windows.lua",
+      "matrix182-padding.lua",
+      "matrix183-einsum.lua",
+      "matrix184-block-trim.lua",
+      "matrix185-typed-ordering.lua",
+      "matrix186-value-replacements.lua",
+      "matrix187-polynomial.lua",
+      "matrix188-polynomial-roots.lua",
+      "matrix189-polyfit.lua",
+      "matrix190-array-iteration.lua",
+      "matrix191-business-days.lua",
+      "matrix192-business-day-count.lua"
     ],
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.173.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.192.0-dev-sanitizers.log"
   },
   "evidence": [
-    "lua/luaray/set_operations.lua",
-    "tests/lua/set_operations_regression.lua"
+    "src/ln_busday.c",
+    "src/lua_busday.c",
+    "lua/luaray/business_days.lua",
+    "tests/native/test_busday_core.c",
+    "tests/lua/business_day_count_regression.lua"
   ],
   "new_oracle": "NumPy 2.5.5",
   "new_reference_cases": {
-    "sets": 1284
+    "business-day-count": 346
   },
-  "new_reference_checks": 31299,
-  "new_check_semantics": "The checks exercise sorted results, first original indices, duplicate and empty inputs, mixed numeric types, fixed text and temporal descriptors."
+  "new_reference_checks": 5125,
+  "new_check_semantics": "The checks cover signed intervals, endpoint rules, typed day casting, weekend masks, normalized holidays and broadcasting. The native tests also exercise NaT and overflow at the representable tick limits.",
+  "cumulative_release": {
+    "previous_published_version": "0.173.0-dev",
+    "maintained_native_suites": 82,
+    "maintained_lua_suites": 164,
+    "public_example_files": 7,
+    "executable_documentation": {
+      "blocks": 635,
+      "pages": 196
+    },
+    "frozen_reference_files": 161,
+    "cumulative_reference_files": 102,
+    "new_reference_cases": 35427,
+    "new_reference_checks": 2442877,
+    "milestones": [
+      {
+        "version": "0.174.0-dev",
+        "files": {
+          "matrix174-npy.lua": "0d9478efd11d9bee274713ae0424dcf335a6e10a45e506cc17f3bcca803d42ef"
+        },
+        "cases": 1588,
+        "checks": 34411
+      },
+      {
+        "version": "0.175.0-dev",
+        "files": {
+          "matrix175-digitize.lua": "554ac067d3aa31c08c38039c98c11281ab6cf2b73af9e7298c9dbf77cbc85703"
+        },
+        "cases": 1972,
+        "checks": 25932
+      },
+      {
+        "version": "0.176.0-dev",
+        "files": {
+          "matrix176-histogram-edges.lua": "a5da02249533847d20b2cf7517ca392a69f3cbb57fbd69cd86827eb7e3e11b96"
+        },
+        "cases": 1351,
+        "checks": 22638
+      },
+      {
+        "version": "0.177.0-dev",
+        "files": {
+          "matrix177-histogram.lua": "23d573e3cdcfd3ea17edaa30e4a783e123d4b3dd196d0863b541f303960f3996"
+        },
+        "cases": 1022,
+        "checks": 35125
+      },
+      {
+        "version": "0.178.0-dev",
+        "files": {
+          "matrix178-convolution.lua": "fb4cf6f32ee63ae011341101bc174ffe0b51a41b6cabb311aa99bd779f272ced"
+        },
+        "cases": 2616,
+        "checks": 40540
+      },
+      {
+        "version": "0.179.0-dev",
+        "files": {
+          "matrix179-covariance.lua": "a488c11dc8cd7777442a44084f0d23d98a1d8cc4079b5df490bd609517bc6ec8"
+        },
+        "cases": 2479,
+        "checks": 102908
+      },
+      {
+        "version": "0.180.0-dev",
+        "files": {
+          "matrix180-multidimensional-histograms.lua": "231e114dd23d8dfebb3ab9a794d040ee32a9551334ab41538f65bdefd382e099"
+        },
+        "cases": 1311,
+        "checks": 75968
+      },
+      {
+        "version": "0.181.0-dev",
+        "files": {
+          "matrix181-windows.lua": "8ea52f99a5688152ae47720243e4b78d58408f85d13a9cf31efbbba122d354de"
+        },
+        "cases": 1059,
+        "checks": 35879
+      },
+      {
+        "version": "0.182.0-dev",
+        "files": {
+          "matrix182-padding.lua": "196bd2e54c9abe5e9255e6b3574e808ac5ba7339a639673f0ddf7327044e81b9"
+        },
+        "cases": 5965,
+        "checks": 1708673
+      },
+      {
+        "version": "0.183.0-dev",
+        "files": {
+          "matrix183-einsum.lua": "4d81dfb838036626ac60d4c5cdd3b326505bfc81f65d77e5049e3ee198c4d51d"
+        },
+        "cases": 1041,
+        "checks": 33943
+      },
+      {
+        "version": "0.184.0-dev",
+        "files": {
+          "matrix184-block-trim.lua": "1ed919f16537c422ce31887fa4320869be15ebfedcb55b4796f28d2e7d162972"
+        },
+        "cases": 3575,
+        "checks": 83056
+      },
+      {
+        "version": "0.185.0-dev",
+        "files": {
+          "matrix185-typed-ordering.lua": "bc7090660e0057ac1ea3d8420556755c519ce8bee35b07e461e08f204cf066bb"
+        },
+        "cases": 2886,
+        "checks": 58824
+      },
+      {
+        "version": "0.186.0-dev",
+        "files": {
+          "matrix186-value-replacements.lua": "89888e5aa512f0bc36cd05ce4b540576f9211d0fb6fd6080468fa2add39c9d65"
+        },
+        "cases": 2025,
+        "checks": 46176
+      },
+      {
+        "version": "0.187.0-dev",
+        "files": {
+          "matrix187-polynomial.lua": "92ad5b3d79ae16e53ed8ba3a99d428bcf6cd109c4820c5d53a77bf18b9dccf89"
+        },
+        "cases": 2910,
+        "checks": 74167
+      },
+      {
+        "version": "0.188.0-dev",
+        "files": {
+          "matrix188-polynomial-roots.lua": "5a5d2a8bc3a46b7574f01501b518835801a2e8605f0968dbdb2a6ec7d23c8d93"
+        },
+        "cases": 770,
+        "checks": 8436
+      },
+      {
+        "version": "0.189.0-dev",
+        "files": {
+          "matrix189-polyfit.lua": "87523b0ecb132750db693178d985cfae5bd2f4d777999f2bb9774e0d651693fd"
+        },
+        "cases": 1331,
+        "checks": 29902
+      },
+      {
+        "version": "0.190.0-dev",
+        "files": {
+          "matrix190-array-iteration.lua": "a734a570b0edb2dc41b4e8f3cfea9862633fa5e86bd47f32cb630e94f7982492"
+        },
+        "cases": 583,
+        "checks": 14350
+      },
+      {
+        "version": "0.191.0-dev",
+        "files": {
+          "matrix191-business-days.lua": "a274763ea6e730f8b1bb8099849cdf7bbf4d68fde7973e03219a977b6001a4ae"
+        },
+        "cases": 597,
+        "checks": 6824
+      },
+      {
+        "version": "0.192.0-dev",
+        "files": {
+          "matrix192-business-day-count.lua": "114ad2d2e2339621b98f4027cd6da245f4b56513962b1bfe8feff376e2ff169d"
+        },
+        "cases": 346,
+        "checks": 5125
+      }
+    ]
+  }
 }

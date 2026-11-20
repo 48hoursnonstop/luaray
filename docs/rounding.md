@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Decimal rounding
 
 LuaRay 0.113.0-dev implements `lr.round`, `lr.around` and `a:round` from

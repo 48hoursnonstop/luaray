@@ -79,3 +79,5 @@ Continúa con [formas, índices y broadcasting](arrays.md).
 | Fallo al enlazar símbolos Lua | Usa Lua 5.4 y ajusta `LUA_SO` si está en una ruta personalizada. |
 | Fallo al enlazar BLAS/LAPACK | Revisa las bibliotecas de desarrollo; ajusta `BLAS_LIBS` o `LAPACK_LIBS` si hace falta. |
 | PocketFFT consume demasiada memoria al compilar | Limpia la compilación y usa los flags de desarrollo de la [guía](../development/contributing.md). |
+
+Consulta la [referencia por tema](reference.md) para encontrar operaciones para tu próximo programa.

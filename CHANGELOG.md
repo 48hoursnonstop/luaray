@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.192.0-dev
 
 - Standardized Lua documentation examples and API references on the `lr` alias.
 
@@ -14,9 +14,16 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
-## 0.192.0-dev
+### 0.192 changes
 
-Adds native business-day interval counting with broadcast date ranges, sorted holidays and overflow-checked spans. Adds bilingual guides.
+- Count signed business-day intervals with broadcast date ranges, sorted holidays,
+  and overflow-checked spans.
+- Add a bilingual reference index and searchable API inventory, introductory FFT,
+  linear algebra, and random guides, and 59 additional checked Lua code blocks.
+
+This release includes the development milestones from 0.174 through 0.191 below.
+See the [bilingual release overview](https://48hoursnonstop.github.io/luaray/release_192)
+for guide links and reference counts.
 
 ## 0.191.0-dev
 

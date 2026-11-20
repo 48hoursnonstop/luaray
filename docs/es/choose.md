@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Selección entre arrays: choose
 
 LuaRay 0.102.0-dev implementa `lr.choose` y `ndarray:choose` mediante un módulo

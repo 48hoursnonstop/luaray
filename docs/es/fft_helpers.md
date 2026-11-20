@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Frecuencias FFT, desplazamiento de espectros y transformadas hermitianas
 
 `lr.fft` utiliza arrays nativos de LuaRay, auxiliares C y PocketFFT C++ incluido.
@@ -57,9 +60,12 @@ invertida para producir un espectro real. `ihfft` combina rfft con conjugación
 final. Admiten estas formas:
 
 ```lua
-lr.fft.hfft(a, {n=8, axis=-1, norm='ortho', out=destino})
-lr.fft.ihfft(a, 8, -1, 'backward', destino)
-lr.fft.fft(a, nil, 1, 'forward') -- nil n conserva los argumentos siguientes
+local a = lr.array({1, 2, 3}, "float64")
+local destino = lr.empty({8}, "float64")
+assert(lr.fft.hfft(a, {n=8, axis=-1, norm='ortho', out=destino}) == destino)
+local inverse = lr.empty({5}, "complex128")
+assert(lr.fft.ihfft(destino, 8, -1, 'backward', inverse) == inverse)
+lr.fft.fft(a, nil, 1, 'forward')
 ```
 
 Opciones: n, axis, norm y out. El eje predeterminado es el último. hfft usa

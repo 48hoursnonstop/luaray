@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Indexed and selected writes
 
 LuaRay 0.98 provides native C `put` and `place`, modeled on NumPy 2.5.3. Scenes

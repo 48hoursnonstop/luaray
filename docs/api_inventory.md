@@ -1,4 +1,16 @@
+<script setup>
+import ApiInventory from "./.vitepress/theme/ApiInventory.vue"
+</script>
+
 # API availability inventory
+
+Use the [reference by topic](reference.md) for signatures, usage and examples.
+
+## Search names
+
+<ApiInventory />
+
+## Scope and evidence
 
 `compatibility/api_inventory.json` records actual Lua callable lookups against
 NumPy 2.5.5 public names. It was generated from the pinned NumPy interpreter
@@ -12,16 +24,16 @@ all dtype-loop combinations and signature/corner-case coverage.
 
 | Group | Scoped names | Lua callables | Missing bindings | Lua adaptation |
 | --- | ---: | ---: | ---: | ---: |
-| numpy | 462 | 318 | 144 | 0 |
+| numpy | 462 | 360 | 102 | 0 |
 | numpy.fft | 18 | 18 | 0 | 0 |
 | numpy.linalg | 32 | 31 | 0 | 1 |
 | numpy.ndarray | 53 | 50 | 3 | 0 |
 | numpy.random | 60 | 1 | 59 | 0 |
 | numpy.random.Generator | 44 | 43 | 1 | 0 |
 | numpy.ufunc | 6 | 0 | 6 | 0 |
-| Total | 675 | 461 | 213 | 1 |
+| Total | 675 | 503 | 171 | 1 |
 
-**461 callable names observed does not establish full compatibility.**
+**503 callable names observed does not establish full compatibility.**
 Available names are classified `implemented_partial`; behavior is assessed
 separately through original fixtures and release-specific contracts. The
 inventory declares zero APIs completely compatible. Missing names use

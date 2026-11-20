@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Matemáticas binarias y conversión de entradas
 
 LuaRay 0.109.0-dev añade `fmod` y `float_power` nativos, acepta entradas Lua

@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Cross products and coordinate grids
 
 LuaRay0.116.0-dev implements native `lr.cross` and `lr.meshgrid`. The existing

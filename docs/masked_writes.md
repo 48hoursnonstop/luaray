@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Copying and positional masked writes
 
 LuaRay 0.99 corrects the native `copyto` and `putmask` behavior introduced in

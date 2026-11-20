@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Escritura por índices y selección
 
 LuaRay 0.98 incorpora `put` y `place` en C nativo, tomando NumPy 2.5.3 como

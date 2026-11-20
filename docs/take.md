@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Indexed gathering: take
 
 LuaRay 0.100.0-dev implements `lr.take` and `ndarray:take` in its native C engine.

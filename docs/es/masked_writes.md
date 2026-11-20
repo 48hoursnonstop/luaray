@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Copias y escritura por máscara posicional
 
 LuaRay 0.99 corrige `copyto` y `putmask`, incorporados en 0.97. Consulta también

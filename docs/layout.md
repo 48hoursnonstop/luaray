@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Array layout, reshape, ravel and flatten
 
 LuaRay 0.110.0-dev implements NumPy 2.5.3 layout rules in an independent native

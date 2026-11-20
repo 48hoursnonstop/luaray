@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Extracción por índices: take
 
 LuaRay 0.100.0-dev implementa `lr.take` y `ndarray:take` en su motor C nativo.

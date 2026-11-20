@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Redondeo decimal
 
 LuaRay 0.113.0-dev implementa `lr.round`, `lr.around` y `a:round` siguiendo

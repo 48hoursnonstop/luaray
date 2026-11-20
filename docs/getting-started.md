@@ -79,3 +79,5 @@ Next, learn [array shapes, indexing, and broadcasting](arrays.md).
 | Lua symbols cannot be linked | Use Lua 5.4 and override `LUA_SO` if its library is in a custom location. |
 | BLAS/LAPACK symbols cannot be linked | Check the development libraries; set `BLAS_LIBS` or `LAPACK_LIBS` if necessary. |
 | PocketFFT compilation uses too much memory | Clean the build, then use the development compiler settings in the [build guide](development/contributing.md). |
+
+Use the [reference by topic](reference.md) to find operations for your next program.

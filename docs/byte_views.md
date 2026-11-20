@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Typed memory views and byte export
 
 LuaRay0.115.0-dev adds `a:view(dtype)`, `a:tobytes(order)`, `a.itemsize` and

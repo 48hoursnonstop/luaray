@@ -36,3 +36,7 @@ con fechas y números de día. Pasa un calendario o indica
 `weekmask` y `holidays` directamente. Las consultas escalares
 devuelven un booleano. Un arreglo modificable `out` puede recibir
 los resultados de broadcasting.
+
+## Validación
+
+Aprobaron **597 casos / 6 824 comprobaciones** con NumPy 2.5.5. Las pruebas cubren máscaras de días de la semana, festivos ordenados y únicos, NaT, conversión segura de fechas, consultas escalares y con broadcasting y arreglos de salida modificables.

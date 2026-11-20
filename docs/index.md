@@ -9,7 +9,7 @@ Create multidimensional arrays, broadcast compatible shapes, and calculate with
 native C/C++ kernels. LuaRay includes real and complex mathematics, views,
 FFT, linear algebra, and random number generation.
 
-**[Get started →](getting-started.md)** · [Array fundamentals](arrays.md) · [API reference](creation.md)
+**[Get started →](getting-started.md)** · [Array fundamentals](arrays.md) · [API reference](reference.md)
 
 ## A small example
 
@@ -34,8 +34,10 @@ the [array guide](arrays.md) explains where Lua conventions change how you call 
 - **Looking up an operation?** Browse the reference in the sidebar or search its name.
 - **Moving from NumPy?** Check [API availability and limitations](api_inventory.md).
 
-::: info Development version · 0.173.0-dev
+::: info Development version · 0.192.0-dev
 LuaRay uses NumPy 2.5.5 as its primary behavioral reference. Compatibility varies
 by operation and dtype. The [API inventory](api_inventory.md) records supported
 names and remaining gaps; available functions are still classified as partial.
 :::
+
+[Changes in 0.192](release_192.md) cover all work since 0.173.

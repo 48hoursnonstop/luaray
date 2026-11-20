@@ -59,6 +59,10 @@ npm run dev
 npm run build
 ```
 
+After building the native module, run `npm run check:examples --prefix docs`
+from the checkout root. Add `docs_examples: true` to the frontmatter of any
+guide with executable Lua blocks. Blocks run in order within each guide.
+
 Keep English pages in `docs/` and their translations in `docs/es/` with matching
 filenames. Update the topic navigation in `.vitepress/config.mts` when adding a
 page. Use relative Markdown links between source pages. GitHub Actions builds

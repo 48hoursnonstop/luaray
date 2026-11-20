@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Unary mathematics
 
 LuaRay 0.108.0-dev implements these NumPy 2.5.3 operations through a separate

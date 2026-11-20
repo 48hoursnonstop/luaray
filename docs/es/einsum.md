@@ -37,3 +37,7 @@ la conversión es segura y se conserva el orden de memoria. Pasa un ndarray
 modificable como `out` para guardar el resultado ahí. Si se omite el dtype
 de cálculo, el dtype de salida participa en la promoción. Las contracciones
 usan el cálculo nativo directo y los subíndices se pasan como cadena.
+
+## Validación
+
+Aprobaron **1 041 casos / 33 943 comprobaciones** con NumPy 2.5.5. Las pruebas cubren la forma directa con cadenas, etiquetas repetidas e implícitas, broadcasting con puntos suspensivos, vistas modificables, conversiones, contracciones vacías y tolerancias de redondeo. Quedan pendientes las rutas optimizadas y la notación de listas.

@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Predicados real/complejo y real_if_close
 
 LuaRay 0.112.0-dev implementa cinco funciones de NumPy 2.5.3 mediante las vistas

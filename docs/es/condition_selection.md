@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Coordenadas no nulas y extracción por condición
 
 LuaRay 0.103.0-dev añade `nonzero`, `flatnonzero`, `compress` y `extract` nativos.

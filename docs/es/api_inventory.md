@@ -1,4 +1,16 @@
+<script setup>
+import ApiInventory from "../.vitepress/theme/ApiInventory.vue"
+</script>
+
 # Inventario de disponibilidad de API
+
+Consulta la [referencia por tema](reference.md) para ver firmas, uso y ejemplos.
+
+## Buscar nombres
+
+<ApiInventory />
+
+## Alcance y evidencia
 
 `compatibility/api_inventory.json` registra búsquedas reales de nombres invocables
 Lua frente a la API pública de NumPy 2.5.5. Se generó con el intérprete de
@@ -12,16 +24,16 @@ por dtype y cobertura de firmas/casos límite.
 
 | Grupo | Nombres | Invocables Lua | Bindings ausentes | Adaptación Lua |
 | --- | ---: | ---: | ---: | ---: |
-| numpy | 462 | 318 | 144 | 0 |
+| numpy | 462 | 360 | 102 | 0 |
 | numpy.fft | 18 | 18 | 0 | 0 |
 | numpy.linalg | 32 | 31 | 0 | 1 |
 | numpy.ndarray | 53 | 50 | 3 | 0 |
 | numpy.random | 60 | 1 | 59 | 0 |
 | numpy.random.Generator | 44 | 43 | 1 | 0 |
 | numpy.ufunc | 6 | 0 | 6 | 0 |
-| Total | 675 | 461 | 213 | 1 |
+| Total | 675 | 503 | 171 | 1 |
 
-**461 nombres invocables no establecen compatibilidad completa.** Los
+**503 nombres invocables no establecen compatibilidad completa.** Los
 nombres disponibles se clasifican `implemented_partial`. El comportamiento se
 verifica por separado mediante referencias originales y contratos de cada
 versión. Este inventario declara cero APIs completamente compatibles. Los nombres
@@ -36,7 +48,7 @@ no reproduce esa jerarquía. El registro incluye la justificación. No se exime
 automáticamente a otros tipos invocables ni se declara fidelidad completa de
 advertencias, subclases o clases de excepciones Python.
 
-El generador se conserva en el
+El generador se conserva en los
 [archivos opcionales de referencias](https://github.com/48hoursnonstop/luaray/releases)
 para un entorno de referencia NumPy separado. Consulta campos del módulo y
 prototipos reales de ndarray, Generator y ufunc, incluidos userdata invocables.

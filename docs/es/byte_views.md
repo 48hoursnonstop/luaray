@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Vistas tipadas de memoria y bytes
 
 LuaRay0.115.0-dev añade `a:view(dtype)`, `a:tobytes(order)`, `a.itemsize` y

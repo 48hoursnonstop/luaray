@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Clipping values
 
 LuaRay 0.114.0-dev implements `lr.clip(a, lower, upper, options)` and

@@ -5,7 +5,7 @@ search, topic navigation, an outline on each page, and English/Spanish guides.
 
 - [Get started](getting-started.md) · [Primeros pasos](es/getting-started.md)
 - [Array fundamentals](arrays.md) · [Fundamentos de arrays](es/arrays.md)
-- [Reference](creation.md) · [Referencia](es/creation.md)
+- [Reference](reference.md) · [Referencia](es/reference.md)
 
 The Markdown files here are the editable sources. To preview the site:
 
@@ -19,4 +19,5 @@ Node.js is needed only to work on the documentation website. The numerical
 library keeps its native build dependencies. Generated site files and dependencies
 are ignored by Git; GitHub Actions builds and deploys the site to Pages.
 
-Lua examples use `local lr = require("luaray")` consistently with the project README.
+After building LuaRay, run `npm run check:examples --prefix docs` from the
+repository root. Lua examples use `local lr = require("luaray")` consistently with the project README.

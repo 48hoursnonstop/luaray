@@ -1,5 +1,12 @@
 # Numerical portability
 
+LuaRay uses the platform math library, BLAS and LAPACK. For floating-point results,
+use the tolerance documented for the operation. For decompositions, compare a
+reconstructed matrix, a residual, or a subspace when signs and bases are not unique.
+The [validation page](development/validation.md) records which checks ran for this release.
+
+## Float32 exponential sampling
+
 LuaRay 0.99.1 corrects the float32 inverse-exponential path while preserving its
 24-bit uniform input and exact PCG64 consumption. Older `log1pf` implementations
 can differ by one float32 ULP. On Ubuntu glibc 2.39, seed zero's draw 11 produced

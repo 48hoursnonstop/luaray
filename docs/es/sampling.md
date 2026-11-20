@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Muestreo lineal, logarítmico y geométrico
 
 El motor nativo combina el iterador ndarray, resolución de tipos, ufuncs y

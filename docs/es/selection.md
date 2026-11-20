@@ -1,3 +1,6 @@
+---
+docs_examples: true
+---
 # Valores condicionales: where y select
 
 LuaRay 0.104.0-dev añade `lr.where` y `lr.select` nativos. Where utiliza el

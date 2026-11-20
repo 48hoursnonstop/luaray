@@ -14,6 +14,10 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.181.0-dev
+
+Adds Bartlett, Blackman, Hamming, Hann and Kaiser windows, modified Bessel I0 and normalized sinc with bilingual guides.
+
 ## 0.180.0-dev
 
 Adds two-dimensional and multidimensional histograms with typed edge vectors, weighted counts, density normalization and bilingual guides.

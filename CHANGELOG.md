@@ -14,6 +14,10 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.180.0-dev
+
+Adds two-dimensional and multidimensional histograms with typed edge vectors, weighted counts, density normalization and bilingual guides.
+
 ## 0.179.0-dev
 
 Adds covariance and Pearson correlation, including frequency and amplitude weights, complex data and bilingual guides.

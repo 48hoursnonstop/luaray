@@ -96,3 +96,5 @@ assert(lr.isposinf(empty).size == 0)
 No se certifican todos los protocolos Python de escalares/subclases/objetos
 externos, clases de errores, avisos/estado flotante, dtypes personalizados ni
 todas las ABI. Las funciones siguen clasificadas como parcialmente compatibles.
+
+La migración a NumPy 2.5.5 aprobó **10 152 casos / 83 001 comprobaciones**. Los predicados de infinito aportaron 8 460 casos y 57 700 comprobaciones de valores, dtype, disposición, permisos, aliasing y conversión de salida. Los otros 1 692 casos prueban promoción de cuantiles con solo NaN, take en ejes vacíos, raíces complejas de valores enormes y negación con strides. Se actualizaron ocho aserciones históricas de dtype con el mismo generador y NumPy 2.5.5. Aprobaron todas las aserciones numéricas originales.

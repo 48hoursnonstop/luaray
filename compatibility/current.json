@@ -1,16 +1,15 @@
 {
-  "version": "0.162.0-dev",
-  "upstream_source": "NumPy 2.5.4",
+  "version": "0.163.0-dev",
+  "upstream_source": "NumPy 2.5.5",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
-    "take_hang": 3,
     "choose_unsafe_span": 2
   },
   "status": "implemented_partial",
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 430,
-    "missing_bindings": 244,
+    "available_callables": 432,
+    "missing_bindings": 242,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -20,7 +19,7 @@
     "Non-native numeric endian remains unavailable",
     "Python subclasses, complete warnings and exception-class fidelity are not claimed",
     "Availability inventory alone verifies no full behavior; alternate Lua spellings can exist",
-    "Earlier take/choose differences remain separate; full NumPy parity is not claimed",
+    "Earlier choose differences remain separate; full NumPy parity is not claimed",
     "All eighteen scoped FFT callables are available; full FFT behavior, every dtype/length/out alias and device argument remain uncertified",
     "FFT float32/complex64 numeric tolerance: absolute3e-6 plus relative3e-6; wider output2e-12; values/metadata and known precision regression values checked separately",
     "Sampling uses Lua options tables; full NumPy positional/device/array-valued count/warning APIs remain incomplete",
@@ -180,34 +179,28 @@
     "The pinned source explicit-axis legacy iterator is limited to 32 dimensions; default flattening accepts supported arrays up to 64. Legacy bitorder parsing is reproduced: pack accepts big/little prefixes, unpack first b/l; embedded NUL and unknown Lua option keys are rejected.",
     "Empty-axis unpacking with positive output count deliberately produces defined zeros instead of the pinned NumPy2.5.3 uninitialized output. Another 358 source states are excluded from parity, separately documented and tested under the native zero-fill contract.",
     "Bit packing uses scalar native loops; equivalent SIMD performance, typed scalar axis/count, foreign/index/subclass protocols, Python scalar classes, exact warning/exception hierarchy, huge allocations, every ABI and every input combination remain uncertified.",
-    "NumPy2.5.4 is the primary reference, not a claim that every2.5.4 change is implemented. Object arrays, StringDType, masked arrays, Python warning/exception protocols, MSVC and all ABIs remain uncertified.",
+    "The primary NumPy 2.5.5 reference has partial implementation coverage. Object arrays, StringDType, masked arrays, Python warning/exception protocols, MSVC and all ABIs remain uncertified.",
     "Quantiles currently support six methods, nonempty scalar/vector fractions, real numeric input, axis/keepdims/out; weights, overwrite_input and complete signatures remain unavailable. Typed longdouble fractions pass through double parameters even when output dtype remains longdouble.",
     "Fromiter supports fixed native scalar dtypes and strict Lua callback iteration; structured/subarray/object/variableStringDType, like, Python iteration/length-hint protocols and higher-rank elements remain unsupported. Temporal scalar userdata retain existing construction limits; typed rank-zero arrays use raw casting. The constructor cannot suspend across a callback; coroutine.wrap producers run on their own coroutine.",
     "Finfo/iinfo constants were verified on Linux x86 native formats only. Full Python scalar classes, mutable/cached-property behavior and multiline representations, custom/non-native-endian dtypes and every ABI remain uncertified. Wide constants use documented independent typed scalar adaptations.",
     "Isdtype/common_type do not claim Python scalar class returns, subclass/foreign dispatch, object/structured/variableStringDType or every ABI. Isdtype matches scalar classes; descriptor equivalence has different semantics. Common_type is metadata-only and does not validate element convertibility.",
     "Ordinary scalar to clongdouble packing follows the source double-component conversion. This is not an assertion of full scalar/array casting fidelity; source Python class protocols, warnings, every ABI and every operation remain uncertified."
   ],
-  "new_oracle": "NumPy2.5.4",
-  "new_reference_cases": {
-    "scalar_packing": 3080
-  },
-  "new_reference_checks": 55356,
-  "new_lua_regression_checks": 61,
   "apis": {
-    "numpy.array": "implemented_partial",
-    "numpy.full": "implemented_partial",
-    "numpy.ndarray.fill": "implemented_partial",
-    "numpy.copyto": "implemented_partial",
-    "numpy.fromiter": "implemented_partial",
-    "numpy.add": "implemented_partial",
-    "numpy.multiply": "implemented_partial"
+    "numpy.isposinf": "implemented_partial",
+    "numpy.isneginf": "implemented_partial",
+    "numpy.nanquantile": "implemented_partial",
+    "numpy.nanpercentile": "implemented_partial",
+    "numpy.sqrt": "implemented_partial",
+    "numpy.take": "implemented_partial",
+    "numpy.negative": "implemented_partial"
   },
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "68a416e43a608cce4dc7464455f290f3bcfb30b030b23fe09fdb200c5c007921",
-      "files": 409
+      "sha256": "839bd92e495c9af656f1505d574e5f66ba62a4b352482e92688dbc54339708f6",
+      "files": 410
     },
-    "version": "0.162.0-dev",
+    "version": "0.163.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -260,6 +253,7 @@
       "ln_bits",
       "lua_bits",
       "ln_quantile",
+      "ln_complex_math",
       "ln_axis",
       "ln_fromiter",
       "lua_fromiter",
@@ -293,7 +287,9 @@
       "tests/native/test_fromiter159_core.c",
       "tests/native/test_limits160_core.c",
       "tests/native/test_type_check161_core.c",
-      "tests/native/test_scalar162_core.c"
+      "tests/native/test_scalar162_core.c",
+      "tests/native/test_nanquantile_core.c",
+      "tests/native/test_take100_core.c"
     ],
     "instrumentation_verification": {
       "asan_initialization_symbols": "verified in every listed object",
@@ -348,6 +344,7 @@
         "ln_bits.o",
         "lua_bits.o",
         "ln_quantile.o",
+        "ln_complex_math.o",
         "ln_axis.o",
         "ln_fromiter.o",
         "lua_fromiter.o",
@@ -379,7 +376,9 @@
         "tests/test_fromiter159_core.o",
         "tests/test_limits160_core.o",
         "tests/test_type_check161_core.o",
-        "tests/test_scalar162_core.o"
+        "tests/test_scalar162_core.o",
+        "tests/test_nanquantile_core.o",
+        "tests/test_take100_core.o"
       ],
       "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
     },
@@ -387,24 +386,25 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.162.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.163.0-dev-sanitizers.log"
   },
   "evidence": [
-    "src/ln_core.c",
-    "src/lua_module.c",
-    "tests/native/test_scalar162_core.c",
-    "tests/lua/scalar_packing_regression.lua",
-    "docs/creation.md",
-    "docs/es/creation.md",
-    "compatibility/numpy-source.sha256"
+    "lua/luaray/infinity.lua",
+    "src/ln_quantile.c",
+    "src/ln_complex_math.c",
+    "src/ln_take.c",
+    "tests/lua/infinity_regression.lua",
+    "compatibility/numpy255-nanquantile.patch"
   ],
-  "new_check_semantics": "Exact strict ordinary scalar packing versus raw typed rank-zero casts across array/full/fill/index assignment/copyto/fromiter and add/multiply on both sides. Wide signed/unsigned integers, longdouble controls, real/complex dtypes, scalar/empty/reversed/transposed targets and backing states. Source complex scalar conversion uses double components even for clongdouble; raw typed casts and real longdouble retain native precision.",
-  "new_reference_tolerances": {
-    "numeric": "Exact significant bytes, dtype/shape/strides/flags and initialized backing states. No tolerance.",
-    "extended": "Ten significant x87 bytes checked, six ABI padding bytes omitted; other ABIs not certified."
+  "new_oracle": "NumPy 2.5.5",
+  "new_reference_cases": {
+    "signed_infinity": 8460,
+    "nanquantile_promotion": 384,
+    "take_empty": 840,
+    "complex_sqrt": 36,
+    "strided_negative": 432
   },
-  "new_reference_language_adaptations": {
-    "scalars": "Lua integers are signed64-bit; large uint64 and extended precision use typed rank-zero arrays. Ordinary scalar packing and ndarray casts deliberately follow separate source paths.",
-    "warnings": "Python floating status and warning objects are not reproduced."
-  }
+  "new_reference_checks": 83001,
+  "new_lua_regression_checks": 38,
+  "new_check_semantics": "Exact dtype promotion, values and shape for all-NaN slices. Exact significant bytes and layout for complex square root, negative with strided destinations and signed infinity. Empty take matches NumPy 2.5.5 including the three previously excluded wrap calls. Out identity, rejection rollback and shared storage are checked."
 }

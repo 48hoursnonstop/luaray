@@ -51,19 +51,19 @@ Ningún comando requiere Python; la adaptación requiere la utilidad `patch`.
 Los generadores originales y herramientas de sanitización siguen en el
 [paquete publicado](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev).
 Usa ese entorno separado para regenerar fixtures o repetir `sanitize-vector116`.
-Los corpus nuevos usan NumPy 2.5.4. Los históricos conservan su atribución
+Los corpus nuevos usan NumPy 2.5.5. Los históricos conservan su atribución
 NumPy 2.5.3 o 2.3.5. Los generadores recientes y sus serializadores se entregan
 en el archivo opcional de referencias de cada [versión](https://github.com/48hoursnonstop/luaray/releases).
 
 El registro `compatibility/current.json` contiene evidencia de comportamiento.
-`compatibility/api_inventory.json` registra disponibilidad: 430 de 675 nombres
+`compatibility/api_inventory.json` registra disponibilidad: 432 de 675 nombres
 incluidos son invocables y todos siguen clasificados como parciales. No mide
 el porcentaje global de compatibilidad NumPy.
 
 ## Comprobaciones del árbol actual
 
-LuaRay **0.162.0-dev** aprobó **77 suites nativas**, **134 suites Lua**, siete ejemplos
-y 444 bloques ejecutables de documentación. Las referencias de diagonales
+LuaRay **0.163.0-dev** aprobó **77 suites nativas**, **134 suites Lua**, siete ejemplos
+y 456 bloques ejecutables de documentación. Las referencias de diagonales
 conservan **47,886 casos / 4,571,474 comprobaciones**. Las trazas aprobaron
 **20,861 casos / 853,519 comprobaciones exactas** contra NumPy 2.5.3, incluidos
 metadatos, dtype/destino, solapamiento, unidades temporales y estados del original.
@@ -160,9 +160,11 @@ La clasificación y selección de tipos aprobó **5 468 casos /18 625 comprobaci
 
 El empaquetado escalar aprobó **3 080 casos /55 356 comprobaciones exactas** contra NumPy2.5.4, con61 comprobaciones Lua, una prueba nativa y cabeceras/enlace C++. Compara enteros amplios ordinarios/tipados y precisión extendida en creación, full/fill, asignación, copyto, fromiter y add/multiply por ambos lados, incluidos destinos vacíos/invertidos/transpuestos y memoria base. Los bytes significativos x87 coinciden exactamente; se omite padding ABI. El corpus se regeneró exactamente.
 
-La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, `ln_integer_math`, `ln_order`, `ln_index_math`, `lua_index_math`, `ln_bincount`, `lua_bincount`, `ln_bits`, `lua_bits`, `ln_quantile`, `ln_axis`, `ln_fromiter`, `lua_fromiter`, `ln_limits`, `lua_limits`, `ln_type_check`, `lua_type_check`, además del runner Lua y veinticuatro pruebas nativas. Aprobaron todas las suites mantenidas y los 71 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
+La migración a NumPy 2.5.5 aprobó **10 152 casos / 83 001 comprobaciones**. Los predicados de infinito aportaron 8 460 casos y 57 700 comprobaciones de valores, dtype, disposición, permisos, aliasing y conversión de salida. Los otros 1 692 casos prueban promoción de cuantiles con solo NaN, take en ejes vacíos, raíces complejas de valores enormes y negación con strides. Se actualizaron ocho aserciones históricas de dtype con el mismo generador y NumPy 2.5.5. Aprobaron todas las aserciones numéricas originales.
 
-Se verificaron símbolos de inicialización ASan en los 82 objetos declarados (57 unidades de biblioteca, runner y 24 pruebas nativas). El driver reconstruye los objetos desde la misma lista que registra. El informe inicial de la 0.153 contaba una prueba instrumentada de más; su [reauditoría corregida](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) del mismo código aprobó todas las pruebas y 56 corpus, sin modificar sus paquetes.
+La auditoría dirigida ASan/UBSan instrumentó `ln_write`, `lua_elements`, `ln_dtype_transfer`, `ln_datetime_strings`, `ln_join`, `ln_condition`, `ln_dot`, `ln_matrix`, `ln_linalg`, `lua_matrix`, `lua_module`, `ln_time_scale`, `ln_ufunc`, `ln_nditer_multi`, `ln_datetime`, `ln_core`, `lua_buffers`, `ln_mapping`, `ln_nditer`, `ln_take`, `ln_choose`, `lua_flags`, `ln_components`, `ln_creation`, `lua_metadata`, `ln_dtype_info`, `lua_dtype`, `ln_string`, `lua_creation`, `lua_bytes`, `ln_sampling`, `ln_constructor`, `lua_constructor`, `ln_arange`, `lua_arange`, `ln_arange_time`, `ln_resize`, `lua_resize`, `ln_layout`, `ln_bytes`, `lua_components`, `ln_integer_math`, `ln_order`, `ln_index_math`, `lua_index_math`, `ln_bincount`, `lua_bincount`, `ln_bits`, `lua_bits`, `ln_quantile`, `ln_complex_math`, `ln_axis`, `ln_fromiter`, `lua_fromiter`, `ln_limits`, `lua_limits`, `ln_type_check`, `lua_type_check`, además del runner Lua y veintiséis pruebas nativas. Aprobaron todas las suites mantenidas y los 73 corpus acumulados. Otras dependencias no estaban completamente instrumentadas; la detección de fugas estaba desactivada. El empaquetado verifica la huella del código ejecutado.
+
+Se verificaron símbolos de inicialización ASan en los 85 objetos declarados (58 unidades de biblioteca, runner y 26 pruebas nativas). El driver reconstruye los objetos desde la misma lista que registra. El informe inicial de la 0.153 contaba una prueba instrumentada de más; su [reauditoría corregida](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) del mismo código aprobó todas las pruebas y 56 corpus, sin modificar sus paquetes.
 
 ## Integridad de las entregas
 

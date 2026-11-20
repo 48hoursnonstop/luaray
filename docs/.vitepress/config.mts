@@ -60,6 +60,7 @@ const pages = [
     ['Histograms and densities', 'Histogramas y densidades', 'histogram'],
     ['Integer operations', 'Operaciones enteras', 'integer_math'],
     ['Quantiles and medians', 'Cuantiles y medianas', 'quantiles'],
+    ['Covariance and correlation', 'Covarianza y correlación', 'covariance'],
     ['Cumulative sums and products', 'Sumas y productos acumulados', 'cumulative'],
     ['Packing and unpacking bits', 'Empaquetar y desempaquetar bits', 'bit_packing'],
     ['Real and imaginary parts', 'Partes real e imaginaria', 'components'],

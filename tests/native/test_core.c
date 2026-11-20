@@ -445,7 +445,13 @@ int main(void){
 
     /* Generic host-neutral ufunc registry metadata. */
     {
-        chk(ln_ufunc_registry_count()==80,"registered builtin and extended numeric ufunc count");
+        chk(ln_ufunc_registry_count()==85,"registered builtin and extended numeric ufunc count");
+        const char *added[]={"nextafter","heaviside","logaddexp","logaddexp2","spacing"};
+        for(size_t i=0;i<sizeof added/sizeof *added;++i){
+            const ln_ufunc *real=ln_ufunc_by_name(added[i]);
+            chk(real&&real->nin==(i==4?1:2)&&real->nout==1&&real->nloops==4,
+                "real math ufunc arity and four floating signatures");
+        }
         const ln_ufunc *u=ln_ufunc_by_name("frexp");
         chk(u&&u->nin==1&&u->nout==2&&u->nloops==4,"frexp registry arity/signatures");
         chk(u->loops[0].classes[0]==ln_dtype_class_by_num(LN_HALF),

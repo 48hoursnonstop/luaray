@@ -1,4 +1,6 @@
 #include "ln_dot.h"
+#include "ln_creation.h"
+#include "ln_ufunc.h"
 #include "ln_half.h"
 #include "ln_complex.h"
 #include "ln_dtype_transfer.h"
@@ -165,8 +167,11 @@ scalar_dot(const char *ap, ln_intp as, const char *bp, ln_intp bs,
         /* arraytypes.c.src:TIMEDELTA_dot treats ticks as raw int64, including
          * NaT bits. Define the source's native-width wrapping without C UB. */
         uint64_t sum=0;
-        for(ln_intp i=0;i<n;++i,ap+=as,bp+=bs){
-            uint64_t a,b;memcpy(&a,ap,8);memcpy(&b,bp,8);sum+=a*b;
+        for(ln_intp i=0;i<n;++i){
+            uint64_t a,b;
+            memcpy(&a,ap+i*as,8);
+            memcpy(&b,bp+i*bs,8);
+            sum+=a*b;
         }
         memcpy(op,&sum,8);return 0;
     }
@@ -180,9 +185,11 @@ scalar_dot(const char *ap, ln_intp as, const char *bp, ln_intp bs,
                 int chunk = (int)(n < chunk_max ? n : chunk_max);
                 sum += (double)cblas_sdot(chunk, (const float *)ap, ia,
                                          (const float *)bp, ib);
-                ap += (ln_intp)chunk * as;
-                bp += (ln_intp)chunk * bs;
                 n -= chunk;
+                if(n){
+                    ap += (ln_intp)chunk * as;
+                    bp += (ln_intp)chunk * bs;
+                }
             }
             *(float *)op = (float)sum;
             return 0;
@@ -190,10 +197,10 @@ scalar_dot(const char *ap, ln_intp as, const char *bp, ln_intp bs,
     }
     else if (dt->type_num == LN_HALF) {
         float sum = 0.0f;
-        for (ln_intp i = 0; i < n; ++i, ap += as, bp += bs) {
+        for (ln_intp i = 0; i < n; ++i) {
             ln_half ha, hb;
-            memcpy(&ha, ap, sizeof(ha));
-            memcpy(&hb, bp, sizeof(hb));
+            memcpy(&ha, ap+i*as, sizeof(ha));
+            memcpy(&hb, bp+i*bs, sizeof(hb));
             sum += ln_half_to_float(ha) * ln_half_to_float(hb);
         }
         ln_half h = ln_float_to_half(sum);
@@ -210,9 +217,11 @@ scalar_dot(const char *ap, ln_intp as, const char *bp, ln_intp bs,
                 int chunk = (int)(n < chunk_max ? n : chunk_max);
                 sum += cblas_ddot(chunk, (const double *)ap, ia,
                                   (const double *)bp, ib);
-                ap += (ln_intp)chunk * as;
-                bp += (ln_intp)chunk * bs;
                 n -= chunk;
+                if(n){
+                    ap += (ln_intp)chunk * as;
+                    bp += (ln_intp)chunk * bs;
+                }
             }
             *(double *)op = sum;
             return 0;
@@ -244,19 +253,102 @@ scalar_dot(const char *ap, ln_intp as, const char *bp, ln_intp bs,
         return -1;
     }
     memset(op, 0, dt->elsize);
-    unsigned char prod[32];
+    _Alignas(ln_clongdouble) unsigned char prod[32];
     ln_intp one[1] = {1};
     ln_intp steps[3] = {0, 0, 0};
     for (ln_intp i = 0; i < n; ++i) {
-        char *margs[3] = {(char *)ap, (char *)bp, (char *)prod};
+        char *margs[3] = {(char *)ap+i*as,(char *)bp+i*bs,(char *)prod};
         mul(margs, one, steps, NULL);
         char *aargs[3] = {op, (char *)prod, op};
         add(aargs, one, steps, NULL);
         if (dt->type_num == LN_BOOL && *(unsigned char *)op) break;
-        ap += as;
-        bp += bs;
     }
     return 0;
+}
+
+/* The overlap schedule follows NumPy 2.5.5 _pyarray_correlate. Sliding
+ * windows use the same dtype-specific dot loop as ordinary vector products. */
+ln_array *
+ln_correlate(const ln_array *a,const ln_array *b,ln_correlation_mode mode,
+             int convolution,ln_error *err)
+{
+    if(!a||!b||a->nd>1||b->nd>1||(!convolution&&(a->nd==0||b->nd==0))){
+        seterr(err,"expected one-dimensional signal and kernel arrays");
+        return NULL;
+    }
+    if(mode<LN_CORRELATE_VALID||mode>LN_CORRELATE_FULL){
+        seterr(err,"invalid correlation mode");
+        return NULL;
+    }
+    const ln_dtype *dtype=ln_promote_dtype(a->descr,b->descr);
+    if(!dtype||!strchr("biufcm",dtype->kind)||
+       !ln_dtype_can_cast(a->descr,dtype,LN_SAFE_CASTING)||
+       !ln_dtype_can_cast(b->descr,dtype,LN_SAFE_CASTING)){
+        seterr(err,"no compatible dtype for correlation");
+        return NULL;
+    }
+    ln_array *left=ln_creation_convert(a,dtype,'K',
+        (a->flags&LN_ARRAY_ALIGNED)?-1:1,1,NULL,err);
+    if(!left)return NULL;
+    ln_array *right=ln_creation_convert(b,dtype,'K',
+        (b->flags&LN_ARRAY_ALIGNED)?-1:1,1,NULL,err);
+    ln_array *result=NULL;
+    if(!right)goto done;
+    if(!left->dimensions[0]||!right->dimensions[0]){
+        seterr(err,"signal and kernel must be nonempty");
+        goto done;
+    }
+    if(!convolution && dtype->kind=='c'){
+        const ln_array *inputs[]={right};
+        ln_array *conjugate=NULL;
+        if(ln_ufunc_execute(ln_ufunc_by_name("conjugate"),inputs,&conjugate,NULL,err)<0)
+            goto done;
+        ln_array_free(right);
+        right=conjugate;
+    }
+    int swapped=left->dimensions[0]<right->dimensions[0];
+    if(swapped){
+        ln_array *tmp=left;
+        left=right;
+        right=tmp;
+    }
+    ln_intp n=left->dimensions[0],m=right->dimensions[0];
+    ln_intp length=n-m+1,padding=0;
+    if(mode==LN_CORRELATE_SAME){
+        length=n;
+        padding=m/2;
+    }else if(mode==LN_CORRELATE_FULL){
+        if(n>INTPTR_MAX-(m-1)){
+            seterr(err,"correlation output is too large");
+            goto done;
+        }
+        length=n+(m-1);
+        padding=m-1;
+    }
+    result=ln_array_new(1,&length,dtype,0,0,err);
+    if(!result)goto done;
+    const char *kernel=right->data;
+    ln_intp a_step=left->strides[0],b_step=right->strides[0];
+    if(convolution&&m>1){
+        kernel+=(m-1)*b_step;
+        b_step=-b_step;
+    }
+    for(ln_intp i=0;i<length;++i){
+        ln_intp shift=i-padding;
+        ln_intp a_start=shift>0?shift:0,b_start=shift<0?-shift:0;
+        ln_intp overlap=n-a_start<m-b_start?n-a_start:m-b_start;
+        ln_intp dest=swapped&&!convolution?length-1-i:i;
+        if(scalar_dot(left->data+a_start*a_step,a_step,kernel+b_start*b_step,b_step,
+                      result->data+dest*result->strides[0],overlap,dtype,err)<0){
+            ln_array_free(result);
+            result=NULL;
+            break;
+        }
+    }
+done:
+    ln_array_free(left);
+    ln_array_free(right);
+    return result;
 }
 
 static int

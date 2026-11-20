@@ -76,6 +76,7 @@ const pages = [
     ['Trapezoidal integration', 'Integración trapezoidal', 'integration'],
     ['Linear interpolation', 'Interpolación lineal', 'interpolation'],
     ['Phases and angles', 'Fases y ángulos', 'phase'],
+    ['Convolution and cross-correlation', 'Convolución y correlación cruzada', 'convolution'],
     ['FFT helpers', 'Funciones FFT', 'fft_helpers'],
     ['Vectors and grids', 'Vectores y mallas', 'vectors_and_grids'],
     ['Diagonals and matrices', 'Diagonales y matrices', 'matrices'],

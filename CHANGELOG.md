@@ -14,6 +14,10 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.179.0-dev
+
+Adds covariance and Pearson correlation, including frequency and amplitude weights, complex data and bilingual guides.
+
 ## 0.178.0-dev
 
 Adds one-dimensional convolution and conjugating cross-correlation, with default, full, same and valid modes. Adds English and Spanish guides.

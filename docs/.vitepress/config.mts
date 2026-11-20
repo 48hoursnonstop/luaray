@@ -50,6 +50,7 @@ const pages = [
     ['Counting categories', 'Contar categorías', 'bincount'],
     ['Integer operations', 'Operaciones enteras', 'integer_math'],
     ['Quantiles and medians', 'Cuantiles y medianas', 'quantiles'],
+    ['Cumulative sums and products', 'Sumas y productos acumulados', 'cumulative'],
     ['Packing and unpacking bits', 'Empaquetar y desempaquetar bits', 'bit_packing'],
     ['Real and imaginary parts', 'Partes real e imaginaria', 'components'],
     ['Comparing values', 'Comparación de valores', 'reality'],

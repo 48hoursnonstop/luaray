@@ -2,6 +2,7 @@
 local lr = require("luaray_core")
 require("luaray.masking")(lr)
 require("luaray.calculus")(lr)
+require("luaray.cumulative")(lr)
 require("luaray.gradient")(lr)
 require("luaray.integration")(lr)
 require("luaray.phase")(lr)

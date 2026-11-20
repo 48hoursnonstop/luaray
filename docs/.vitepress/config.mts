@@ -28,6 +28,7 @@ const pages = [
     ['Coordinate grids and locations', 'Rejillas y posiciones', 'index_grids'],
     ['Flat and coordinate indices', 'Índices planos y coordenadas', 'index_conversion'],
     ['Iterating index positions', 'Recorrer posiciones', 'iteration'],
+    ['Iterating over array values', 'Recorrer valores de un arreglo', 'array_iteration'],
     ['Arrays from a callback', 'Arrays desde callbacks', 'fromfunction'],
     ['Masked writes', 'Escrituras con máscara', 'masked_writes'],
     ['Gathering values', 'Extracción por índices', 'take'],

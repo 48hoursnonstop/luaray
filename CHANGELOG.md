@@ -14,6 +14,10 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.186.0-dev
+
+Adds nonfinite replacements, piecewise functions and numeric aliases with bilingual examples.
+
 ## 0.185.0-dev
 
 Fixes sort, argsort and selection for temporal and fixed-width text dtypes. Adds sort_complex and bilingual ordering guides.

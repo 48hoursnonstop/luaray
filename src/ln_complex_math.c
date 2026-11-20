@@ -125,7 +125,7 @@ CTYPE PFX##_csqrt(CTYPE z) { \
     CTYPE out; \
     if (a >= (RTYPE)0) { t=(RTYPE)SQRT((a+(RTYPE)HYPOT(a,b))*(RTYPE)0.5); out=PFX##_pack(t,b/((RTYPE)2*t)); } \
     else { t=(RTYPE)SQRT((-a+(RTYPE)HYPOT(a,b))*(RTYPE)0.5); out=PFX##_pack((RTYPE)FABS(b)/((RTYPE)2*t),(RTYPE)COPYSIGN(t,b)); } \
-    if (scale) { out.real*=(RTYPE)2; } \
+    if (scale) { out.real*=(RTYPE)2; out.imag*=(RTYPE)2; } \
     return out; \
 } \
 CTYPE PFX##_cpow(CTYPE a, CTYPE b) { \

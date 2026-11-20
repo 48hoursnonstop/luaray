@@ -33,7 +33,9 @@ int main(void)
     assert(!ln_array_take(a,indices,0,(ln_take_mode)9,NULL,&err));
     ln_intp emptyshape[]={3,0,0};
     ln_array *empty=ln_array_new(3,emptyshape,dtype,0,0,&err);assert(empty);
-    assert(!ln_array_take(empty,indices,1,LN_TAKE_WRAP,NULL,&err));
+    r=ln_array_take(empty,indices,1,LN_TAKE_WRAP,NULL,&err);
+    assert(r&&ln_array_size(r)==0&&r->dimensions[1]==2);
+    ln_array_free(r);
     r=ln_array_take(empty,indices,1,LN_TAKE_CLIP,NULL,&err);assert(r&&ln_array_size(r)==0);
     ln_array_free(r);ln_array_free(empty);
     ln_intp ones[LN_MAXDIMS];for(int i=0;i<LN_MAXDIMS;++i)ones[i]=1;

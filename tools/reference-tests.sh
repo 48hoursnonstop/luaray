@@ -33,6 +33,10 @@ done
 patch --batch --fuzz=0 --forward --quiet -p1 -d "$reference" \
     < "$root/compatibility/numpy254-reference.patch"
 printf 'Applied 40 documented NumPy 2.5.4 expectation updates\n'
+# NumPy 2.5.5 applies vector fraction promotion to all-NaN slices.
+patch --batch --fuzz=0 --forward --quiet -p1 -d "$reference" \
+    < "$root/compatibility/numpy255-nanquantile.patch"
+printf 'Applied 8 documented NumPy 2.5.5 nanquantile dtype updates\n'
 (
     cd "$reference"
     count=0

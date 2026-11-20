@@ -1,6 +1,6 @@
 # Fuentes de referencia y licencias
 
-NumPy 2.5.4 es la referencia de comportamiento principal. Los fixtures anteriores
+NumPy 2.5.5 es la referencia de comportamiento principal. Los fixtures anteriores
 generados con NumPy 2.3.5 conservan esa atribución en sus cabeceras. La
 implementación importada originalmente registra el commit NumPy
 `286e698f1dcf601648b165f48485ceaeec9c6231`.
@@ -23,3 +23,5 @@ los generadores completos están en el [paquete fuente 0.116](https://github.com
 Los checksums anteriores de 2.5.3 se conservan en
 `compatibility/numpy-2.5.3-source.sha256`; los corpus históricos mantienen
 la versión del intérprete que los generó.
+
+El manifiesto de NumPy 2.5.4 se conserva en `compatibility/numpy-2.5.4-source.sha256`.

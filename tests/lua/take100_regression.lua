@@ -52,9 +52,10 @@ np.take(source,indices,{axis=1,out=output,mode='wrap'})
 eq(owner:tolist(),{-2,-3,-1,-2}) -- a complete chunk changes the next live index
 local readonly=np.broadcast_to(np.array({0},'int32'),{2})
 fails(function()np.take(a,{1,2},{out=readonly})end,'read-only')
-local records=dofile('tests/lua/take100_reference_differences.lua')
-for _,record in ipairs(records) do
- fails(function()np.take(np.zeros(record.shape,'int32'),record.indices,{axis=record.axis,mode=record.mode})end,'empty axis')
-end
+-- NumPy 2.5.5 skips wrap normalization when the selected axis is empty.
+local empty=np.zeros({3,0,0},'int32')
+eq(np.take(empty,1,{axis=2,mode='wrap'}).shape,{3,0})
+eq(np.take(empty,{1,-1},{axis=2,mode='wrap'}).shape,{3,2,0})
+eq(np.take(empty,{7},{axis=2,mode='wrap'}).shape,{3,1,0})
 collectgarbage('collect')
-print(('take100 regression: %d checks passed; %d deliberate hang-class rejections outside parity'):format(checks,#records))
+print(('take100 regression: %d checks passed'):format(checks))

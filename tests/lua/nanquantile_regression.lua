@@ -1,5 +1,5 @@
 local n=require('luaray_core')
-assert(n._version=='0.162.0-dev')
+assert(n._version=='0.163.0-dev')
 local function near(a,b,tol)
  tol=tol or 1e-5
  if type(a)=='table' then
@@ -34,7 +34,7 @@ local collapsed=n.nanquantile(empty,{0.25,0.75},{axis=2})
 assert(collapsed.dtype=='float32')
 near(collapsed:tolist(),{nan,nan,nan})
 local allnan=n.array({nan,nan},'float16')
-assert(n.nanquantile(allnan,{0.1,0.9}).dtype=='float16')
+assert(n.nanquantile(allnan,{0.1,0.9}).dtype=='float64')
 -- q restrictions and unsupported methods must fail, not silently fall back
 local function reject(fn)assert(not pcall(fn))end
 reject(function()n.nanquantile(x,-0.1)end)

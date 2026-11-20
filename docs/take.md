@@ -88,3 +88,5 @@ Object/structured/new variable-width StringDType support, Python exception
 classes, complete warning fidelity and non-native numeric byte order are not
 claimed. The earlier 40 blocked numeric-endian states remain separate. See
 `compatibility/current.json`, [validation results](development/validation.md) and [historical release notes](https://github.com/48hoursnonstop/luaray/blob/v0.116.0-dev/PROGRESS_0_100.md).
+
+NumPy 2.5.5 resolves the old wrap-mode hang. An empty selected axis with an empty result now succeeds without normalizing indices against zero. A nonempty result still raises an error.

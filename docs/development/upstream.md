@@ -1,6 +1,6 @@
 # Upstream provenance and third-party code
 
-NumPy 2.5.4 is LuaRay's primary behavioral reference. The earlier 2.5.3 source
+NumPy 2.5.5 is LuaRay's primary behavioral reference. The earlier 2.5.3 source
 pins are retained in `compatibility/numpy-2.5.3-source.sha256`; historical
 fixtures keep their original interpreter attribution. Earlier differential
 fixtures generated with NumPy 2.3.5 retain that version in their headers.
@@ -24,3 +24,5 @@ execute Python or upstream NumPy.
 Preserve these notices when redistributing source or binaries. Detailed original
 source notes and oracle generators remain in the
 [0.116 source package](https://github.com/48hoursnonstop/luaray/releases/tag/v0.116.0-dev).
+
+The NumPy 2.5.4 source manifest is retained in `compatibility/numpy-2.5.4-source.sha256`.

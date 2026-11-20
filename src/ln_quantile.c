@@ -107,28 +107,9 @@ ln_array *ln_quantile(const ln_array *a,const uint8_t *axis_flags,
     const ln_dtype *dt=(omit_nan && ln_array_size(a)==0)
          ? (kind=='f'?a->descr:ln_dtype_by_num(LN_DOUBLE))
          : (discrete ? a->descr : (kind=='f'?a->descr:ln_dtype_by_num(LN_DOUBLE)));
-    if(!discrete && preferred_dtype && !(omit_nan && ln_array_size(a)==0)){
-        /* NumPy's nanquantile chooses the dtype of the first reduced slice:
-           an all-NaN first slice uses the input floating type, even when
-           vector q would ordinarily promote the result. */
-        int first_all_nan=0;
-        if(omit_nan && kind=='f' && output_base>0 && red_size>0){
-            first_all_nan=1;
-            ln_intp scan_coord[LN_MAXDIMS]={0};
-            ln_intp scan_dims[LN_MAXDIMS]={0};int nr=0;
-            for(int d=0;d<a->nd;d++)if(red[d])scan_dims[nr++]=a->dimensions[d];
-            for(ln_intp k=0;k<red_size;k++){
-                const char *at=a->data;int j=0;
-                for(int d=0;d<a->nd;d++)if(red[d])at+=scan_coord[j++]*a->strides[d];
-                long double v;
-                if(ln_cast_strided_numeric(at,0,a->descr,(char*)&v,0,
-                    ln_dtype_by_num(LN_LONGDOUBLE),1,err)<0)return NULL;
-                if(!isnan(v)){first_all_nan=0;break;}
-                advance(nr,scan_dims,scan_coord);
-            }
-        }
-        if(!first_all_nan)dt=preferred_dtype;
-    }
+    /* NumPy2.5.5 reduces an all-NaN slice through ordinary quantile
+     * selection, so vector fractions participate in promotion consistently. */
+    if(!discrete&&preferred_dtype&&!(omit_nan&&ln_array_size(a)==0))dt=preferred_dtype;
     ln_array *res=ln_array_new(ond,odims,dt,0,0,err);
     if(!res)return NULL;
     if(method==6&&!emit_q_axis&&median_layout(a,red,reduce_nd,red_size,res,keepdims,err)<0){ln_array_free(res);return NULL;}

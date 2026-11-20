@@ -52,6 +52,7 @@ const pages = [
     ['Real and imaginary parts', 'Partes real e imaginaria', 'components'],
     ['Comparing values', 'Comparación de valores', 'reality'],
     ['Equality and tolerances', 'Igualdad y tolerancias', 'comparison'],
+    ['Signed infinity', 'Infinitos con signo', 'infinity'],
     ['Rounding', 'Redondeo', 'rounding'],
     ['Clipping', 'Recorte de valores', 'clip'],
     ['Sequences and sampling', 'Secuencias y muestreo', 'sampling'],

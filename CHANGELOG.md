@@ -14,6 +14,16 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.163.0-dev
+
+Updates the primary reference to NumPy 2.5.5. All-NaN slices follow quantile dtype
+promotion. Complex square root rescales both components for huge operands.
+Take in wrap mode returns an empty result when its selected axis and result
+are both empty. Eight historical nanquantile dtype expectations are updated.
+
+Adds `isposinf` and `isneginf` for real arrays, with broadcastable typed output
+buffers and alias-safe mask evaluation. Adds English and Spanish examples.
+
 ## 0.162.0-dev
 
 Corrected strict packing of ordinary integers into clongdouble to use the

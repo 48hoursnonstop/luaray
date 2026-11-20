@@ -16,3 +16,7 @@ same deterministic generator with NumPy 2.5.4; all original numeric assertions
 are retained. The archive itself is unchanged. This optional check requires
 `patch`, alongside curl, tar and sha256sum. New 2.5.4 corpora are published in
 the separate reference bundle.
+
+Starting with 0.163, eight additional historical nanquantile dtype assertions
+use the result types measured with NumPy 2.5.5. Values, tolerances and the
+original archive remain unchanged.

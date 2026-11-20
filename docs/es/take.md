@@ -86,3 +86,5 @@ No se declara soporte completo para object, estructuras, StringDType variable,
 clases de excepciones Python, advertencias ni endianness numérico no nativo.
 Los 40 estados bloqueados anteriores siguen separados. Consulta
 `compatibility/current.json`, [resultados de verificación](../development/validation.md) y [historical release notes](https://github.com/48hoursnonstop/luaray/blob/v0.116.0-dev/PROGRESS_0_100.md).
+
+NumPy 2.5.5 corrige el bloqueo de wrap. Si tanto el eje seleccionado como el resultado están vacíos, la operación termina sin normalizar índices contra cero. Un resultado no vacío sigue produciendo un error.

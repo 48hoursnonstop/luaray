@@ -37,12 +37,12 @@ int main(void){
     /* Original nonaliased cells preserved. */
     memcpy(&x,a->data+sizeof(double),sizeof x); assert(x==2);
     ln_array_free(a);
-    /* Float32 all-NaN slices must retain the floating DType. */
+    /* NumPy 2.5.5 promotes the all-NaN slice using the vector fraction dtype. */
     ln_intp fdim[]={3};ln_array *b=ln_array_new(1,fdim,ln_dtype_by_num(LN_FLOAT),0,0,&e);
     assert(b);float fs[]={NAN,NAN,NAN};memcpy(b->data,fs,sizeof fs);
     r=ln_quantile(b,NULL,0,q,2,0,0,ln_dtype_by_num(LN_DOUBLE),NULL,1,&e);
-    assert(r && r->descr->type_num==LN_FLOAT && r->dimensions[0]==2);
-    memcpy(&fs[0],r->data,sizeof(float));assert(isnan(fs[0]));
+    assert(r && r->descr->type_num==LN_DOUBLE && r->dimensions[0]==2);
+    memcpy(&x,r->data,sizeof x);assert(isnan(x));
     ln_array_free(r);ln_array_free(b);
     /* Invalid q cannot allocate a partial result. */
     b=ln_array_new(1,fdim,ln_dtype_by_num(LN_FLOAT),0,0,&e); assert(b);

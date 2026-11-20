@@ -1,4 +1,4 @@
-/* Source-derived from NumPy 2.5.3 item_selection.c:PyArray_TakeFrom/fasttake. */
+/* Source-derived from NumPy 2.5.5 item_selection.c:PyArray_TakeFrom/fasttake. */
 #include "ln_take.h"
 #include "ln_mapping.h"
 #include "ln_write.h"
@@ -59,6 +59,8 @@ ln_array *ln_array_take(const ln_array *input,const ln_array *indices,int axis,
     else work=out;
     ln_intp total=ln_array_size(work);
     if(axis_size==0 && total!=0){bad(err,"cannot take nonempty values from an empty axis");goto fail;}
+    /* Zero-sized wrap results must skip index normalization against zero. */
+    if(axis_size==0&&mode==LN_TAKE_WRAP)n=0;
     if(axis_size==0 && n>0 && m>0 && mode!=LN_TAKE_CLIP) {
         bad(err,"cannot take indices from an empty axis");goto fail;
     }

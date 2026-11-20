@@ -80,6 +80,7 @@ const pages = [
     ['Phases and angles', 'Fases y ángulos', 'phase'],
     ['Convolution and cross-correlation', 'Convolución y correlación cruzada', 'convolution'],
     ['FFT helpers', 'Funciones FFT', 'fft_helpers'],
+    ['Window functions and sinc', 'Ventanas y función sinc', 'windows'],
     ['Vectors and grids', 'Vectores y mallas', 'vectors_and_grids'],
     ['Diagonals and matrices', 'Diagonales y matrices', 'matrices'],
     ['Matrix traces', 'Trazas de matrices', 'trace'],

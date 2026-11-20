@@ -79,9 +79,34 @@ static int highest_bit(ln_intp n)
     return k;
 }
 
+static int temporal_less(const char *a,const char *b,const ln_dtype *dtype,int descending)
+{
+    int64_t x,y;
+    memcpy(&x,a,sizeof x);
+    memcpy(&y,b,sizeof y);
+    const uint16_t one=1;
+    char native=*(const unsigned char *)&one ? '<' : '>';
+    if((dtype->byteorder=='<' || dtype->byteorder=='>') && dtype->byteorder!=native) {
+        x=(int64_t)__builtin_bswap64((uint64_t)x);
+        y=(int64_t)__builtin_bswap64((uint64_t)y);
+    }
+    if(x==INT64_MIN)return 0;
+    if(y==INT64_MIN)return 1;
+    return descending ? x>y : x<y;
+}
+
+static int text_less(const char *a,const char *b,const ln_dtype *dtype,int descending)
+{
+    int cmp=0;
+    ln_string_compare_one(a,dtype,b,dtype,&cmp,NULL);
+    return descending ? cmp>0 : cmp<0;
+}
+
 static int item_less_ascending(const char *ap, const char *bp, const ln_dtype *dt)
 {
 #define LN_CMP_SCALAR(T) do { T a,b; memcpy(&a,ap,sizeof(T)); memcpy(&b,bp,sizeof(T)); return a < b; } while (0)
+    if(dt->kind=='S'||dt->kind=='U')return text_less(ap,bp,dt,0);
+    if(dt->kind=='M'||dt->kind=='m')return temporal_less(ap,bp,dt,0);
     switch (dt->type_num) {
         case LN_BOOL:      LN_CMP_SCALAR(uint8_t);
         case LN_BYTE:      LN_CMP_SCALAR(int8_t);
@@ -121,6 +146,8 @@ static int item_less_ascending(const char *ap, const char *bp, const ln_dtype *d
 static int item_less(const char *ap, const char *bp, const ln_dtype *dt, int descending)
 {
     if (!descending) return item_less_ascending(ap,bp,dt);
+    if(dt->kind=='S'||dt->kind=='U')return text_less(ap,bp,dt,1);
+    if(dt->kind=='M'||dt->kind=='m')return temporal_less(ap,bp,dt,1);
     /* numpy_tag.hpp::greater: NaNs remain at the end even in reverse. */
 #define LN_CMP_SCALAR(T) do { T a,b; memcpy(&a,ap,sizeof(T)); memcpy(&b,bp,sizeof(T)); return a > b; } while (0)
     switch (dt->type_num) {
@@ -164,35 +191,33 @@ static void swap_bytes(char *a, char *b, size_t n)
     while (n--) { char t=*a; *a++=*b; *b++=t; }
 }
 
-static int heapsort_values(char *start, ln_intp num, const ln_dtype *dt, int descending)
+static int heapsort_values(char *start, ln_intp num, const ln_dtype *dt, int descending,
+                           unsigned char *tmp)
 {
     ln_intp es=(ln_intp)dt->elsize;
-    unsigned char tmp[LN_MAX_ITEMSIZE];
-    if (dt->elsize > sizeof(tmp)) return -1;
     if (num <= 1) return 0;
-    char *a=start-es; /* source algorithm uses 1-based heap indexing */
     ln_intp i,j,l;
     for (l=num>>1;l>0;--l) {
-        memcpy(tmp,a+l*es,(size_t)es);
+        memcpy(tmp,start+(l-1)*es,(size_t)es);
         for (i=l,j=l<<1;j<=num;) {
-            if (j<num && item_less(a+j*es,a+(j+1)*es,dt,descending)) ++j;
-            if (item_less((char*)tmp,a+j*es,dt,descending)) {
-                memcpy(a+i*es,a+j*es,(size_t)es); i=j; j+=j;
+            if (j<num && item_less(start+(j-1)*es,start+j*es,dt,descending)) ++j;
+            if (item_less((char*)tmp,start+(j-1)*es,dt,descending)) {
+                memcpy(start+(i-1)*es,start+(j-1)*es,(size_t)es); i=j; j+=j;
             } else break;
         }
-        memcpy(a+i*es,tmp,(size_t)es);
+        memcpy(start+(i-1)*es,tmp,(size_t)es);
     }
     for (;num>1;) {
-        memcpy(tmp,a+num*es,(size_t)es);
-        memcpy(a+num*es,a+es,(size_t)es);
+        memcpy(tmp,start+(num-1)*es,(size_t)es);
+        memcpy(start+(num-1)*es,start,(size_t)es);
         --num;
         for (i=1,j=2;j<=num;) {
-            if (j<num && item_less(a+j*es,a+(j+1)*es,dt,descending)) ++j;
-            if (item_less((char*)tmp,a+j*es,dt,descending)) {
-                memcpy(a+i*es,a+j*es,(size_t)es); i=j; j+=j;
+            if (j<num && item_less(start+(j-1)*es,start+j*es,dt,descending)) ++j;
+            if (item_less((char*)tmp,start+(j-1)*es,dt,descending)) {
+                memcpy(start+(i-1)*es,start+(j-1)*es,(size_t)es); i=j; j+=j;
             } else break;
         }
-        memcpy(a+i*es,tmp,(size_t)es);
+        memcpy(start+(i-1)*es,tmp,(size_t)es);
     }
     return 0;
 }
@@ -201,39 +226,38 @@ static int heapsort_indices(const char *v, ln_intp *tosort, ln_intp n,
                             const ln_dtype *dt, int descending)
 {
     ln_intp es=(ln_intp)dt->elsize;
-    ln_intp *a=tosort-1,i,j,l,tmp;
+    ln_intp i,j,l,tmp;
     for (l=n>>1;l>0;--l) {
-        tmp=a[l];
+        tmp=tosort[l-1];
         for (i=l,j=l<<1;j<=n;) {
-            if (j<n && item_less(v+a[j]*es,v+a[j+1]*es,dt,descending)) ++j;
-            if (item_less(v+tmp*es,v+a[j]*es,dt,descending)) { a[i]=a[j]; i=j; j+=j; }
+            if (j<n && item_less(v+tosort[j-1]*es,v+tosort[j]*es,dt,descending)) ++j;
+            if (item_less(v+tmp*es,v+tosort[j-1]*es,dt,descending)) { tosort[i-1]=tosort[j-1]; i=j; j+=j; }
             else break;
         }
-        a[i]=tmp;
+        tosort[i-1]=tmp;
     }
     for (;n>1;) {
-        tmp=a[n]; a[n]=a[1]; --n;
+        tmp=tosort[n-1]; tosort[n-1]=tosort[0]; --n;
         for (i=1,j=2;j<=n;) {
-            if (j<n && item_less(v+a[j]*es,v+a[j+1]*es,dt,descending)) ++j;
-            if (item_less(v+tmp*es,v+a[j]*es,dt,descending)) { a[i]=a[j]; i=j; j+=j; }
+            if (j<n && item_less(v+tosort[j-1]*es,v+tosort[j]*es,dt,descending)) ++j;
+            if (item_less(v+tmp*es,v+tosort[j-1]*es,dt,descending)) { tosort[i-1]=tosort[j-1]; i=j; j+=j; }
             else break;
         }
-        a[i]=tmp;
+        tosort[i-1]=tmp;
     }
     return 0;
 }
 
-static int quicksort_values(char *start, ln_intp num, const ln_dtype *dt, int descending)
+static int quicksort_values(char *start, ln_intp num, const ln_dtype *dt, int descending,
+                            unsigned char *vp)
 {
-    if (num <= 1) return 0;
+    if (num <= 1 || dt->elsize==0) return 0;
     ln_intp es=(ln_intp)dt->elsize;
     char *pl=start,*pr=pl+(num-1)*es;
     char *stack[LN_QS_STACK],**sptr=stack,*pm,*pi,*pj,*pk;
     int depth[LN_QS_STACK],*psdepth=depth,cdepth=highest_bit(num)*2;
-    unsigned char vp[LN_MAX_ITEMSIZE];
-    if (dt->elsize > sizeof(vp)) return -1;
     for (;;) {
-        if (cdepth < 0) { if (heapsort_values(pl,(pr-pl)/es+1,dt,descending)<0) return -1; goto stack_pop; }
+        if (cdepth < 0) { if (heapsort_values(pl,(pr-pl)/es+1,dt,descending,vp)<0) return -1; goto stack_pop; }
         while (pr-pl > LN_SMALL_QUICKSORT*es) {
             pm=pl+(((pr-pl)/es)>>1)*es;
             if (item_less(pm,pl,dt,descending)) swap_bytes(pm,pl,(size_t)es);
@@ -252,9 +276,9 @@ static int quicksort_values(char *start, ln_intp num, const ln_dtype *dt, int de
             *psdepth++=--cdepth;
         }
         for (pi=pl+es;pi<=pr;pi+=es) {
-            memcpy(vp,pi,(size_t)es); pj=pi; pk=pi-es;
-            while (pj>pl && item_less((char*)vp,pk,dt,descending)) {
-                memcpy(pj,pk,(size_t)es); pj-=es; pk-=es;
+            memcpy(vp,pi,(size_t)es); pj=pi;
+            while (pj>pl && item_less((char*)vp,pj-es,dt,descending)) {
+                memcpy(pj,pj-es,(size_t)es); pj-=es;
             }
             memcpy(pj,vp,(size_t)es);
         }
@@ -292,8 +316,10 @@ static int quicksort_indices(const char *v, ln_intp *idx, ln_intp num,
             *psdepth++=--cdepth;
         }
         for (pi=pl+1;pi<=pr;++pi) {
-            vi=*pi; pj=pi; pk=pi-1;
-            while (pj>pl && item_less(v+vi*es,v+(*pk)*es,dt,descending)) *pj--=*pk--;
+            vi=*pi; pj=pi;
+            while (pj>pl && item_less(v+vi*es,v+(*(pj-1))*es,dt,descending)) {
+                *pj=*(pj-1); --pj;
+            }
             *pj=vi;
         }
 stack_pop:
@@ -388,14 +414,19 @@ int ln_sort_inplace(ln_array *a,int axis,int descending,ln_error *err)
     ln_intp n=a->dimensions[axis],astride=a->strides[axis],es=(ln_intp)a->descr->elsize;
     char *buffer=NULL;
     if (astride!=es) { buffer=(char*)malloc((size_t)n*(size_t)es); if(!buffer){sort_error(err,"out of memory during sorting");return -1;} }
+    unsigned char local_pivot[LN_MAX_ITEMSIZE];
+    unsigned char *pivot=a->descr->elsize>sizeof(local_pivot)
+        ? malloc(a->descr->elsize) : local_pivot;
+    if(!pivot){free(buffer);sort_error(err,"out of memory during sorting");return -1;}
     ln_intp coord[LN_MAXDIMS]={0},outer=outer_count(a,axis);
     for (ln_intp row=0;row<outer;++row) {
         char *base=coord_ptr_skip(a,coord,axis),*p=base;
         if (buffer) { for(ln_intp i=0;i<n;++i)memcpy(buffer+i*es,base+i*astride,(size_t)es); p=buffer; }
-        if (quicksort_values(p,n,a->descr,descending)<0){free(buffer);sort_error(err,"sort failed");return -1;}
+        quicksort_values(p,n,a->descr,descending,pivot);
         if (buffer) for(ln_intp i=0;i<n;++i)memcpy(base+i*astride,buffer+i*es,(size_t)es);
         advance_coord_skip(a->nd,a->dimensions,axis,coord);
     }
+    if(pivot!=local_pivot)free(pivot);
     free(buffer); return 0;
 }
 
@@ -429,8 +460,8 @@ ln_array *ln_argsort(const ln_array *a,int axis,int descending,ln_error *err)
     axis=normalize_axis(a,axis);
     ln_array *out=ln_array_new(a->nd,a->dimensions,intp_dtype(),0,0,err); if(!out)return NULL;
     ln_intp n=a->dimensions[axis],es=(ln_intp)a->descr->elsize,astride=a->strides[axis];
-    if (n==0) return out;
-    char *values=(char*)malloc((size_t)n*(size_t)es); ln_intp *idx=(ln_intp*)malloc((size_t)n*sizeof(*idx));
+    if (ln_array_size(out)==0) return out;
+    char *values=(char*)malloc((size_t)n*(size_t)(es?es:1)); ln_intp *idx=(ln_intp*)malloc((size_t)n*sizeof(*idx));
     if(!values||!idx){free(values);free(idx);ln_array_free(out);sort_error(err,"out of memory during argsort");return NULL;}
     ln_intp coord[LN_MAXDIMS]={0},outer=outer_count(a,axis);
     for(ln_intp row=0;row<outer;++row){
@@ -473,15 +504,6 @@ static int compare_ordered_cells(const char *a,const char *b,const ln_dtype *dty
         int cmp=0;
         ln_string_compare_one(a,dtype,b,dtype,&cmp,NULL);
         return cmp;
-    }
-    if(dtype->kind=='m'||dtype->kind=='M'){
-        int64_t x,y;
-        memcpy(&x,a,sizeof x);
-        memcpy(&y,b,sizeof y);
-        if(x==y)return 0;
-        if(x==INT64_MIN)return 1;
-        if(y==INT64_MIN)return -1;
-        return x<y?-1:1;
     }
     if(item_less_ascending(a,b,dtype))return -1;
     if(item_less_ascending(b,a,dtype))return 1;
@@ -727,7 +749,9 @@ int ln_partition_inplace(ln_array*a,const ln_intp*kth,ln_intp nkth,int axis,int 
     axis=normalize_axis(a,axis);if(a->nd==0){sort_error(err,"partition axis is invalid for a 0-D array");return -1;}
     ln_intp n=a->dimensions[axis];
     for(ln_intp k=0;k<nkth;++k)if(kth[k]<0||kth[k]>=n){sort_error(err,"kth out of bounds");return -1;}
-    if(n<=1||nkth==0||ln_array_size(a)==0)return 0;
+    if(n<=1||ln_array_size(a)==0)return 0;
+    if(strchr("SUMm",a->descr->kind))return ln_sort_inplace(a,axis,descending,err);
+    if(nkth==0)return 0;
     ln_intp es=(ln_intp)a->descr->elsize,astride=a->strides[axis];char*buffer=NULL;
     if(astride!=es){buffer=(char*)malloc((size_t)n*(size_t)es);if(!buffer){sort_error(err,"out of memory during partition");return -1;}}
     ln_intp coord[LN_MAXDIMS]={0},outer=outer_count(a,axis);
@@ -768,8 +792,10 @@ ln_array *ln_argpartition(const ln_array*a,const ln_intp*kth,ln_intp nkth,int ax
     if(!valid_axis(a,axis,err))return NULL;
     axis=normalize_axis(a,axis);
     ln_intp n=a->dimensions[axis];for(ln_intp k=0;k<nkth;++k)if(kth[k]<0||kth[k]>=n){sort_error(err,"kth out of bounds");return NULL;}
-    ln_array*out=ln_array_new(a->nd,a->dimensions,intp_dtype(),0,0,err);if(!out)return NULL;if(n==0||nkth==0)return out;
-    ln_intp es=(ln_intp)a->descr->elsize,astride=a->strides[axis];char*values=(char*)malloc((size_t)n*(size_t)es);ln_intp*idx=(ln_intp*)malloc((size_t)n*sizeof(*idx));
+    if(strchr("SUMm",a->descr->kind))return ln_argsort(a,axis,descending,err);
+    ln_array*out=ln_array_new(a->nd,a->dimensions,intp_dtype(),0,0,err);if(!out)return NULL;
+    if(ln_array_size(out)==0)return out;
+    ln_intp es=(ln_intp)a->descr->elsize,astride=a->strides[axis];char*values=(char*)malloc((size_t)n*(size_t)(es?es:1));ln_intp*idx=(ln_intp*)malloc((size_t)n*sizeof(*idx));
     if(!values||!idx){free(values);free(idx);ln_array_free(out);sort_error(err,"out of memory during argpartition");return NULL;}
     ln_intp coord[LN_MAXDIMS]={0},outer=outer_count(a,axis);
     for(ln_intp row=0;row<outer;++row){char*base=coord_ptr_skip(a,coord,axis),*obase=coord_ptr_skip(out,coord,axis);for(ln_intp i=0;i<n;++i){memcpy(values+i*es,base+i*astride,(size_t)es);idx[i]=i;}

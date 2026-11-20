@@ -2372,13 +2372,13 @@ join_function(lua_State *L, int stack)
             lua_pushcfunction(L,np_array);
             lua_pushvalue(L,-2);
             if (lua_pcall(L,1,1,0)!=LUA_OK)
-                return luaL_error(L,"cannot convert input array %I: %s",
-                    (lua_Integer)i+1,lua_tostring(L,-1));
+                return luaL_error(L,"cannot convert input array %d: %s",
+                    (int)i+1,lua_tostring(L,-1));
             lua_remove(L,-2);
         }
         lua_array *u=test_array(L,-1);
-        if(!u)return luaL_error(L,"input %I must be an ndarray or Lua array table",
-                               (lua_Integer)i+1);
+        if(!u)return luaL_error(L,"input %d must be an ndarray or Lua array table",
+                               (int)i+1);
         inputs[i]=u->a;
         if(i==0)array_nd=u->a->nd;
         /* Keep converted array userdata rooted on the Lua stack until return. */
@@ -2478,8 +2478,8 @@ static int shape_stack_function(lua_State *L, ln_stack_kind kind) {
             lua_pushcfunction(L,np_array);
             lua_pushvalue(L,-2);
             if(lua_pcall(L,1,1,0)!=LUA_OK)
-                return luaL_error(L,"cannot convert stack input %I: %s",
-                    (lua_Integer)i+1,lua_tostring(L,-1));
+                return luaL_error(L,"cannot convert stack input %d: %s",
+                    (int)i+1,lua_tostring(L,-1));
             lua_remove(L,-2);
             u=check_array(L,-1);
         }
@@ -8195,7 +8195,7 @@ int luaopen_luaray_core(lua_State*L){
     for(int i=0;names[i];i++){lua_pushstring(L,names[i]);lua_setfield(L,-2,names[i]);}
     push_index_token(L,LN_INDEX_NEWAXIS);lua_setfield(L,-2,"newaxis");
     push_index_token(L,LN_INDEX_ELLIPSIS);lua_setfield(L,-2,"ellipsis");
-    lua_pushstring(L,"0.167.0-dev");lua_setfield(L,-2,"_version");
+    lua_pushstring(L,"0.168.0-dev");lua_setfield(L,-2,"_version");
     lua_pushstring(L,"286e698f1dcf601648b165f48485ceaeec9c6231");lua_setfield(L,-2,"_numpy_upstream_commit");
     return 1;
 }

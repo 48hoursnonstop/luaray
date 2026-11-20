@@ -14,6 +14,12 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.168.0-dev
+
+Adds `concat`, `permute_dims`, `matrix_transpose` and `unstack`. Array joins
+reserve Lua stack space for their retained inputs and temporary views. Adds
+English and Spanish layout guides.
+
 ## 0.167.0-dev
 
 Adds the real ufuncs `nextafter`, `spacing`, `heaviside`, `logaddexp` and

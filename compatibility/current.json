@@ -1,5 +1,5 @@
 {
-  "version": "0.170.0-dev",
+  "version": "0.171.0-dev",
   "upstream_source": "NumPy 2.5.5",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -8,8 +8,8 @@
   "status": "implemented_partial",
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 451,
-    "missing_bindings": 223,
+    "available_callables": 456,
+    "missing_bindings": 218,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -187,14 +187,18 @@
     "Ordinary scalar to clongdouble packing follows the source double-component conversion. This is not an assertion of full scalar/array casting fidelity; source Python class protocols, warnings, every ABI and every operation remain uncertified."
   ],
   "apis": {
-    "numpy.lexsort": "implemented_partial"
+    "numpy.unique": "implemented_partial",
+    "numpy.unique_all": "implemented_partial",
+    "numpy.unique_values": "implemented_partial",
+    "numpy.unique_counts": "implemented_partial",
+    "numpy.unique_inverse": "implemented_partial"
   },
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "97b061d41ac1044a9871dc7f94fb9ce7bac99faca9ca9377878c1fcc507f2dfa",
-      "files": 429
+      "sha256": "c1007c9156a2152e6ae45c3634c93bdd38b8dafe3e73fee1d37f08c978b749c2",
+      "files": 431
     },
-    "version": "0.170.0-dev",
+    "version": "0.171.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -257,13 +261,13 @@
       "lua_limits",
       "ln_type_check",
       "lua_type_check",
-      "ln_matmul",
-      "ln_sort",
       "ln_raw_file",
       "lua_raw_file",
       "ln_half",
       "ln_unary_math",
-      "ln_ufunc_loops"
+      "ln_ufunc_loops",
+      "ln_matmul",
+      "ln_sort"
     ],
     "instrumented_harnesses": [
       "tests/runner.c",
@@ -359,6 +363,11 @@
         "lua_limits.o",
         "ln_type_check.o",
         "lua_type_check.o",
+        "ln_raw_file.o",
+        "lua_raw_file.o",
+        "ln_half.o",
+        "ln_unary_math.o",
+        "ln_ufunc_loops.o",
         "ln_matmul.o",
         "ln_sort.o",
         "runner.o",
@@ -389,12 +398,7 @@
         "tests/test_nanquantile_core.o",
         "tests/test_take100_core.o",
         "tests/test_fromstring_core.o",
-        "tests/test_raw_file_core.o",
-        "ln_raw_file.o",
-        "lua_raw_file.o",
-        "ln_half.o",
-        "ln_unary_math.o",
-        "ln_ufunc_loops.o"
+        "tests/test_raw_file_core.o"
       ],
       "CFLAGS": "-O1 -g -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer -fsanitize=address,undefined"
     },
@@ -480,41 +484,21 @@
       "matrix167-floating.lua",
       "matrix168-layout.lua",
       "matrix169-products.lua",
-      "matrix170-lexsort.lua"
+      "matrix170-lexsort.lua",
+      "matrix171-unique.lua"
     ],
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.170.0-dev-sanitizers.log",
-    "audit_phases": {
-      "cumulative_corpus_original_objects": 91,
-      "objects_after_targeted_rebuild": 96,
-      "additional_units": [
-        "ln_raw_file",
-        "lua_raw_file",
-        "ln_half",
-        "ln_unary_math",
-        "ln_ufunc_loops"
-      ],
-      "focused_maintained_suites": "passed",
-      "focused_reference_files": [
-        "matrix163-infinity.lua",
-        "matrix163-migration.lua",
-        "matrix165-rawfile.lua",
-        "matrix167-floating.lua",
-        "matrix170-lexsort.lua"
-      ],
-      "focused_log": "artifacts/matrix-0.170.0-dev-sanitizers-focused.log"
-    }
+    "log": "artifacts/matrix-0.171.0-dev-sanitizers.log"
   },
   "evidence": [
-    "src/ln_sort.c",
-    "src/lua_module.c",
-    "tests/lua/lexsort_regression.lua"
+    "lua/luaray/unique.lua",
+    "tests/lua/unique_regression.lua"
   ],
   "new_oracle": "NumPy 2.5.5",
   "new_reference_cases": {
-    "lexsort": 2626
+    "unique": 3138
   },
-  "new_reference_checks": 38702,
-  "new_check_semantics": "The results preserve stable ties across numeric, complex, temporal and fixed text keys. Cases include NaN, NaT, non-native Unicode, ndarray keys, strided views and scalar or empty inputs."
+  "new_reference_checks": 139230,
+  "new_check_semantics": "The checks cover values, first indices, inverse maps, counts and axis slices. They also exercise dtype-specific NaN and NaT behavior, empty array strides, fixed text and Array API result records."
 }

@@ -2,7 +2,6 @@
 #define _POSIX_C_SOURCE 200809L
 #define _FILE_OFFSET_BITS 64
 #include "ln_raw_file.h"
-#include "ln_layout.h"
 #include "ln_resize.h"
 #include <sys/types.h>
 #include <stdint.h>
@@ -80,10 +79,22 @@ int ln_write_raw_file(FILE *file,const ln_array *array,ln_error *err)
         return -1;
     }
     if(!count||!array->descr->elsize)return 0;
-    ln_array *flat=ln_layout_ravel(array,'C',err);
-    if(!flat)return -1;
-    size_t written=fwrite(flat->data,flat->descr->elsize,(size_t)count,file);
-    ln_array_free(flat);
+    size_t width=array->descr->elsize;
+    size_t written=0;
+    if(array->flags&LN_ARRAY_C_CONTIGUOUS){
+        written=fwrite(array->data,width,(size_t)count,file);
+    }else{
+        ln_intp coord[LN_MAXDIMS]={0};
+        for(;written<(size_t)count;++written){
+            const char *cell=array->data;
+            for(int d=0;d<array->nd;++d)cell+=coord[d]*array->strides[d];
+            if(fwrite(cell,width,1,file)!=1)break;
+            for(int d=array->nd-1;d>=0;--d){
+                if(++coord[d]<array->dimensions[d])break;
+                coord[d]=0;
+            }
+        }
+    }
     if(written!=(size_t)count||fflush(file)!=0){
         error(err,"cannot write binary output");
         return -1;

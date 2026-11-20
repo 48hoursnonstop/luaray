@@ -14,6 +14,12 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.165.0-dev
+
+Adds binary `fromfile` and `ndarray:tofile` for paths and open Lua file handles.
+Reads support item count and relative byte offsets. Writes preserve element
+bytes in logical C order for strided arrays. Adds English and Spanish guides.
+
 ## 0.164.0-dev
 
 Adds `fromstring` for separated numeric text, with explicit dtype and count,

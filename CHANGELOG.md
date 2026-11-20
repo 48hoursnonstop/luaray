@@ -14,6 +14,13 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.164.0-dev
+
+Adds `fromstring` for separated numeric text, with explicit dtype and count,
+NumPy-compatible whitespace and delimiter handling, and a bounded native
+parser. The reader raises an error when a fixed count exceeds the available
+items. Adds English and Spanish guides with executable examples.
+
 ## 0.163.0-dev
 
 Updates the primary reference to NumPy 2.5.5. All-NaN slices follow quantile dtype

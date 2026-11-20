@@ -20,6 +20,7 @@ const pages = [
     ['Arrays from an iterator', 'Arrays desde un iterador', 'fromiter'],
     ['Reading numeric text', 'Leer texto numérico', 'fromstring'],
     ['Binary array files', 'Archivos binarios de arrays', 'raw_files'],
+    ['Saving and loading NPY arrays', 'Guardar y cargar arrays NPY', 'npy'],
     ['Shape and layout', 'Forma y disposición', 'layout'],
     ['Transposing, joining and unstacking arrays', 'Transponer, unir y separar arrays', 'array_api_layout'],
     ['Resizing arrays', 'Cambiar tamaño de arrays', 'resize'],

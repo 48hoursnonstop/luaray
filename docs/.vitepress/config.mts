@@ -71,6 +71,7 @@ const pages = [
     ['Comparing values', 'Comparación de valores', 'reality'],
     ['Equality and tolerances', 'Igualdad y tolerancias', 'comparison'],
     ['Signed infinity', 'Infinitos con signo', 'infinity'],
+    ['Replacing nonfinite values and evaluating pieces', 'Reemplazar valores no finitos y evaluar por partes', 'value_replacements'],
     ['Rounding', 'Redondeo', 'rounding'],
     ['Clipping', 'Recorte de valores', 'clip'],
     ['Sequences and sampling', 'Secuencias y muestreo', 'sampling'],

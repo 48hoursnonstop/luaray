@@ -1,4 +1,6 @@
 #include "ln_matmul.h"
+#include "ln_creation.h"
+#include "ln_layout.h"
 #include "ln_half.h"
 #include "ln_complex.h"
 #include "ln_dtype_transfer.h"
@@ -28,7 +30,7 @@
  */
 
 typedef struct ln_matmul_plan {
-    int a_vec, b_vec;
+    int a_vec, b_vec, conjugate_a;
     int batch_nd;
     ln_intp batch_shape[LN_MAXDIMS];
     ln_intp a_batch_strides[LN_MAXDIMS];
@@ -54,34 +56,46 @@ absi(ln_intp x)
 }
 
 static int
-build_plan(const ln_array *a, const ln_array *b, ln_matmul_plan *p,
-           ln_error *err)
+build_plan(const ln_array *a,const ln_array *b,ln_matmul_kind kind,
+           const ln_array *output,ln_matmul_plan *p,ln_error *err)
 {
     memset(p, 0, sizeof(*p));
     if (!a || !b) { merr(err, "invalid matmul operand"); return -1; }
-    if (a->nd == 0 || b->nd == 0) {
-        merr(err, "matmul: input operand does not have enough dimensions");
+    p->a_vec = kind==LN_VECMAT || kind==LN_VECDOT || (kind==LN_MATMUL && a->nd==1);
+    p->b_vec = kind==LN_MATVEC || kind==LN_VECDOT || (kind==LN_MATMUL && b->nd==1);
+    p->conjugate_a = kind==LN_VECMAT || kind==LN_VECDOT;
+    int a_core_dims = p->a_vec ? 1 : 2;
+    int b_core_dims = p->b_vec ? 1 : 2;
+    if(a->nd<a_core_dims || b->nd<b_core_dims){
+        merr(err,"matrix product input has too few dimensions");
         return -1;
     }
-    p->a_vec = a->nd == 1;
-    p->b_vec = b->nd == 1;
-    p->m = p->a_vec ? 1 : a->dimensions[a->nd - 2];
-    p->n = a->dimensions[a->nd - 1];
-    ln_intp bn = p->b_vec ? b->dimensions[0] : b->dimensions[b->nd - 2];
-    p->p = p->b_vec ? 1 : b->dimensions[b->nd - 1];
-    if (p->n != bn) {
-        merr(err, "matmul: input operand core dimension mismatch");
+    p->m = p->a_vec ? 1 : a->dimensions[a->nd-2];
+    p->n = a->dimensions[a->nd-1];
+    int b_contract_axis = b->nd-b_core_dims;
+    if(p->n!=b->dimensions[b_contract_axis]){
+        merr(err,"matrix product input core dimension mismatch");
         return -1;
     }
-    p->as_m = p->a_vec ? 0 : a->strides[a->nd - 2];
-    p->as_n = a->strides[a->nd - 1];
-    p->bs_n = p->b_vec ? b->strides[0] : b->strides[b->nd - 2];
-    p->bs_p = p->b_vec ? 0 : b->strides[b->nd - 1];
+    p->p = p->b_vec ? 1 : b->dimensions[b->nd-1];
+    p->as_m = p->a_vec ? 0 : a->strides[a->nd-2];
+    p->as_n = a->strides[a->nd-1];
+    p->bs_n = b->strides[b_contract_axis];
+    p->bs_p = p->b_vec ? 0 : b->strides[b->nd-1];
 
-    int abd = p->a_vec ? 0 : a->nd - 2;
-    int bbd = p->b_vec ? 0 : b->nd - 2;
+    int abd = a->nd-a_core_dims;
+    int bbd = b->nd-b_core_dims;
     p->batch_nd = abd > bbd ? abd : bbd;
-    if (p->batch_nd + (!p->a_vec) + (!p->b_vec) > LN_MAXDIMS) {
+    int core_out_dims=(!p->a_vec)+(!p->b_vec);
+    if(output){
+        int requested_batch_nd=output->nd-core_out_dims;
+        if(requested_batch_nd<p->batch_nd){
+            merr(err,"output has too few batch axes for the vector product");
+            return -1;
+        }
+        p->batch_nd=requested_batch_nd;
+    }
+    if (p->batch_nd + core_out_dims > LN_MAXDIMS) {
         merr(err, "maximum supported dimension exceeded in matmul");
         return -1;
     }
@@ -94,8 +108,16 @@ build_plan(const ln_array *a, const ln_array *b, ln_matmul_plan *p,
             merr(err, "operands could not be broadcast together for matmul");
             return -1;
         }
-        ln_intp sh = (ash == 1) ? bsh : ((bsh == 1) ? ash : ash);
-        p->batch_shape[d] = sh;
+        ln_intp shape = ash==1 ? bsh : ash;
+        if(output){
+            ln_intp requested=output->dimensions[d];
+            if(shape!=1 && shape!=requested){
+                merr(err,"output batch axis cannot broadcast with the vector product");
+                return -1;
+            }
+            shape=requested;
+        }
+        p->batch_shape[d]=shape;
         p->a_batch_strides[d] = (ad < 0 || ash == 1) ? 0 : a->strides[ad];
         p->b_batch_strides[d] = (bd < 0 || bsh == 1) ? 0 : b->strides[bd];
     }
@@ -284,9 +306,15 @@ try_blas_vector_cases(const ln_array *a, const ln_array *b,
             while(left>0){int c=(int)(left<chunkmax?left:chunkmax);sum+=cblas_ddot(c,(const double*)ap,ia,(const double*)bp,ib);ap+=(ln_intp)c*p->as_n;bp+=(ln_intp)c*p->bs_n;left-=c;}
             *(double*)obase=sum;
         } else if(out->descr->type_num==LN_CFLOAT){
-            cblas_cdotu_sub((int)p->n,(const void*)abase,ia,(const void*)bbase,ib,(void*)obase);
+            if(p->conjugate_a)
+                cblas_cdotc_sub((int)p->n,abase,ia,bbase,ib,obase);
+            else
+                cblas_cdotu_sub((int)p->n,abase,ia,bbase,ib,obase);
         } else {
-            cblas_zdotu_sub((int)p->n,(const void*)abase,ia,(const void*)bbase,ib,(void*)obase);
+            if(p->conjugate_a)
+                cblas_zdotc_sub((int)p->n,abase,ia,bbase,ib,obase);
+            else
+                cblas_zdotu_sub((int)p->n,abase,ia,bbase,ib,obase);
         }
         return 1;
     }
@@ -305,6 +333,8 @@ try_blas_vector_cases(const ln_array *a, const ln_array *b,
         return 1;
     }
 
+    /* GEMV cannot conjugate its vector operand. */
+    if(p->conjugate_a && out->descr->kind=='c')return 0;
     if(p->a_vec && !p->b_vec && p->p>1 && p->n>1 && p->p<=(ln_intp)INT_MAX-1){
         int bc=is_blasable2d(p->bs_n,p->bs_p,p->n,p->p,sz);
         int bf=is_blasable2d(p->bs_p,p->bs_n,p->p,p->n,sz);
@@ -331,6 +361,27 @@ advance_batch(int nd, const ln_intp *shape, ln_intp *coord)
     }
 }
 
+static void
+conjugate_scalar(const char *source,char *dest,ln_dtype_num type)
+{
+    if(type==LN_CFLOAT){
+        ln_cfloat z;
+        memcpy(&z,source,sizeof z);
+        z.imag=-z.imag;
+        memcpy(dest,&z,sizeof z);
+    }else if(type==LN_CDOUBLE){
+        ln_cdouble z;
+        memcpy(&z,source,sizeof z);
+        z.imag=-z.imag;
+        memcpy(dest,&z,sizeof z);
+    }else{
+        ln_clongdouble z;
+        memcpy(&z,source,sizeof z);
+        z.imag=-z.imag;
+        memcpy(dest,&z,sizeof z);
+    }
+}
+
 static int
 execute_matmul(const ln_array *a, const ln_array *b, const ln_matmul_plan *p,
                ln_array *out, ln_error *err)
@@ -350,7 +401,10 @@ execute_matmul(const ln_array *a, const ln_array *b, const ln_matmul_plan *p,
     if (p->batch_nd == 0) batches = 1;
     if (ln_array_size(out) == 0) return 0;
 
-    unsigned char av[32], bv[32], prod[32];
+    _Alignas(ln_clongdouble) unsigned char av[32],bv[32],prod[32];
+    int a_aligned = (a->flags&LN_ARRAY_ALIGNED)!=0;
+    int b_aligned = (b->flags&LN_ARRAY_ALIGNED)!=0;
+    int needs_conjugation = p->conjugate_a && dt->kind=='c';
     ln_intp coord[LN_MAXDIMS] = {0};
     ln_intp one[1] = {1}, steps[3] = {0,0,0};
     int out_m_axis = p->batch_nd;
@@ -363,8 +417,9 @@ execute_matmul(const ln_array *a, const ln_array *b, const ln_matmul_plan *p,
             bbase += coord[d] * p->b_batch_strides[d];
             obase += coord[d] * out->strides[d];
         }
-        if (try_blas_vector_cases(a,b,p,abase,bbase,obase,out) ||
-            try_blas_matrixmatrix(a,b,p,abase,bbase,obase,out)) {
+        if (a_aligned && b_aligned &&
+            (try_blas_vector_cases(a,b,p,abase,bbase,obase,out) ||
+             try_blas_matrixmatrix(a,b,p,abase,bbase,obase,out))) {
             advance_batch(p->batch_nd,p->batch_shape,coord);
             continue;
         }
@@ -394,13 +449,17 @@ execute_matmul(const ln_array *a, const ln_array *b, const ln_matmul_plan *p,
                     const char *ap = abase + m * p->as_m + n * p->as_n;
                     const char *bp = bbase + n * p->bs_n + q * p->bs_p;
                     const char *aa = ap, *bb = bp;
-                    if (a->descr->type_num != dt->type_num) {
+                    if (a->descr->type_num != dt->type_num || !a_aligned) {
                         if (ln_cast_strided_numeric(ap,0,a->descr,(char*)av,0,dt,1,err)<0) return -1;
                         aa=(char*)av;
                     }
-                    if (b->descr->type_num != dt->type_num) {
+                    if (b->descr->type_num != dt->type_num || !b_aligned) {
                         if (ln_cast_strided_numeric(bp,0,b->descr,(char*)bv,0,dt,1,err)<0) return -1;
                         bb=(char*)bv;
+                    }
+                    if(needs_conjugation){
+                        conjugate_scalar(aa,(char *)av,dt->type_num);
+                        aa=(char *)av;
                     }
                     char *margs[3]={(char*)aa,(char*)bb,(char*)prod};
                     mul(margs,one,steps,NULL);
@@ -458,34 +517,85 @@ copy_cast(const ln_array *src,ln_array *dst,ln_error *err)
     return 0;
 }
 
-ln_array *
-ln_matmul(const ln_array *a,const ln_array *b,ln_error *err)
+static ln_array *
+product_from_plan(const ln_array *a,const ln_array *b,ln_matmul_plan *p,ln_error *err)
 {
-    ln_matmul_plan p;
-    if(build_plan(a,b,&p,err)<0)return NULL;
     const ln_dtype *dt=ln_promote_dtype(a->descr,b->descr);
-    if(!dt){merr(err,"matmul dtype resolution failed");return NULL;}
-    ln_array *out=ln_array_new(p.out_nd,p.out_nd?p.out_shape:NULL,dt,0,0,err);
+    if(!dt){merr(err,"matrix product dtype resolution failed");return NULL;}
+    ln_array *out=ln_array_new(p->out_nd,p->out_nd?p->out_shape:NULL,dt,0,0,err);
     if(!out)return NULL;
-    set_output_strides(out,&p);
-    if(execute_matmul(a,b,&p,out,err)<0){ln_array_free(out);return NULL;}
+    set_output_strides(out,p);
+    if(execute_matmul(a,b,p,out,err)<0){ln_array_free(out);return NULL;}
     return out;
 }
 
-int
-ln_matmul_into(const ln_array *a,const ln_array *b,ln_array *out,ln_error *err)
+ln_array *
+ln_matmul_ex(const ln_array *a,const ln_array *b,ln_matmul_kind kind,ln_error *err)
 {
-    if(!out){merr(err,"invalid matmul output");return -1;}
     ln_matmul_plan p;
-    if(build_plan(a,b,&p,err)<0)return -1;
+    if(build_plan(a,b,kind,NULL,&p,err)<0)return NULL;
+    return product_from_plan(a,b,&p,err);
+}
+
+int
+ln_matmul_into_ex(const ln_array *a,const ln_array *b,ln_array *out,
+                  ln_matmul_kind kind,ln_error *err)
+{
+    ln_matmul_plan p;
+    if(build_plan(a,b,kind,kind==LN_MATMUL?NULL:out,&p,err)<0)return -1;
     if(!shape_matches(out,p.out_nd,p.out_shape)){
-        merr(err,"non-broadcastable output operand does not match the matmul result shape");return -1;
+        merr(err,"output shape does not match the matrix product result");
+        return -1;
     }
-    /* COPY_IF_OVERLAP semantics: always form the resolved result separately,
-     * then cast/write back into the exact output view. */
-    ln_array *tmp=ln_matmul(a,b,err);
+    if(!(out->flags&LN_ARRAY_WRITEABLE)){
+        merr(err,"output array is not writeable");
+        return -1;
+    }
+    /* Form the resolved result separately before writing an overlapping out. */
+    ln_array *tmp=product_from_plan(a,b,&p,err);
     if(!tmp)return -1;
     int rc=copy_cast(tmp,out,err);
     ln_array_free(tmp);
     return rc;
+}
+
+ln_array *ln_matmul(const ln_array *a,const ln_array *b,ln_error *err)
+{
+    return ln_matmul_ex(a,b,LN_MATMUL,err);
+}
+
+int ln_matmul_into(const ln_array *a,const ln_array *b,ln_array *out,ln_error *err)
+{
+    return ln_matmul_into_ex(a,b,out,LN_MATMUL,err);
+}
+
+static ln_array *
+vdot_operand(const ln_array *a,const ln_dtype *dtype,ln_error *err)
+{
+    ln_array *cast=ln_creation_convert(a,dtype,'K',-1,-1,NULL,err);
+    if(!cast)return NULL;
+    ln_intp size=ln_array_size(cast);
+    ln_array *vector=ln_layout_reshape(cast,1,&size,'C',-1,err);
+    ln_array_free(cast);
+    if(vector && dtype->kind=='m')
+        vector->descr=ln_dtype_by_num(sizeof(long)==8?LN_LONG:LN_LONGLONG);
+    return vector;
+}
+
+ln_array *
+ln_vdot(const ln_array *a,const ln_array *b,ln_error *err)
+{
+    if(!a||!b){merr(err,"vdot requires two arrays");return NULL;}
+    const ln_dtype *dtype=ln_promote_dtype(a->descr,b->descr);
+    if(!dtype){merr(err,"vdot dtype resolution failed");return NULL;}
+    ln_array *av=vdot_operand(a,dtype,err);
+    if(!av)return NULL;
+    ln_array *bv=vdot_operand(b,dtype,err);
+    if(!bv){ln_array_free(av);return NULL;}
+    ln_array *result=ln_matmul_ex(av,bv,LN_VECDOT,err);
+    ln_array_free(av);
+    ln_array_free(bv);
+    /* NumPy vdot dispatches timedelta to the signed 64-bit tick dot loop. */
+    if(result && dtype->kind=='m')result->descr=dtype;
+    return result;
 }

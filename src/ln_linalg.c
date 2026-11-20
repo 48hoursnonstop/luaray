@@ -1957,39 +1957,18 @@ ln_linalg_cross(const ln_array *a,int axis_a,const ln_array *b,int axis_b,
 {return ln_vector_cross(a,axis_a,b,axis_b,axis_out,err);}
 
 
-static int
-linalg_conjugate_inplace(ln_array *a, ln_error *err)
-{
-    if(!a||a->descr->kind!='c')return 0;
-    ln_intp n=ln_array_size(a);if(n<0){seterr(err,"array is too big");return -1;}
-    if(!(a->flags&LN_ARRAY_C_CONTIGUOUS)){seterr(err,"internal conjugate buffer is not contiguous");return -1;}
-    if(a->descr->type_num==LN_CFLOAT){ln_cfloat*p=(ln_cfloat*)a->data;for(ln_intp i=0;i<n;i++)p[i].imag=-p[i].imag;return 0;}
-    if(a->descr->type_num==LN_CDOUBLE){ln_cdouble*p=(ln_cdouble*)a->data;for(ln_intp i=0;i<n;i++)p[i].imag=-p[i].imag;return 0;}
-    if(a->descr->type_num==LN_CLONGDOUBLE){ln_clongdouble*p=(ln_clongdouble*)a->data;for(ln_intp i=0;i<n;i++)p[i].imag=-p[i].imag;return 0;}
-    seterr(err,"unsupported complex dtype");return -1;
-}
-
 ln_array *
-ln_linalg_vecdot(const ln_array *a, int axis_a, const ln_array *b, int axis_b,
+ln_linalg_vecdot(const ln_array *a,int axis_a,const ln_array *b,int axis_b,
                  ln_error *err)
 {
-    if(!a||!b||a->nd<1||b->nd<1){seterr(err,"vecdot inputs must be at least one-dimensional");return NULL;}
-    ln_array *av=linalg_move_axis_last_view(a,axis_a,err);if(!av)return NULL;
-    ln_array *bv=linalg_move_axis_last_view(b,axis_b,err);if(!bv){ln_array_free(av);return NULL;}
-    if(av->dimensions[av->nd-1]!=bv->dimensions[bv->nd-1]){seterr(err,"vecdot core dimensions do not match");ln_array_free(av);ln_array_free(bv);return NULL;}
-    ln_array *ac=ln_array_copy_c(av,err);if(!ac){ln_array_free(av);ln_array_free(bv);return NULL;}
-    if(linalg_conjugate_inplace(ac,err)<0){ln_array_free(av);ln_array_free(bv);ln_array_free(ac);return NULL;}
-    int nda=ac->nd+1,ndb=bv->nd+1;ln_intp ad[LN_MAXDIMS],bd[LN_MAXDIMS];
-    int ba=ac->nd-1,bb=bv->nd-1;
-    for(int d=0;d<ba;d++) ad[d]=ac->dimensions[d];
-    ad[ba]=1;ad[ba+1]=ac->dimensions[ac->nd-1];
-    for(int d=0;d<bb;d++) bd[d]=bv->dimensions[d];
-    bd[bb]=bv->dimensions[bv->nd-1];bd[bb+1]=1;
-    ln_array *am=ln_array_reshape_c(ac,nda,ad,err);ln_array_free(ac);ln_array_free(av);if(!am){ln_array_free(bv);return NULL;}
-    ln_array *bm=ln_array_reshape_c(bv,ndb,bd,err);ln_array_free(bv);if(!bm){ln_array_free(am);return NULL;}
-    ln_array *mm=ln_matmul(am,bm,err);ln_array_free(am);ln_array_free(bm);if(!mm)return NULL;
-    int od=mm->nd-2;ln_intp odims[LN_MAXDIMS];for(int d=0;d<od;d++)odims[d]=mm->dimensions[d];
-    ln_array *out=ln_array_reshape_c(mm,od,odims,err);ln_array_free(mm);return out;
+    ln_array *av=linalg_move_axis_last_view(a,axis_a,err);
+    if(!av)return NULL;
+    ln_array *bv=linalg_move_axis_last_view(b,axis_b,err);
+    if(!bv){ln_array_free(av);return NULL;}
+    ln_array *result=ln_matmul_ex(av,bv,LN_VECDOT,err);
+    ln_array_free(av);
+    ln_array_free(bv);
+    return result;
 }
 
 ln_array *

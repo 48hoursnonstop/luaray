@@ -2581,7 +2581,7 @@ resolve_accumulate_dtype(const ln_array *a, const ln_dtype *requested,
 
 static ln_array *
 accumulate_general_new(const ln_array *a, int axis, const ln_dtype *requested,
-                       const ln_dtype *out_dtype_for_resolution,
+                       const ln_array *out,
                        ln_reduce_op op, ln_error *err)
 {
     if (!a || a->nd == 0) {
@@ -2598,7 +2598,7 @@ accumulate_general_new(const ln_array *a, int axis, const ln_dtype *requested,
     }
     if(reduction_dtype_details(requested)){seterr(err,"accumulate/reduceat dtype selects a class, not metadata");return NULL;}
     const ln_dtype *dt = resolve_accumulate_dtype(a, requested,
-                                                   out_dtype_for_resolution,op);
+                                                   out ? out->descr : NULL,op);
     if (!dt) {
         seterr(err, "accumulate dtype resolution failed");
         return NULL;
@@ -2609,6 +2609,13 @@ accumulate_general_new(const ln_array *a, int axis, const ln_dtype *requested,
     if (!work) return NULL;
     uint8_t no_reduce[LN_MAXDIMS] = {0};
     reduction_keeporder_strides(work, a, no_reduce, 0);
+    /* The upstream READWRITE accumulation iterator casts an existing text
+     * destination before writing. Reuse the private result for that cast. */
+    if (out && (out->descr->kind=='S' || out->descr->kind=='U') &&
+            copy_cast_same_shape_core(out,work,err)<0) {
+        ln_array_free(work);
+        return NULL;
+    }
 
     ln_intp axis_len = a->dimensions[axis];
     if (axis_len == 0 || ln_array_size(work) == 0) return work;
@@ -2702,7 +2709,7 @@ ln_accumulate_into_ex(const ln_array *a, int axis, const ln_dtype *dtype,
         seterr(err, "output array is not writeable");
         return -1;
     }
-    ln_array *tmp = accumulate_general_new(a, axis, dtype, out->descr, op, err);
+    ln_array *tmp = accumulate_general_new(a, axis, dtype, out, op, err);
     if (!tmp) return -1;
     int rc = copy_cast_same_shape_core(tmp, out, err);
     ln_array_free(tmp);

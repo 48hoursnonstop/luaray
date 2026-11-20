@@ -59,7 +59,7 @@ options, copying, and memory ownership.
 
 ## Compatibility
 
-**Current release: [0.165.0-dev](https://github.com/48hoursnonstop/luaray/releases/tag/v0.165.0-dev).**
+**Current release: [0.166.0-dev](https://github.com/48hoursnonstop/luaray/releases/tag/v0.166.0-dev).**
 LuaRay is under development. NumPy 2.5.5 is the primary behavioral reference;
 compatibility varies by operation, dtype, and option.
 

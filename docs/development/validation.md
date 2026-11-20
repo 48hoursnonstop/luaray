@@ -44,13 +44,13 @@ reference archive on the [releases page](https://github.com/48hoursnonstop/luara
 
 `compatibility/current.json` records the release-specific behavioral evidence.
 `compatibility/api_inventory.json` records runtime availability. The latter
-reports 435 of 675 scoped names as available and classifies all available APIs
+reports 437 of 675 scoped names as available and classifies all available APIs
 as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.165.0-dev** passed **79 native suites**, **137 Lua suites**, seven public
-examples and 466 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
+LuaRay **0.166.0-dev** passed **79 native suites**, **138 Lua suites**, seven public
+examples and 470 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
 passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
 metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
@@ -152,7 +152,9 @@ Text ingestion passed **8,848 cases / 50,732 checks** with NumPy 2.5.5. This inc
 
 **2,826 cases / 34,186 checks** passed with NumPy 2.5.5. The suite compares binary bytes, dtype and shape, counts, signed offsets, final stream position, and C-order writes from transposed, reversed and read-only arrays. Binary I/O accepts native descriptors with nonzero itemsize. Text streams and additional file formats have separate compatibility scopes.
 
-The ASan/UBSan audit covered the maintained suites and 75 reference corpora with 89 instrumented objects. A focused rebuild added `ln_raw_file`, `lua_raw_file`, bringing the checked total to 91. The maintained suites and 1 affected reference files passed again. The release JSON lists both passes and their executable-source fingerprint. Other dependencies were partially instrumented. Leak detection was disabled.
+**6,492 cases / 81,720 checks** passed with NumPy 2.5.5. The checks compare accumulator dtype, shape, strides, identity cells, scalar and empty cases, and the full backing state of strided and overlapping outputs. The native accumulation loop validates the conversion from existing text at an output before it writes replacement values.
+
+The ASan/UBSan audit covered the maintained suites and 76 reference corpora with 89 instrumented objects. A focused rebuild added `ln_raw_file`, `lua_raw_file`, bringing the checked total to 91. The maintained suites and 2 affected reference files passed again. The release JSON lists both passes and their executable-source fingerprint. Other dependencies were partially instrumented. Leak detection was disabled.
 
 The [corrected repeat audit for 0.153](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) is preserved as a release asset.
 

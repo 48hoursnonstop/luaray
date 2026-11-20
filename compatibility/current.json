@@ -1,5 +1,5 @@
 {
-  "version": "0.165.0-dev",
+  "version": "0.166.0-dev",
   "upstream_source": "NumPy 2.5.5",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -8,8 +8,8 @@
   "status": "implemented_partial",
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 435,
-    "missing_bindings": 239,
+    "available_callables": 437,
+    "missing_bindings": 237,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -187,15 +187,15 @@
     "Ordinary scalar to clongdouble packing follows the source double-component conversion. This is not an assertion of full scalar/array casting fidelity; source Python class protocols, warnings, every ABI and every operation remain uncertified."
   ],
   "apis": {
-    "numpy.fromfile": "implemented_partial",
-    "numpy.ndarray.tofile": "implemented_partial"
+    "numpy.cumulative_sum": "implemented_partial",
+    "numpy.cumulative_prod": "implemented_partial"
   },
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "d0f194c8b82b25693bca95cc4b48b0ca9a04d5180f505f2c1dccb70d967b6583",
-      "files": 422
+      "sha256": "1307efc6c9a7a2a0c18cc8850cabff4331e0c2255cd9ad4d20e81f2fed373314",
+      "files": 424
     },
-    "version": "0.165.0-dev",
+    "version": "0.166.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -393,7 +393,7 @@
     "all_current_matrix_oracles": "passed",
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.165.0-dev-sanitizers.log",
+    "log": "artifacts/matrix-0.166.0-dev-sanitizers.log",
     "audit_phases": {
       "cumulative_corpus_original_objects": 89,
       "objects_after_targeted_rebuild": 91,
@@ -403,21 +403,21 @@
       ],
       "focused_maintained_suites": "passed",
       "focused_reference_files": [
-        "matrix165-rawfile.lua"
+        "matrix165-rawfile.lua",
+        "matrix166-cumulative.lua"
       ],
-      "focused_log": "artifacts/matrix-0.165.0-dev-sanitizers-focused.log"
+      "focused_log": "artifacts/matrix-0.166.0-dev-sanitizers-focused.log"
     }
   },
   "evidence": [
-    "src/ln_raw_file.c",
-    "src/lua_raw_file.c",
-    "tests/native/test_raw_file_core.c",
-    "tests/lua/raw_file_regression.lua"
+    "lua/luaray/cumulative.lua",
+    "src/ln_core.c",
+    "tests/lua/array_api_cumulative_regression.lua"
   ],
   "new_oracle": "NumPy 2.5.5",
   "new_reference_cases": {
-    "rawfile": 2826
+    "cumulative": 6492
   },
-  "new_reference_checks": 34186,
-  "new_check_semantics": "The suite compares binary bytes, dtype and shape, counts, signed offsets, final stream position, and C-order writes from transposed, reversed and read-only arrays. Binary I/O accepts native descriptors with nonzero itemsize. Text streams and additional file formats have separate compatibility scopes."
+  "new_reference_checks": 81720,
+  "new_check_semantics": "The checks compare accumulator dtype, shape, strides, identity cells, scalar and empty cases, and the full backing state of strided and overlapping outputs. The native accumulation loop validates the conversion from existing text at an output before it writes replacement values."
 }

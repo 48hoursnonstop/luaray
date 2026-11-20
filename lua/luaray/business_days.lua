@@ -1,5 +1,7 @@
 -- NumPy 2.5.5 datetime_busday.c and datetime_busdaycal.c.
 return function(lr)
+  local count_days=lr._busday_count
+  lr._busday_count=nil
   local calendars=setmetatable({},{__mode='k'})
   local names={Mon=1,Tue=2,Wed=3,Thu=4,Fri=5,Sat=6,Sun=7}
 
@@ -88,34 +90,56 @@ return function(lr)
     return calendar
   end
 
+  local function resolve_calendar(config)
+    local calendar=config.calendar
+    if calendar==nil then return calendar_data(config) end
+    local state=calendars[calendar]
+    if not state then error('calendar must be a business day calendar',3) end
+    if config.weekmask~=nil or config.holidays~=nil then
+      error('calendar already defines the weekmask and holidays',3)
+    end
+    return state
+  end
+
+  local function assign_output(out,result)
+    if type(out)~='userdata' or out.ndim==nil then error('out must be an ndarray',3) end
+    lr.copyto(out,result,'safe')
+    return out
+  end
+
   function lr.is_busday(input,options)
     local config=settings(options,true)
-    local calendar=config.calendar
-    local state
-    if calendar~=nil then
-      state=calendars[calendar]
-      if not state then error('calendar must be a business day calendar',2) end
-      if config.weekmask~=nil or config.holidays~=nil then
-        error('calendar already defines the weekmask and holidays',2)
-      end
-    else
-      state=calendar_data(config)
-    end
+    local state=resolve_calendar(config)
     local dates=days(input,'safe')
     local result=weekdays(dates,state.weekmask)
     if state.holidays.size>0 then
       local is_holiday=lr.isin(dates,state.holidays)
       result=lr.asanyarray(lr.logical_and(result,lr.logical_not(is_holiday)))
     end
-    if config.out~=nil then
-      local out=config.out
-      if type(out)~='userdata' or out.ndim==nil then error('out must be an ndarray',2) end
-      lr.copyto(out,result,'safe')
-      return out
-    end
+    if config.out~=nil then return assign_output(config.out,result) end
     if result.ndim==0 then return result:item() end
     local ordered=lr.empty_like(dates,{dtype='bool',order='K'})
     lr.copyto(ordered,result,'no')
     return ordered
+  end
+
+  local function count_operand(input)
+    if type(input)=='string' then
+      input=lr.array({input},'datetime64'):reshape({})
+    elseif type(input)~='userdata' then
+      input=lr.array(input,'datetime64')
+    elseif input.ndim==nil then
+      input=lr.asanyarray(input)
+    end
+    return days(input,'safe')
+  end
+
+  function lr.busday_count(first,last,options)
+    local config=settings(options,true)
+    local state=resolve_calendar(config)
+    local count=count_days(count_operand(first),count_operand(last),state.weekmask,state.holidays)
+    if config.out~=nil then return assign_output(config.out,count) end
+    if count.ndim==0 then return count:item() end
+    return count
   end
 end

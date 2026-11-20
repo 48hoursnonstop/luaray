@@ -14,6 +14,10 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.184.0-dev
+
+Adds nested block assembly and zero-boundary trimming with one-based axes and bilingual guides.
+
 ## 0.183.0-dev
 
 Adds direct native Einstein summation with strided operands, ellipses, repeated labels, typed contractions and writable output arrays. Adds bilingual guides.

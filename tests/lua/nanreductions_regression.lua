@@ -1,5 +1,5 @@
 local np=require('luaray_core')
-assert(np._version=='0.183.0-dev')
+assert(np._version=='0.184.0-dev')
 local nan=0/0
 local function near(a,b,tol)
  tol=tol or 1e-8

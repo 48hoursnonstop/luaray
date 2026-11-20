@@ -36,6 +36,7 @@ const pages = [
     ['Zero-width string sums', 'Sumas de cadenas de ancho cero', 'zero_string_sum'],
     ['Choosing values', 'Selección con choose', 'choose'],
     ['Sorting by multiple keys', 'Ordenar por varias claves', 'lexsort'],
+    ['Unique values and slices', 'Valores y cortes únicos', 'unique'],
     ['Conditions and extraction', 'Condiciones y extracción', 'condition_selection'],
     ['Selection and broadcasting', 'Selección y broadcasting', 'selection'],
     ['Typed views and bytes', 'Vistas tipadas y bytes', 'byte_views'],

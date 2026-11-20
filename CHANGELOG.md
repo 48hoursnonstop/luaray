@@ -14,6 +14,10 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.183.0-dev
+
+Adds direct native Einstein summation with strided operands, ellipses, repeated labels, typed contractions and writable output arrays. Adds bilingual guides.
+
 ## 0.182.0-dev
 
 Adds per-axis array padding with constant, edge, wrap, reflection, ramp, statistical, empty and callback modes. Adds English and Spanish guides.

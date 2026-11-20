@@ -14,6 +14,10 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.190.0-dev
+
+Adds lazy broadcast iteration and indexed enumeration with one-based coordinate tables and bilingual examples.
+
 ## 0.189.0-dev
 
 Adds LAPACK-backed polynomial least-squares fitting with weights, rank diagnostics and coefficient covariance. Adds bilingual guides.

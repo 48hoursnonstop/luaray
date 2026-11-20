@@ -14,6 +14,10 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.192.0-dev
+
+Adds native business-day interval counting with broadcast date ranges, sorted holidays and overflow-checked spans. Adds bilingual guides.
+
 ## 0.191.0-dev
 
 Adds immutable business-day calendars and vectorized day queries with normalized holidays, weekmasks and bilingual guides.

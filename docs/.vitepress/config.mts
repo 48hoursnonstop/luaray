@@ -93,6 +93,7 @@ const pages = [
     ['Fill a diagonal', 'Rellenar una diagonal', 'fill_diagonal'],
     ['Kronecker product', 'Producto de Kronecker', 'kron'],
     ['Matrix and vector products', 'Productos de matrices y vectores', 'vector_products'],
+    ['Einstein summation', 'Sumación de Einstein', 'einsum'],
     ['Tensor contractions', 'Contracciones tensoriales', 'tensordot'],
     ['Scale durations', 'Escalar duraciones', 'temporal_scaling'],
   ]],

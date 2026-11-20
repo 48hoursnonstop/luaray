@@ -651,6 +651,51 @@ LN_HALF_MATH(arccosh,acoshf)
 LN_HALF_MATH(arctanh,atanhf)
 #undef LN_HALF_MATH
 
+
+/* Source: NumPy 2.5.5 npy_math_internal.h.src real binary math. */
+#define LN_REAL_SPECIAL(TYPE, SUFFIX, LN2, LOG2E) \
+static TYPE ln_heaviside_##SUFFIX(TYPE x,TYPE at_zero) \
+{ \
+    return isnan(x) ? (TYPE)NAN : x==0 ? at_zero : x<0 ? (TYPE)0 : (TYPE)1; \
+} \
+static TYPE ln_logaddexp_##SUFFIX(TYPE x,TYPE y) \
+{ \
+    if(x==y)return x+(LN2); \
+    TYPE delta=x-y; \
+    if(delta>0)return x+log1p##SUFFIX(exp##SUFFIX(-delta)); \
+    if(delta<=0)return y+log1p##SUFFIX(exp##SUFFIX(delta)); \
+    return delta; \
+} \
+static TYPE ln_logaddexp2_##SUFFIX(TYPE x,TYPE y) \
+{ \
+    if(x==y)return x+(TYPE)1; \
+    TYPE delta=x-y; \
+    if(delta>0)return x+(LOG2E)*log1p##SUFFIX(exp2##SUFFIX(-delta)); \
+    if(delta<=0)return y+(LOG2E)*log1p##SUFFIX(exp2##SUFFIX(delta)); \
+    return delta; \
+}
+LN_REAL_SPECIAL(float,f,0.693147180559945309417232121458F,1.44269504088896340735992468100F)
+LN_REAL_SPECIAL(double,,0.693147180559945309417232121458,1.44269504088896340735992468100)
+LN_REAL_SPECIAL(long double,l,0.693147180559945309417232121458L,1.44269504088896340735992468100L)
+#undef LN_REAL_SPECIAL
+
+#define LN_REAL_SPECIAL_LOOP(NAME,TYPE,OP,FN) \
+static void ln_##NAME##_##OP(char **args,const ln_intp *dimensions,const ln_intp *steps,void *f) \
+{ \
+    (void)f; \
+    LN_BINARY_LOOP_FAST(TYPE,TYPE,*out=FN(in1,in2)); \
+}
+#define LN_REAL_SPECIAL_LOOPS(NAME,TYPE,SUFFIX) \
+    LN_REAL_SPECIAL_LOOP(NAME,TYPE,nextafter,nextafter##SUFFIX) \
+    LN_REAL_SPECIAL_LOOP(NAME,TYPE,heaviside,ln_heaviside_##SUFFIX) \
+    LN_REAL_SPECIAL_LOOP(NAME,TYPE,logaddexp,ln_logaddexp_##SUFFIX) \
+    LN_REAL_SPECIAL_LOOP(NAME,TYPE,logaddexp2,ln_logaddexp2_##SUFFIX)
+LN_REAL_SPECIAL_LOOPS(FLOAT,float,f)
+LN_REAL_SPECIAL_LOOPS(DOUBLE,double,)
+LN_REAL_SPECIAL_LOOPS(LONGDOUBLE,long double,l)
+#undef LN_REAL_SPECIAL_LOOPS
+#undef LN_REAL_SPECIAL_LOOP
+
 #define LN_HALF_BINARY_MATH(NAME, FN) \
 static void ln_HALF_##NAME(char **args,const ln_intp*d,const ln_intp*s,void*f) { \
     (void)f; char *p0=args[0],*p1=args[1],*po=args[2]; \
@@ -661,6 +706,20 @@ static void ln_HALF_##NAME(char **args,const ln_intp*d,const ln_intp*s,void*f) {
 }
 LN_HALF_BINARY_MATH(arctan2,atan2f)
 LN_HALF_BINARY_MATH(hypot,hypotf)
+LN_HALF_BINARY_MATH(heaviside,ln_heaviside_f)
+LN_HALF_BINARY_MATH(logaddexp,ln_logaddexp_f)
+LN_HALF_BINARY_MATH(logaddexp2,ln_logaddexp2_f)
+
+static void ln_HALF_nextafter(char **args,const ln_intp *dims,const ln_intp *strides,void *data)
+{
+    (void)data;
+    for(ln_intp i=0;i<dims[0];++i){
+        ln_half x=ln_half_load(args[0]+i*strides[0]);
+        ln_half y=ln_half_load(args[1]+i*strides[1]);
+        ln_half_store(args[2]+i*strides[2],ln_half_nextafter(x,y));
+    }
+}
+
 #undef LN_HALF_BINARY_MATH
 #undef LN_HALF_BINARY_BODY
 #undef DEFINE_FP_MATH_UNARY
@@ -1330,6 +1389,10 @@ ln_get_binary_loop(ln_binary_op op, ln_dtype_num type_num)
         case LN_OP_ARCTANH:
         case LN_OP_ARCTAN2:
         case LN_OP_HYPOT:
+        case LN_OP_NEXTAFTER:
+        case LN_OP_HEAVISIDE:
+        case LN_OP_LOGADDEXP:
+        case LN_OP_LOGADDEXP2:
             break;
         default: return NULL;
     }
@@ -1393,6 +1456,20 @@ ln_get_binary_loop(ln_binary_op op, ln_dtype_num type_num)
                 case LN_SHORT:return ln_SHORT_bitwise_xor; case LN_USHORT:return ln_USHORT_bitwise_xor; case LN_INT:return ln_INT_bitwise_xor;
                 case LN_UINT:return ln_UINT_bitwise_xor; case LN_LONG:return ln_LONG_bitwise_xor; case LN_ULONG:return ln_ULONG_bitwise_xor;
                 case LN_LONGLONG:return ln_LONGLONG_bitwise_xor; case LN_ULONGLONG:return ln_ULONGLONG_bitwise_xor; default:return NULL;}
+#define LN_SPECIAL_CASE(OP,NAME) \
+        case LN_OP_##OP: \
+            switch(type_num){ \
+                case LN_HALF:return ln_HALF_##NAME; \
+                case LN_FLOAT:return ln_FLOAT_##NAME; \
+                case LN_DOUBLE:return ln_DOUBLE_##NAME; \
+                case LN_LONGDOUBLE:return ln_LONGDOUBLE_##NAME; \
+                default:return NULL; \
+            }
+        LN_SPECIAL_CASE(NEXTAFTER,nextafter)
+        LN_SPECIAL_CASE(HEAVISIDE,heaviside)
+        LN_SPECIAL_CASE(LOGADDEXP,logaddexp)
+        LN_SPECIAL_CASE(LOGADDEXP2,logaddexp2)
+#undef LN_SPECIAL_CASE
         case LN_OP_COPYSIGN:
             switch(type_num){case LN_HALF:return ln_HALF_copysign;case LN_FLOAT:return ln_FLOAT_copysign;case LN_DOUBLE:return ln_DOUBLE_copysign;case LN_LONGDOUBLE:return ln_LONGDOUBLE_copysign;default:return NULL;}
         case LN_OP_SQRT:

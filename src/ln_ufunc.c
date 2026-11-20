@@ -160,7 +160,9 @@ legacy_binary_op_for_name(const char *name, ln_binary_op *op)
          * integer promotion policy; their execution uses separate methods. */
         {"left_shift",LN_OP_BITWISE_AND},{"right_shift",LN_OP_BITWISE_AND},
         {"gcd",LN_OP_BITWISE_AND},{"lcm",LN_OP_BITWISE_AND},
-        {"fmax",LN_OP_FMAX},{"fmin",LN_OP_FMIN},{"copysign",LN_OP_COPYSIGN},{"arctan2",LN_OP_ARCTAN2},{"hypot",LN_OP_HYPOT}
+        {"fmax",LN_OP_FMAX},{"fmin",LN_OP_FMIN},{"copysign",LN_OP_COPYSIGN},{"arctan2",LN_OP_ARCTAN2},{"hypot",LN_OP_HYPOT},
+        {"nextafter",LN_OP_NEXTAFTER},{"heaviside",LN_OP_HEAVISIDE},
+        {"logaddexp",LN_OP_LOGADDEXP},{"logaddexp2",LN_OP_LOGADDEXP2}
     };
     for(size_t i=0;i<sizeof(map)/sizeof(map[0]);++i){
         if(strcmp(name,map[i].name)==0){*op=map[i].op;return 1;}
@@ -570,7 +572,7 @@ static ln_ufunc_loop unary_loops[9][22];
 static ln_legacy_unary_adapter_data unary_data[9][22];
 static ln_ufunc_loop math_unary_loops[21][7];
 static ln_legacy_unary_adapter_data math_unary_data[21][7];
-static ln_ufunc_loop migrated_binary_loops[16][24];
+static ln_ufunc_loop migrated_binary_loops[20][24];
 static ln_ufunc_loop isnat_loops[2];
 static ln_binary_op time_cmp_ops[6];
 static ln_binary_op time_minmax_ops[4]={LN_OP_MAXIMUM,LN_OP_MINIMUM,LN_OP_FMAX,LN_OP_FMIN};
@@ -658,11 +660,13 @@ init_registry(void)
         append_ufunc(cnames[i],2,1,comparison_loops[i],n,resolve_comparison);
     }
 
-    const char *mnames[16]={"logical_and","logical_or","logical_xor","maximum","minimum",
-        "floor_divide","remainder","power","bitwise_and","bitwise_or","bitwise_xor","fmax","fmin","copysign","arctan2","hypot"};
-    const ln_binary_op mops[16]={LN_OP_LOGICAL_AND,LN_OP_LOGICAL_OR,LN_OP_LOGICAL_XOR,LN_OP_MAXIMUM,LN_OP_MINIMUM,
-        LN_OP_FLOOR_DIVIDE,LN_OP_REMAINDER,LN_OP_POWER,LN_OP_BITWISE_AND,LN_OP_BITWISE_OR,LN_OP_BITWISE_XOR,LN_OP_FMAX,LN_OP_FMIN,LN_OP_COPYSIGN,LN_OP_ARCTAN2,LN_OP_HYPOT};
-    for(int i=0;i<16;++i){
+    const char *mnames[20]={"logical_and","logical_or","logical_xor","maximum","minimum",
+        "floor_divide","remainder","power","bitwise_and","bitwise_or","bitwise_xor","fmax","fmin","copysign","arctan2","hypot",
+        "nextafter","heaviside","logaddexp","logaddexp2"};
+    const ln_binary_op mops[20]={LN_OP_LOGICAL_AND,LN_OP_LOGICAL_OR,LN_OP_LOGICAL_XOR,LN_OP_MAXIMUM,LN_OP_MINIMUM,
+        LN_OP_FLOOR_DIVIDE,LN_OP_REMAINDER,LN_OP_POWER,LN_OP_BITWISE_AND,LN_OP_BITWISE_OR,LN_OP_BITWISE_XOR,LN_OP_FMAX,LN_OP_FMIN,LN_OP_COPYSIGN,LN_OP_ARCTAN2,LN_OP_HYPOT,
+        LN_OP_NEXTAFTER,LN_OP_HEAVISIDE,LN_OP_LOGADDEXP,LN_OP_LOGADDEXP2};
+    for(size_t i=0;i<sizeof mops/sizeof *mops;++i){
         int out_bool=(mops[i]==LN_OP_LOGICAL_AND||mops[i]==LN_OP_LOGICAL_OR||mops[i]==LN_OP_LOGICAL_XOR);
         size_t n=fill_binary_loops(migrated_binary_loops[i],mops[i],out_bool);
         if(mops[i]==LN_OP_MAXIMUM||mops[i]==LN_OP_MINIMUM||mops[i]==LN_OP_FMAX||mops[i]==LN_OP_FMIN){

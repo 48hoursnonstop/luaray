@@ -24,6 +24,8 @@ int ln_half_le(ln_half a, ln_half b);
 int ln_half_gt(ln_half a, ln_half b);
 int ln_half_ge(ln_half a, ln_half b);
 ln_half ln_half_copysign(ln_half x, ln_half y);
+ln_half ln_half_spacing(ln_half x);
+ln_half ln_half_nextafter(ln_half x, ln_half y);
 
 #define LN_HALF_ZERO 0x0000u
 #define LN_HALF_NZERO 0x8000u

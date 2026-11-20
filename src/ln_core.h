@@ -82,7 +82,11 @@ typedef enum ln_binary_op {
     LN_OP_ARCCOSH = 52,
     LN_OP_ARCTANH = 53,
     LN_OP_ARCTAN2 = 54,
-    LN_OP_HYPOT = 55
+    LN_OP_HYPOT = 55,
+    LN_OP_NEXTAFTER = 56,
+    LN_OP_HEAVISIDE = 57,
+    LN_OP_LOGADDEXP = 58,
+    LN_OP_LOGADDEXP2 = 59
 } ln_binary_op;
 
 typedef enum ln_reduce_op {

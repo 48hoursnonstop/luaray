@@ -1,0 +1,26 @@
+local lr=require('luaray')
+local function half_bits(a)
+  return (string.unpack('<I2',a:tobytes()))
+end
+local half_zero=lr.array({-0.0},'float16')
+assert(half_bits(lr.spacing(half_zero))==1)
+assert(half_bits(lr.nextafter(half_zero,-1.0))==0x8001)
+assert(half_bits(lr.nextafter(lr.array({0.0},'float16'),-0.0))==0x8000)
+assert(lr.spacing(lr.array({-1},'float16'))[1]==2^-11)
+assert(lr.spacing(lr.array({-1},'float32'))[1]==-2^-23)
+
+local x=lr.array({-math.huge,-1,-0.,0.,1,math.huge,0/0})
+local h=lr.heaviside(x,0.25)
+for pos,result in ipairs({0,0,0.25,0.25,1,1}) do assert(h[pos]==result) end
+assert(h[7]~=h[7])
+assert(lr.logaddexp({1000},-1000)[1]==1000)
+assert(lr.logaddexp2({100},100)[1]==101)
+assert(lr.logaddexp({-math.huge},-math.huge)[1]==-math.huge)
+
+local out=lr.full({2},-99,'float32')
+local r=lr.nextafter(lr.array({0.,1.},'float32'),2.0,{out=out,where=lr.array({true,false})})
+assert(rawequal(r,out) and r[1]==2^-149 and r[2]==-99)
+out:setflags(false)
+assert(not pcall(lr.heaviside,x,0.5,{out=out}))
+assert(not pcall(lr.spacing,lr.array({lr.complex(1,2)})))
+print('Floating functions regression passed')

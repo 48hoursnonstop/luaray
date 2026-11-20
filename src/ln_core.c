@@ -1329,12 +1329,20 @@ resolve_float_only_pair(const ln_dtype *a, const ln_dtype *b, ln_error *err)
     return NULL;
 }
 
+static int
+is_float_only_binary_op(ln_binary_op op)
+{
+    return op==LN_OP_COPYSIGN || op==LN_OP_ARCTAN2 || op==LN_OP_HYPOT ||
+           op==LN_OP_NEXTAFTER || op==LN_OP_HEAVISIDE ||
+           op==LN_OP_LOGADDEXP || op==LN_OP_LOGADDEXP2;
+}
+
 const ln_dtype *
 ln_resolve_binary_dtype(const ln_dtype *a, const ln_dtype *b,
                      ln_binary_op op, ln_error *err)
 {
     const ln_dtype *dt;
-    if (op == LN_OP_COPYSIGN || op == LN_OP_ARCTAN2 || op == LN_OP_HYPOT) {
+    if (is_float_only_binary_op(op)) {
         return resolve_float_only_pair(a,b,err);
     }
     if (op == LN_OP_TRUE_DIVIDE &&
@@ -1427,7 +1435,7 @@ ln_resolve_weak_scalar_dtype(const ln_array *a, int scalar_is_integer,
                           int64_t vi, ln_binary_op op, ln_error *err)
 {
     const ln_dtype *dt = NULL;
-    if (op == LN_OP_COPYSIGN || op == LN_OP_ARCTAN2 || op == LN_OP_HYPOT) {
+    if (is_float_only_binary_op(op)) {
         if (a->descr->kind == 'c') { seterr(err,"float-only ufunc is not supported for complex dtypes"); return NULL; }
         if (a->descr->kind == 'f') return a->descr;
         if (!scalar_is_integer) return ln_dtype_by_num(LN_DOUBLE);
@@ -1588,7 +1596,7 @@ const ln_dtype *
 ln_resolve_weak_bool_dtype(const ln_array *a, ln_binary_op op, ln_error *err)
 {
     const ln_dtype *dt;
-    if (op == LN_OP_COPYSIGN || op == LN_OP_ARCTAN2 || op == LN_OP_HYPOT) {
+    if (is_float_only_binary_op(op)) {
         if (a->descr->kind == 'c') { seterr(err,"float-only ufunc is not supported for complex dtypes"); return NULL; }
         if (a->descr->kind == 'f') dt = a->descr;
         else if (a->descr->type_num == LN_BOOL || a->descr->elsize <= 1) dt = ln_dtype_by_num(LN_HALF);

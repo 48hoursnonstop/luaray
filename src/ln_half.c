@@ -107,3 +107,26 @@ int ln_half_le(ln_half a,ln_half b){return !(ln_half_isnan(a)||ln_half_isnan(b))
 int ln_half_gt(ln_half a,ln_half b){return ln_half_lt(b,a);}
 int ln_half_ge(ln_half a,ln_half b){return ln_half_le(b,a);}
 ln_half ln_half_copysign(ln_half x,ln_half y){return (ln_half)((x&0x7fffu)|(y&0x8000u));}
+
+/* NumPy 2.5.5 halffloat.cpp implements spacing toward +infinity for half,
+ * including the smaller gap at negative powers of two. */
+ln_half ln_half_spacing(ln_half x)
+{
+    unsigned exponent=x&0x7c00u;
+    if(exponent==0x7c00u)return LN_HALF_NAN;
+    if(x==0x7bffu)return LN_HALF_PINF;
+    unsigned bias=(x&0x83ffu)==0x8000u ? 11 : 10;
+    unsigned binade=exponent>>10;
+    if(binade>bias)return (ln_half)((binade-bias)<<10);
+    if(binade>bias-9)return (ln_half)(1u<<(binade-(bias-9)));
+    return 1;
+}
+
+ln_half ln_half_nextafter(ln_half x, ln_half y)
+{
+    if(ln_half_isnan(x)||ln_half_isnan(y))return LN_HALF_NAN;
+    if(ln_half_eq(x,y))return y;
+    if(ln_half_iszero(x))return (ln_half)((y&0x8000u)|1u);
+    int away_from_zero=ln_half_lt(x,y)!=ln_half_signbit(x);
+    return (ln_half)(away_from_zero ? x+1u : x-1u);
+}

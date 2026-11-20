@@ -1,6 +1,7 @@
 #include "ln_unary_math.h"
 #include "ln_half.h"
 #include "ln_complex.h"
+#include <float.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -10,7 +11,7 @@
  * loops.c.src, loops_autovec.dispatch.c.src and npy_math_internal.h.src.
  * NumPy's copyright and BSD license are reproduced in THIRD_PARTY_NUMPY_LICENSE.txt. */
 enum operation { FLOOR, CEIL, TRUNC, RINT, FABS, CONJ, SQUARE, RECIP,
-                 DEGREES, RADIANS, NOPS };
+                 DEGREES, RADIANS, SPACING, NOPS };
 typedef struct { enum operation op; const ln_dtype *dt; } context;
 static context contexts[NOPS][18];
 static ln_ufunc_loop methods[NOPS][18];
@@ -22,7 +23,13 @@ static int ready;
 #define PI_F 3.141592653589793238462643383279502884F
 #define PI_D 3.141592653589793238462643383279502884
 #define PI_L 3.141592653589793238462643383279502884L
-#define REAL_EVAL(SUFFIX, T, PI) \
+/* The pinned x87 NumPy spacing loop yields NaN at either largest
+ * finite long double. libc nextafterl would yield infinity. */
+static int spacing_max_x87(int mantissa,int max_exp,long double x)
+{
+    return mantissa==64 && max_exp==16384 && fabsl(x)==LDBL_MAX;
+}
+#define REAL_EVAL(SUFFIX, T, PI, MANT, MAX_EXP) \
 static T real_##SUFFIX(T x, enum operation op) { \
     switch(op) { \
     case FLOOR:return floor##SUFFIX(x); \
@@ -34,12 +41,15 @@ static T real_##SUFFIX(T x, enum operation op) { \
     case RECIP:return (T)1/x; \
     case DEGREES:return x*((T)180/(PI)); \
     case RADIANS:return x*((PI)/(T)180); \
+    case SPACING: \
+        if(isinf(x)||spacing_max_x87(MANT,MAX_EXP,x))return (T)NAN; \
+        return nextafter##SUFFIX(x,x<0?(T)-INFINITY:(T)INFINITY)-x; \
     default:return x; \
     } \
 }
-REAL_EVAL(f, float, PI_F)
-REAL_EVAL(, double, PI_D)
-REAL_EVAL(l, long double, PI_L)
+REAL_EVAL(f, float, PI_F, FLT_MANT_DIG, FLT_MAX_EXP)
+REAL_EVAL(, double, PI_D, DBL_MANT_DIG, DBL_MAX_EXP)
+REAL_EVAL(l, long double, PI_L, LDBL_MANT_DIG, LDBL_MAX_EXP)
 #undef REAL_EVAL
 
 #define COMPLEX_EVAL(NAME, CTYPE, T, SUFFIX) \
@@ -121,7 +131,8 @@ static void inner(char **args,const ln_intp *dims,const ln_intp *strides,void *d
         INTEGER_CASE(LN_LONGLONG,long long,unsigned long long,1)
         INTEGER_CASE(LN_ULONGLONG,unsigned long long,unsigned long long,0)
         case LN_HALF:{ln_half h;memcpy(&h,src,sizeof h);
-            if(op!=CONJ)h=ln_float_to_half(real_f(ln_half_to_float(h),op));
+            if(op==SPACING)h=ln_half_spacing(h);
+            else if(op!=CONJ)h=ln_float_to_half(real_f(ln_half_to_float(h),op));
             memcpy(dst,&h,sizeof h);break;}
         case LN_FLOAT:{float x;memcpy(&x,src,sizeof x);x=real_f(x,op);memcpy(dst,&x,sizeof x);break;}
         case LN_DOUBLE:{double x;memcpy(&x,src,sizeof x);x=real_(x,op);memcpy(dst,&x,sizeof x);break;}
@@ -155,7 +166,7 @@ static void initialize(void)
 {
     if(ready)return;
     const char *names[NOPS]={"floor","ceil","trunc","rint","fabs","conjugate",
-                             "square","reciprocal","degrees","radians"};
+                             "square","reciprocal","degrees","radians","spacing"};
     const ln_dtype_num types[]={LN_BOOL,LN_BYTE,LN_UBYTE,LN_SHORT,LN_USHORT,
         LN_INT,LN_UINT,LN_LONG,LN_ULONG,LN_LONGLONG,LN_ULONGLONG,
         LN_HALF,LN_FLOAT,LN_DOUBLE,LN_LONGDOUBLE,LN_CFLOAT,LN_CDOUBLE,LN_CLONGDOUBLE};
@@ -166,7 +177,7 @@ static void initialize(void)
             int include;
             if(op<=TRUNC)include=dt->kind!='c';
             else if(op==RINT)include=dt->kind=='f'||dt->kind=='c';
-            else if(op==FABS||op==DEGREES||op==RADIANS)include=dt->kind=='f';
+            else if(op==FABS||op==DEGREES||op==RADIANS||op==SPACING)include=dt->kind=='f';
             else include=dt->type_num!=LN_BOOL;
             if(!include)continue;
             contexts[op][n]=(context){op,dt};

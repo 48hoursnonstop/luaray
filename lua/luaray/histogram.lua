@@ -250,4 +250,114 @@ return function(lr)
     end
     return counts,edges
   end
+
+  local function sequence_length(value)
+    if type(value)=='table' then return #value end
+    if type(value)=='userdata' and value.ndim and value.ndim>0 then return value.shape[1] end
+  end
+
+  local function histogram_sample(input)
+    if type(input)=='table' and type(input[1])=='userdata' and input[1].ndim==1 then
+      return lr.stack(input,2)
+    end
+    local sample=lr.asanyarray(input)
+    if sample.ndim==2 and type(input)~='table' then return sample end
+    if sample.ndim>2 then error('histogram sample must have at most two dimensions',3) end
+    return lr.transpose(lr.atleast_2d(sample))
+  end
+
+  local function axis_edges(data,bins,limits)
+    if type(bins)=='table' or type(bins)=='userdata' then
+      local b=lr.asanyarray(bins)
+      if b.ndim==1 then
+        local left,right=neighbors(b)
+        if b.size==0 or lr.any(lr.greater(left,right)) then
+          error('multidimensional bin edges must be nonempty and nondecreasing',3)
+        end
+        return b
+      end
+      if b.ndim~=0 or not lr.dtype(b.dtype).kind:match('[biu]') then
+        error('each bin specification must be an integer or an edge vector',3)
+      end
+      bins=b:item()
+    end
+    if type(bins)=='boolean' then bins=bins and 1 or 0 end
+    if math.type(bins)~='integer' or bins<1 or bins>=math.maxinteger-1 then
+      error('each bin count must be a positive integer within native range',3)
+    end
+    local lo,hi=interval(data,limits)
+    return lr.linspace(lo,hi,{num=bins+1})
+  end
+
+  local function dimensions(sample,bins,ranges)
+    local d=sample.shape[2]
+    if d==0 then error('a histogram must have at least one dimension',3) end
+    local n=sequence_length(bins)
+    if n and n~=d then error('bins must have one entry per dimension',3) end
+    if ranges~=nil and (type(ranges)~='table' or #ranges~=d) then
+      error('range must have one entry per dimension',3)
+    end
+    local edges,shape,labels,core={},{},{},{}
+    local total=1
+    for axis=1,d do
+      local vector=sample:get(lr.s(),axis)
+      local limits=ranges and ranges[axis] or nil
+      local spec=bins
+      if n then spec=bins[axis] end
+      local e=axis_edges(vector,spec,limits)
+      edges[axis]=e
+      shape[axis]=e.size+1
+      if shape[axis]>math.maxinteger//total then error('histogram shape is too large',3) end
+      total=total*shape[axis]
+      local index=lr.searchsorted(e,vector,'right')
+      local on_end=lr.equal(vector,e:get(lr.s(-1,nil)))
+      lr.subtract(index,1,{where=on_end,out=index})
+      labels[axis]=index
+      core[axis]=lr.s(2,-1)
+    end
+    return edges,shape,labels,core,total
+  end
+
+  local function multidimensional(sample,options,bins)
+    local edges,padded,labels,core,length=dimensions(sample,bins,options.range)
+    local index=lr.subtract(lr.ravel_multi_index(labels,padded),1)
+    local counts=lr.bincount(index,{weights=options.weights,minlength=length})
+    counts=lr.astype(counts,'float64'):reshape(padded):get(table.unpack(core))
+    if options.density then
+      local mass=lr.sum(counts)
+      local shape={}
+      for i=1,#edges do shape[i]=1 end
+      for i,e in ipairs(edges) do
+        shape[i]=e.size-1
+        counts=lr.true_divide(counts,lr.diff(e):reshape(shape))
+        shape[i]=1
+      end
+      lr.true_divide(counts,mass,{out=counts})
+    end
+    return counts,edges
+  end
+
+  function lr.histogramdd(input,options)
+    options=settings(options,true)
+    local bins=options.bins
+    if bins==nil then bins=10 end
+    return multidimensional(histogram_sample(input),options,bins)
+  end
+
+  function lr.histogram2d(x,y,options)
+    options=settings(options,true)
+    local a,b=lr.asanyarray(x),lr.asanyarray(y)
+    if a.ndim~=1 or b.ndim~=1 or a.size~=b.size then
+      error('histogram2d inputs must be vectors of the same length',2)
+    end
+    local bins=options.bins
+    if bins==nil then bins=10 end
+    local n=sequence_length(bins)
+    if n and n~=1 and n~=2 then
+      local both=lr.asanyarray(bins)
+      bins={both,both}
+    end
+    local counts,edges=multidimensional(lr.stack({a,b},2),options,bins)
+    return counts,edges[1],edges[2]
+  end
 end

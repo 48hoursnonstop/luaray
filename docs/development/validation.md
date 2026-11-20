@@ -44,13 +44,13 @@ reference archive on the [releases page](https://github.com/48hoursnonstop/luara
 
 `compatibility/current.json` records the release-specific behavioral evidence.
 `compatibility/api_inventory.json` records runtime availability. The latter
-reports 446 of 675 scoped names as available and classifies all available APIs
+reports 450 of 675 scoped names as available and classifies all available APIs
 as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.168.0-dev** passed **79 native suites**, **140 Lua suites**, seven public
-examples and 478 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
+LuaRay **0.169.0-dev** passed **79 native suites**, **141 Lua suites**, seven public
+examples and 482 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
 passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
 metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
@@ -158,7 +158,9 @@ Text ingestion passed **8,848 cases / 50,732 checks** with NumPy 2.5.5. This inc
 
 **4,386 cases / 79,458 checks** passed with NumPy 2.5.5. The checks compare axis permutations, sharing, mutability, scalar leaves and empty slices. All six join entry points handled 2,048 input tables with explicit Lua stack reservation.
 
-The ASan/UBSan audit covered the maintained suites and 78 reference corpora with 89 instrumented objects. A focused rebuild added `ln_raw_file`, `lua_raw_file`, `ln_half`, `ln_unary_math`, `ln_ufunc_loops`, bringing the checked total to 94. The maintained suites and 5 affected reference files passed again. The release JSON lists both passes and their executable-source fingerprint. Other dependencies were partially instrumented. Leak detection was disabled.
+**2,326 cases / 25,300 checks** passed with NumPy 2.5.5. The tests compare typed conjugation, batch broadcasting, strided and overlapping outputs, empty contractions, scalar products and rank-64 inputs. The existing linalg matrix corpus also ran against the new contraction path.
+
+The ASan/UBSan audit covered the maintained suites and 79 reference corpora with 90 instrumented objects. A focused rebuild added `ln_raw_file`, `lua_raw_file`, `ln_half`, `ln_unary_math`, `ln_ufunc_loops`, bringing the checked total to 95. The maintained suites and 5 affected reference files passed again. The release JSON lists both passes and their executable-source fingerprint. Other dependencies were partially instrumented. Leak detection was disabled.
 
 The [corrected repeat audit for 0.153](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) is preserved as a release asset.
 

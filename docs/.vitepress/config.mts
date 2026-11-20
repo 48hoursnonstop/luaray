@@ -37,6 +37,7 @@ const pages = [
     ['Choosing values', 'Selección con choose', 'choose'],
     ['Sorting by multiple keys', 'Ordenar por varias claves', 'lexsort'],
     ['Unique values and slices', 'Valores y cortes únicos', 'unique'],
+    ['Elementwise membership', 'Pertenencia por elemento', 'membership'],
     ['Conditions and extraction', 'Condiciones y extracción', 'condition_selection'],
     ['Selection and broadcasting', 'Selección y broadcasting', 'selection'],
     ['Typed views and bytes', 'Vistas tipadas y bytes', 'byte_views'],

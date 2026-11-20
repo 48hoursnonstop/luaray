@@ -1,4 +1,5 @@
 -- NumPy 2.5.5 _arraysetops_impl.py, using stable typed ordering and gathers.
+local empty_shape_view=require("luaray.layout_view")
 return function(lr)
   local allowed={
     axis=true,return_index=true,return_inverse=true,return_counts=true,
@@ -21,18 +22,6 @@ return function(lr)
     local shape=moved.shape
     local width=shape[1]==0 and 0 or moved.size//shape[1]
     return moved,lr.reshape(moved,{shape[1],width})
-  end
-
-  local function empty_shape_view(buffer,shape)
-    local strides={}
-    local step=buffer.itemsize
-    for i=#shape,1,-1 do
-      strides[i]=step
-      local extent=math.max(shape[i],1)
-      if step>math.maxinteger//extent then error('unique layout exceeds native range',3) end
-      step=step*extent
-    end
-    return lr.ndarray(shape,{dtype=buffer.dtype,buffer=buffer,strides=strides})
   end
 
   local function mark_groups(sorted,rows,equal_nan)
@@ -130,7 +119,7 @@ return function(lr)
     local first=lr.take(order,starts)
     local values=lr.take(ordered_input,first,1)
     if rows then
-      if values.size==0 then values=empty_shape_view(values,values.shape) end
+      if values.size==0 then values=empty_shape_view(lr,values,values.shape) end
       values=lr.moveaxis(values,1,axis)
     end
 
@@ -142,7 +131,7 @@ return function(lr)
       lr.put_along_axis(inverse,order,numbers,1)
       if not rows then
         if a.ndim>1 and inverse.size==0 then
-          inverse=empty_shape_view(inverse,a.shape)
+          inverse=empty_shape_view(lr,inverse,a.shape)
         else inverse=lr.reshape(inverse,a.shape) end
       end
       result[#result+1]=inverse

@@ -1,5 +1,5 @@
 local np=require("luaray_core")
-assert(np._version=="0.187.0-dev")
+assert(np._version=="0.188.0-dev")
 local rng=np.random.default_rng(42)
 local a=rng:binomial(100,0.2,{2,3})
 assert(a.dtype=="int64" and a.shape[1]==2 and a.shape[2]==3)

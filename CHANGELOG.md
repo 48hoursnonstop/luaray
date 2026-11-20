@@ -14,6 +14,12 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.169.0-dev
+
+Adds `matvec`, `vecmat`, `vecdot` and `vdot`, with complex conjugation,
+batch broadcasting and typed output views. `linalg.vecdot` now contracts
+vectors directly, including rank-64 inputs. Adds English and Spanish guides.
+
 ## 0.168.0-dev
 
 Adds `concat`, `permute_dims`, `matrix_transpose` and `unstack`. Array joins

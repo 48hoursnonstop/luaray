@@ -44,13 +44,13 @@ reference archive on the [releases page](https://github.com/48hoursnonstop/luara
 
 `compatibility/current.json` records the release-specific behavioral evidence.
 `compatibility/api_inventory.json` records runtime availability. The latter
-reports 442 of 675 scoped names as available and classifies all available APIs
+reports 446 of 675 scoped names as available and classifies all available APIs
 as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.167.0-dev** passed **79 native suites**, **139 Lua suites**, seven public
-examples and 474 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
+LuaRay **0.168.0-dev** passed **79 native suites**, **140 Lua suites**, seven public
+examples and 478 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
 passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
 metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
@@ -156,7 +156,9 @@ Text ingestion passed **8,848 cases / 50,732 checks** with NumPy 2.5.5. This inc
 
 **1,532 cases / 41,016 checks** passed with NumPy 2.5.5. The checks exhaust every float16 bit pattern for spacing and nextafter, including signed zero and NaN encodings. Additional cases cover floating dtype and weak-scalar promotion, real extreme values, masked output and overlapping views. Wider NaNs are compared by classification.
 
-The ASan/UBSan audit covered the maintained suites and 77 reference corpora with 89 instrumented objects. A focused rebuild added `ln_raw_file`, `lua_raw_file`, `ln_half`, `ln_unary_math`, `ln_ufunc_loops`, bringing the checked total to 94. The maintained suites and 4 affected reference files passed again. The release JSON lists both passes and their executable-source fingerprint. Other dependencies were partially instrumented. Leak detection was disabled.
+**4,386 cases / 79,458 checks** passed with NumPy 2.5.5. The checks compare axis permutations, sharing, mutability, scalar leaves and empty slices. All six join entry points handled 2,048 input tables with explicit Lua stack reservation.
+
+The ASan/UBSan audit covered the maintained suites and 78 reference corpora with 89 instrumented objects. A focused rebuild added `ln_raw_file`, `lua_raw_file`, `ln_half`, `ln_unary_math`, `ln_ufunc_loops`, bringing the checked total to 94. The maintained suites and 5 affected reference files passed again. The release JSON lists both passes and their executable-source fingerprint. Other dependencies were partially instrumented. Leak detection was disabled.
 
 The [corrected repeat audit for 0.153](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) is preserved as a release asset.
 

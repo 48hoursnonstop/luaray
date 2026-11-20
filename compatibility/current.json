@@ -1,5 +1,5 @@
 {
-  "version": "0.167.0-dev",
+  "version": "0.168.0-dev",
   "upstream_source": "NumPy 2.5.5",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -8,8 +8,8 @@
   "status": "implemented_partial",
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 442,
-    "missing_bindings": 232,
+    "available_callables": 446,
+    "missing_bindings": 228,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -187,18 +187,17 @@
     "Ordinary scalar to clongdouble packing follows the source double-component conversion. This is not an assertion of full scalar/array casting fidelity; source Python class protocols, warnings, every ABI and every operation remain uncertified."
   ],
   "apis": {
-    "numpy.nextafter": "implemented_partial",
-    "numpy.spacing": "implemented_partial",
-    "numpy.heaviside": "implemented_partial",
-    "numpy.logaddexp": "implemented_partial",
-    "numpy.logaddexp2": "implemented_partial"
+    "numpy.concat": "implemented_partial",
+    "numpy.matrix_transpose": "implemented_partial",
+    "numpy.permute_dims": "implemented_partial",
+    "numpy.unstack": "implemented_partial"
   },
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "4e62142789223528f5c590cc35a456182a3d4ba584bb648d19756786065ee4d5",
-      "files": 425
+      "sha256": "b371beb9f40ad4c744b943861106703f26b24abe444b00b4151b833bb02d7c49",
+      "files": 427
     },
-    "version": "0.167.0-dev",
+    "version": "0.168.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -400,9 +399,89 @@
     },
     "all_maintained_tests": "passed",
     "all_current_matrix_oracles": "passed",
+    "reference_files": [
+      "matrix117.lua",
+      "matrix118.lua",
+      "matrix119.lua",
+      "matrix120.lua",
+      "matrix121.lua",
+      "matrix122.lua",
+      "matrix123.lua",
+      "matrix124.lua",
+      "matrix125-time.lua",
+      "matrix125.lua",
+      "matrix126.lua",
+      "matrix127.lua",
+      "matrix128-join.lua",
+      "matrix128.lua",
+      "matrix129-time.lua",
+      "matrix129.lua",
+      "matrix130.lua",
+      "matrix131.lua",
+      "matrix132.lua",
+      "matrix133.lua",
+      "matrix134-close.lua",
+      "matrix134-equality.lua",
+      "matrix134-temporal.lua",
+      "matrix135-calendar.lua",
+      "matrix135-fill.lua",
+      "matrix135-item.lua",
+      "matrix136-buffer.lua",
+      "matrix137-flags.lua",
+      "matrix138-require.lua",
+      "matrix139-metadata.lua",
+      "matrix140-dtype.lua",
+      "matrix140-inputs.lua",
+      "matrix140-join.lua",
+      "matrix140-reducers.lua",
+      "matrix141-constructor.lua",
+      "matrix142-arange.lua",
+      "matrix143-arange.lua",
+      "matrix144-metadata.lua",
+      "matrix144-operations.lua",
+      "matrix144-time.lua",
+      "matrix145-inplace.lua",
+      "matrix145-layout.lua",
+      "matrix145-resize.lua",
+      "matrix146-byteswap.lua",
+      "matrix146-memory.lua",
+      "matrix147-field.lua",
+      "matrix147-setfield.lua",
+      "matrix148-conjugate.lua",
+      "matrix149-argwhere.lua",
+      "matrix149-indices.lua",
+      "matrix149-ix.lua",
+      "matrix150-fromfunction.lua",
+      "matrix151-ndindex.lua",
+      "matrix152-axis.lua",
+      "matrix153-over.lua",
+      "matrix153-strings.lua",
+      "matrix154-core.lua",
+      "matrix154-integers.lua",
+      "matrix155-index.lua",
+      "matrix156-bincount.lua",
+      "matrix157-bits.lua",
+      "matrix158-accum.lua",
+      "matrix158-empty.lua",
+      "matrix158-legacy-quantile.lua",
+      "matrix158-nonfinite.lua",
+      "matrix159-errors.lua",
+      "matrix159-fromiter.lua",
+      "matrix160-limits.lua",
+      "matrix161-common.lua",
+      "matrix161-types.lua",
+      "matrix162-packing.lua",
+      "matrix163-infinity.lua",
+      "matrix163-migration.lua",
+      "matrix164-fromstring.lua",
+      "matrix165-rawfile.lua",
+      "matrix166-cumulative.lua",
+      "matrix167-floating.lua",
+      "matrix168-layout.lua"
+    ],
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.167.0-dev-sanitizers.log",
+    "log": "artifacts/matrix-0.168.0-dev-sanitizers.log",
     "audit_phases": {
       "cumulative_corpus_original_objects": 89,
       "objects_after_targeted_rebuild": 94,
@@ -418,21 +497,21 @@
         "matrix163-infinity.lua",
         "matrix163-migration.lua",
         "matrix165-rawfile.lua",
-        "matrix167-floating.lua"
+        "matrix167-floating.lua",
+        "matrix168-layout.lua"
       ],
-      "focused_log": "artifacts/matrix-0.167.0-dev-sanitizers-focused.log"
+      "focused_log": "artifacts/matrix-0.168.0-dev-sanitizers-focused.log"
     }
   },
   "evidence": [
-    "src/ln_half.c",
-    "src/ln_ufunc_loops.c",
-    "src/ln_unary_math.c",
-    "tests/lua/floating_functions_regression.lua"
+    "lua/luaray/array_layout.lua",
+    "src/lua_module.c",
+    "tests/lua/array_api_layout_regression.lua"
   ],
   "new_oracle": "NumPy 2.5.5",
   "new_reference_cases": {
-    "floating": 1532
+    "layout": 4386
   },
-  "new_reference_checks": 41016,
-  "new_check_semantics": "The checks exhaust every float16 bit pattern for spacing and nextafter, including signed zero and NaN encodings. Additional cases cover floating dtype and weak-scalar promotion, real extreme values, masked output and overlapping views. Wider NaNs are compared by classification."
+  "new_reference_checks": 79458,
+  "new_check_semantics": "The checks compare axis permutations, sharing, mutability, scalar leaves and empty slices. All six join entry points handled 2,048 input tables with explicit Lua stack reservation."
 }

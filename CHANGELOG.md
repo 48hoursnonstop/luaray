@@ -14,6 +14,12 @@
   `make reference-test` checks the current engine against the verified 0.116 corpus.
 - Simplified the build and CI without changing numerical kernels or the release version.
 
+## 0.175.0-dev
+
+Adds `digitize` for increasing and decreasing intervals. Native
+`searchsorted` now handles fixed-width text and temporal descriptors and
+matches the NumPy 2.5.5 pivot schedules. Adds English and Spanish guides.
+
 ## 0.174.0-dev
 
 Adds `save` and `load` for typed NPY files and open Lua streams. Supports

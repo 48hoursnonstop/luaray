@@ -1,15 +1,15 @@
 {
   "upstream": "NumPy 2.5.5",
-  "lua_version": "0.167.0-dev",
+  "lua_version": "0.168.0-dev",
   "scope": "Public callable names in numpy/fft/linalg/random __all__, ndarray/Generator/ufunc public methods. Aliases counted separately; not constants, properties, all submodules or dtype loop combinations.",
   "interpretation": "Availability is observed at runtime; every available callable remains partial. This inventory alone verifies no behavior or full compatibility. Release-specific original fixtures provide separate behavioral evidence.",
   "complete_apis_declared": 0,
   "groups": {
     "numpy": {
       "scoped_names": 462,
-      "available_callables": 299,
+      "available_callables": 303,
       "not_applicable_to_lua": 0,
-      "missing_callables": 163
+      "missing_callables": 159
     },
     "numpy.fft": {
       "scoped_names": 18,
@@ -1266,9 +1266,9 @@
         "concat"
       ],
       "upstream_kind": "callable",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -4268,9 +4268,9 @@
         "matrix_transpose"
       ],
       "upstream_kind": "callable",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -5620,9 +5620,9 @@
         "permute_dims"
       ],
       "upstream_kind": "callable",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {
@@ -8748,9 +8748,9 @@
         "unstack"
       ],
       "upstream_kind": "callable",
-      "lua_type": "nil",
-      "lua_callable_available": false,
-      "status": "not_implemented",
+      "lua_type": "function",
+      "lua_callable_available": true,
+      "status": "implemented_partial",
       "behavioral_audit": "not_assessed_by_this_availability_inventory"
     },
     {

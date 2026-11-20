@@ -21,6 +21,7 @@ const pages = [
     ['Reading numeric text', 'Leer texto numérico', 'fromstring'],
     ['Binary array files', 'Archivos binarios de arrays', 'raw_files'],
     ['Shape and layout', 'Forma y disposición', 'layout'],
+    ['Transposing, joining and unstacking arrays', 'Transponer, unir y separar arrays', 'array_api_layout'],
     ['Resizing arrays', 'Cambiar tamaño de arrays', 'resize'],
     ['Indexing and assignment', 'Índices y asignación', 'writing'],
     ['Coordinate grids and locations', 'Rejillas y posiciones', 'index_grids'],

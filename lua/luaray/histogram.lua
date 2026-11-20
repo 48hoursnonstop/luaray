@@ -60,10 +60,14 @@ return function(lr)
     return edges
   end
 
-  local function count_sorted(a,edges)
+  local function inclusive_positions(a,edges)
     local interior=lr.searchsorted(a,edges:get(lr.s(nil,-1)),'left')
     local end_position=lr.searchsorted(a,edges:get(lr.s(-1,nil)),'right')
-    return lr.diff(lr.concat({interior,end_position}))
+    return lr.concat({interior,end_position})
+  end
+
+  local function count_sorted(a,edges)
+    return lr.diff(inclusive_positions(a,edges))
   end
 
   local function width_for(a,lo,hi,name)
@@ -106,23 +110,36 @@ return function(lr)
 
   local estimators={sqrt=true,sturges=true,rice=true,scott=true,fd=true,
                     doane=true,auto=true,stone=true}
-  function lr.histogram_bin_edges(input,options)
-    if options==nil then options={} end
-    if type(options)~='table' then error('histogram options must be a table',2) end
-    for key in pairs(options) do
-      if key~='bins' and key~='range' and key~='weights' then error('unknown histogram option',2) end
+  local function settings(options,density_allowed)
+    if options==nil then return {} end
+    if type(options)~='table' then error('histogram options must be a table',3) end
+    for key,value in pairs(options) do
+      if key=='density' and density_allowed then
+        if type(value)~='boolean' then error('density must be a boolean',3) end
+      elseif key~='bins' and key~='range' and key~='weights' then
+        error('unknown histogram option',3)
+      end
     end
+    return options
+  end
 
+  local function samples(input,weights)
     local a=lr.asanyarray(input)
-    local weights=options.weights
     if weights~=nil then
       weights=lr.asanyarray(weights)
       local shape,weight_shape=a.shape,weights.shape
-      if #shape~=#weight_shape then error('weights must match the input shape',2) end
+      if #shape~=#weight_shape then error('weights must match the input shape',3) end
       for i=1,#shape do
-        if shape[i]~=weight_shape[i] then error('weights must match the input shape',2) end
+        if shape[i]~=weight_shape[i] then error('weights must match the input shape',3) end
       end
+      weights=lr.ravel(weights)
     end
+    a=lr.ravel(a)
+    if a.dtype=='bool' then a=lr.astype(a,'uint8') end
+    return a,weights
+  end
+
+  local function choose_edges(a,weights,options)
     local bins=options.bins
     if bins==nil then bins=10 end
     if type(bins)~='string' and type(bins)~='number' and type(bins)~='boolean' then
@@ -138,10 +155,8 @@ return function(lr)
       bins=edges:item()
     end
 
-    a=lr.ravel(a)
     local kind=lr.dtype(a.dtype).kind
-    if not kind:match('[biuf]') then error('histogram ranges require real numeric data',2) end
-    if kind=='b' then a=lr.astype(a,'uint8');kind='u' end
+    if not kind:match('[iuf]') then error('histogram ranges require real numeric data',3) end
     local lo,hi=interval(a,options.range)
     if type(bins)=='boolean' then bins=bins and 1 or 0 end
     if type(bins)=='string' then
@@ -157,6 +172,82 @@ return function(lr)
         bins=math.ceil(span(lo,hi)/width)
       end
     end
-    return equal_edges(a,lo,hi,bins)
+    return equal_edges(a,lo,hi,bins),lo,hi
+  end
+
+  function lr.histogram_bin_edges(input,options)
+    options=settings(options,false)
+    local a,weights=samples(input,options.weights)
+    return (choose_edges(a,weights,options))
+  end
+
+  local block_size=65536
+
+  local function add_counts(counts,values)
+    lr.add(counts,values,{out=counts})
+  end
+
+  local function equal_histogram(a,weights,edges,lo,hi,dtype)
+    local bins=edges.size-1
+    local counts=lr.zeros({bins},dtype)
+    local complex=lr.dtype(dtype).kind=='c'
+    for first=1,a.size,block_size do
+      local block=lr.s(first,first+block_size)
+      local values=a:get(block)
+      local w=weights and weights:get(block)
+      local keep=lr.logical_and(lr.greater_equal(values,lo),lr.less_equal(values,hi))
+      if not lr.all(keep) then
+        values=values:get(keep)
+        if w then w=w:get(keep) end
+      end
+      values=lr.astype(values,edges.dtype)
+      local intervals=lr.subtract(lr.searchsorted(edges,values,'right'),2)
+      local labels=lr.minimum(intervals,bins-1)
+      if complex then
+        add_counts(lr.real(counts),lr.bincount(labels,{weights=lr.real(w),minlength=bins}))
+        add_counts(lr.imag(counts),lr.bincount(labels,{weights=lr.imag(w),minlength=bins}))
+      else
+        local sums=lr.bincount(labels,{weights=w,minlength=bins})
+        add_counts(counts,lr.astype(sums,dtype))
+      end
+    end
+    return counts
+  end
+
+  local function cumulative_histogram(a,weights,edges,dtype)
+    local cumulative=lr.zeros(edges.shape,dtype)
+    local initial=weights and lr.zeros({1},dtype)
+    for first=1,a.size,block_size do
+      local block=lr.s(first,first+block_size)
+      local values=a:get(block)
+      if weights then
+        local order=lr.argsort(values)
+        local sorted=lr.take(values,order)
+        local positions=inclusive_positions(sorted,edges)
+        local w=lr.take(weights:get(block),order)
+        local prefix=lr.concat({initial,lr.cumsum(w)})
+        add_counts(cumulative,lr.take(prefix,positions))
+      else
+        add_counts(cumulative,inclusive_positions(lr.sort(values),edges))
+      end
+    end
+    return lr.diff(cumulative)
+  end
+
+  function lr.histogram(input,options)
+    options=settings(options,true)
+    local a,weights=samples(input,options.weights)
+    local edges,lo,hi=choose_edges(a,weights,options)
+    local dtype=weights and weights.dtype or 'intp'
+    local simple=not weights or lr.can_cast(dtype,'float64','safe')
+      or lr.can_cast(dtype,'complex128','safe')
+    local counts
+    if lo~=nil and simple then counts=equal_histogram(a,weights,edges,lo,hi,dtype)
+    else counts=cumulative_histogram(a,weights,edges,dtype) end
+    if options.density then
+      local widths=lr.astype(lr.diff(edges),'float64')
+      counts=lr.true_divide(lr.true_divide(counts,widths),lr.sum(counts))
+    end
+    return counts,edges
   end
 end

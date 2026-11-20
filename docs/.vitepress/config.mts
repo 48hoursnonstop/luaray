@@ -57,6 +57,7 @@ const pages = [
     ['Counting categories', 'Contar categorías', 'bincount'],
     ['Locating values in bins', 'Ubicar valores en intervalos', 'digitize'],
     ['Choosing histogram edges', 'Elegir bordes de un histograma', 'histogram_edges'],
+    ['Histograms and densities', 'Histogramas y densidades', 'histogram'],
     ['Integer operations', 'Operaciones enteras', 'integer_math'],
     ['Quantiles and medians', 'Cuantiles y medianas', 'quantiles'],
     ['Cumulative sums and products', 'Sumas y productos acumulados', 'cumulative'],

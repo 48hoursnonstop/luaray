@@ -1,5 +1,5 @@
 {
-  "version": "0.172.0-dev",
+  "version": "0.173.0-dev",
   "upstream_source": "NumPy 2.5.5",
   "blocked_original_states": 40,
   "deliberate_difference_variants": {
@@ -8,8 +8,8 @@
   "status": "implemented_partial",
   "availability_inventory": {
     "scoped_names": 675,
-    "available_callables": 457,
-    "missing_bindings": 217,
+    "available_callables": 461,
+    "missing_bindings": 213,
     "not_applicable_to_lua": 1,
     "complete_apis_declared": 0,
     "scope": "Direct public callable names; not overall compatibility"
@@ -187,14 +187,17 @@
     "Ordinary scalar to clongdouble packing follows the source double-component conversion. This is not an assertion of full scalar/array casting fidelity; source Python class protocols, warnings, every ABI and every operation remain uncertified."
   ],
   "apis": {
-    "numpy.isin": "implemented_partial"
+    "numpy.union1d": "implemented_partial",
+    "numpy.intersect1d": "implemented_partial",
+    "numpy.setdiff1d": "implemented_partial",
+    "numpy.setxor1d": "implemented_partial"
   },
   "sanitizers": {
     "source_fingerprint": {
-      "sha256": "317f3dbf98f719276889125daa60e98ab079e52802b82a56880de0d64166514f",
-      "files": 439
+      "sha256": "164b8f47d6946365f4ebbc7bbb7fc660e5b13ff91b6e2bfb173644024843d067",
+      "files": 441
     },
-    "version": "0.172.0-dev",
+    "version": "0.173.0-dev",
     "result": "passed",
     "instrumented_library_C_units": [
       "ln_write",
@@ -488,22 +491,21 @@
       "matrix169-products.lua",
       "matrix170-lexsort.lua",
       "matrix171-unique.lua",
-      "matrix172-membership.lua"
+      "matrix172-membership.lua",
+      "matrix173-sets.lua"
     ],
     "other_native_dependencies": "not fully instrumented",
     "leak_detection": false,
-    "log": "artifacts/matrix-0.172.0-dev-sanitizers.log"
+    "log": "artifacts/matrix-0.173.0-dev-sanitizers.log"
   },
   "evidence": [
-    "lua/luaray/membership.lua",
-    "src/ln_membership.c",
-    "src/lua_membership.c",
-    "tests/lua/membership_regression.lua"
+    "lua/luaray/set_operations.lua",
+    "tests/lua/set_operations_regression.lua"
   ],
   "new_oracle": "NumPy 2.5.5",
   "new_reference_cases": {
-    "membership": 3194
+    "sets": 1284
   },
-  "new_reference_checks": 53252,
-  "new_check_semantics": "The checks exercise integer lookup and sort routes, inverted masks, mixed signed and unsigned limits, typed equality and strided inputs."
+  "new_reference_checks": 31299,
+  "new_check_semantics": "The checks exercise sorted results, first original indices, duplicate and empty inputs, mixed numeric types, fixed text and temporal descriptors."
 }

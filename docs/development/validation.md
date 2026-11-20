@@ -44,13 +44,13 @@ reference archive on the [releases page](https://github.com/48hoursnonstop/luara
 
 `compatibility/current.json` records the release-specific behavioral evidence.
 `compatibility/api_inventory.json` records runtime availability. The latter
-reports 457 of 675 scoped names as available and classifies all available APIs
+reports 461 of 675 scoped names as available and classifies all available APIs
 as partial; it is not a measure of overall NumPy completion.
 
 ## Current source-tree checks
 
-LuaRay **0.172.0-dev** passed **80 native suites**, **144 Lua suites**, seven public
-examples and 494 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
+LuaRay **0.173.0-dev** passed **80 native suites**, **145 Lua suites**, seven public
+examples and 498 executable documentation blocks. Diagonal references retain **47,886 cases / 4,571,474 checks**. Trace references
 passed **20,861 cases / 853,519 exact checks** against NumPy 2.5.3, including
 metadata, dtype/output resolution, aliasing, temporal units and backing states.
 
@@ -166,7 +166,9 @@ Text ingestion passed **8,848 cases / 50,732 checks** with NumPy 2.5.5. This inc
 
 **3,194 cases / 53,252 checks** passed with NumPy 2.5.5. The checks exercise integer lookup and sort routes, inverted masks, mixed signed and unsigned limits, typed equality and strided inputs.
 
-The ASan/UBSan audit covered 99 objects across 69 library units, the Lua runner and 29 native harnesses. All maintained suites and 82 reference corpora passed. The release verification JSON lists the instrumented objects and executable-source fingerprint. Other dependencies were partially instrumented. Leak detection was disabled.
+**1,284 cases / 31,299 checks** passed with NumPy 2.5.5. The checks exercise sorted results, first original indices, duplicate and empty inputs, mixed numeric types, fixed text and temporal descriptors.
+
+The ASan/UBSan audit covered 99 objects across 69 library units, the Lua runner and 29 native harnesses. All maintained suites and 83 reference corpora passed. The release verification JSON lists the instrumented objects and executable-source fingerprint. Other dependencies were partially instrumented. Leak detection was disabled.
 
 The [corrected repeat audit for 0.153](https://github.com/48hoursnonstop/luaray/releases/download/v0.153.0-dev/luaray-0.153.0-dev-sanitizers-corrected.json) is preserved as a release asset.
 

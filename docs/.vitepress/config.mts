@@ -55,6 +55,7 @@ const pages = [
     ['Binary operations', 'Operaciones binarias', 'binary_math'],
     ['Floating-point neighbors and stable sums', 'Vecinos de punto flotante y sumas estables', 'floating_functions'],
     ['Counting categories', 'Contar categorías', 'bincount'],
+    ['Locating values in bins', 'Ubicar valores en intervalos', 'digitize'],
     ['Integer operations', 'Operaciones enteras', 'integer_math'],
     ['Quantiles and medians', 'Cuantiles y medianas', 'quantiles'],
     ['Cumulative sums and products', 'Sumas y productos acumulados', 'cumulative'],

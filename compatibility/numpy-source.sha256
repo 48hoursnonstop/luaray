@@ -122,3 +122,4 @@ e27e1ee036382601a4786b1177369d6b7f08cf1d70f4a245b4940bf4857122d2  numpy/random/s
 21fdfe42947deb332cc2aaa870b44136d4ae23db4bdd19ef5ba7ffed4dc92718  numpy/random/src/pcg64/pcg64.c
 eaaf0388907db0e4fb8f70cb4ce011213c4b07de91eebf87be886ef182b98502  numpy/_core/src/npymath/halffloat.cpp
 1fda33b795b386986d7b82b786d4e75979b6277001e35848ac3cfd4a04b1afee  numpy/_core/src/npymath/ieee754.c.src
+e7b6079c56f33bf038ff6dbe12b3792b27fa6ef7903e8625b395c83ed6796863  numpy/_core/src/npysort/binsearch.cpp

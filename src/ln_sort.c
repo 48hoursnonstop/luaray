@@ -467,22 +467,14 @@ static int lex_swapped_unicode(const char *a,const char *b,const ln_dtype *dtype
     return 0;
 }
 
-static int lex_compare_cell(const lex_key *key,ln_intp left,ln_intp right)
+static int compare_ordered_cells(const char *a,const char *b,const ln_dtype *dtype)
 {
-    const char *a=key->base+left*key->stride;
-    const char *b=key->base+right*key->stride;
-    if(key->dtype->kind=='S'||key->dtype->kind=='U'){
-        if(key->dtype->kind=='U'){
-            const uint16_t one=1;
-            char native=*(const unsigned char *)&one ? '<' : '>';
-            if(key->dtype->byteorder!=native)
-                return lex_swapped_unicode(a,b,key->dtype);
-        }
+    if(dtype->kind=='S'||dtype->kind=='U'){
         int cmp=0;
-        ln_string_compare_one(a,key->dtype,b,key->dtype,&cmp,NULL);
+        ln_string_compare_one(a,dtype,b,dtype,&cmp,NULL);
         return cmp;
     }
-    if(key->dtype->kind=='m'||key->dtype->kind=='M'){
+    if(dtype->kind=='m'||dtype->kind=='M'){
         int64_t x,y;
         memcpy(&x,a,sizeof x);
         memcpy(&y,b,sizeof y);
@@ -491,9 +483,22 @@ static int lex_compare_cell(const lex_key *key,ln_intp left,ln_intp right)
         if(y==INT64_MIN)return -1;
         return x<y?-1:1;
     }
-    if(item_less_ascending(a,b,key->dtype))return -1;
-    if(item_less_ascending(b,a,key->dtype))return 1;
+    if(item_less_ascending(a,b,dtype))return -1;
+    if(item_less_ascending(b,a,dtype))return 1;
     return 0;
+}
+
+static int lex_compare_cell(const lex_key *key,ln_intp left,ln_intp right)
+{
+    const char *a=key->base+left*key->stride;
+    const char *b=key->base+right*key->stride;
+    if(key->dtype->kind=='U'){
+        const uint16_t one=1;
+        char native=*(const unsigned char *)&one ? '<' : '>';
+        if(key->dtype->byteorder!=native)
+            return lex_swapped_unicode(a,b,key->dtype);
+    }
+    return compare_ordered_cells(a,b,key->dtype);
 }
 
 static int lex_less(const lex_key *keys,size_t count,ln_intp left,ln_intp right)
@@ -815,10 +820,14 @@ copy_cast_c_sort(const ln_array *src, ln_array *dst, ln_error *err)
 }
 
 static int
-item_less_equal_ascending(const char *ap, const char *bp, const ln_dtype *dt)
+before_key(const char *value,const char *key,const ln_dtype *dtype,int side_right)
 {
-    /* numpy_tag.hpp: less_equal(a,b) == !less(b,a), including NaN ordering. */
-    return !item_less_ascending(bp,ap,dt);
+    if(dtype->kind=='S'||dtype->kind=='U'||dtype->kind=='M'||dtype->kind=='m'){
+        int cmp=compare_ordered_cells(value,key,dtype);
+        return side_right?cmp<=0:cmp<0;
+    }
+    return side_right?!item_less_ascending(key,value,dtype)
+                     :item_less_ascending(value,key,dtype);
 }
 
 ln_array *
@@ -831,14 +840,18 @@ ln_searchsorted(const ln_array *a, const ln_array *keys, int side_right,
         return NULL;
     }
     const ln_dtype *dt=ln_promote_dtype(a->descr,keys->descr);
-    if (!dt) { sort_error(err,"compare not supported for type"); return NULL; }
+    if(!dt || !ln_dtype_can_cast(a->descr,dt,LN_SAFE_CASTING) ||
+            !ln_dtype_can_cast(keys->descr,dt,LN_SAFE_CASTING)){
+        sort_error(err,"searchsorted operands cannot safely cast to one dtype");
+        return NULL;
+    }
 
     ln_array *owned_a=NULL,*owned_k=NULL;
     const ln_array *ha=a,*ka=keys;
     ln_intp nkeys=ln_array_size(keys),n=a->dimensions[0];
 
     /* PyArray_SearchSorted always makes needles C-contiguous in common dtype. */
-    int keys_c = (keys->flags & LN_ARRAY_C_CONTIGUOUS) && keys->descr->type_num==dt->type_num;
+    int keys_c = (keys->flags & LN_ARRAY_C_CONTIGUOUS) && keys->descr==dt;
     if (!keys_c) {
         owned_k=ln_array_new(keys->nd,keys->nd?keys->dimensions:NULL,dt,0,0,err);
         if (!owned_k) goto fail;
@@ -848,7 +861,7 @@ ln_searchsorted(const ln_array *a, const ln_array *keys, int side_right,
 
     /* Haystack must use common dtype.  Match upstream's cache heuristic: when
      * needles outnumber haystack values, materialize a C-contiguous haystack. */
-    int need_a_cast=a->descr->type_num!=dt->type_num;
+    int need_a_cast=a->descr!=dt;
     int need_a_contig=nkeys>n && (!(a->flags & LN_ARRAY_C_CONTIGUOUS) || a->strides[0]!=(ln_intp)a->descr->elsize);
     if (need_a_cast || need_a_contig) {
         ln_intp sh=n;
@@ -866,31 +879,52 @@ ln_searchsorted(const ln_array *a, const ln_array *keys, int side_right,
     if (!out) goto fail;
     ln_intp arr_stride=ha->strides[0];
     ln_intp key_stride=(ln_intp)ka->descr->elsize;
-    for (ln_intp j=0; j<nkeys; ++j) {
+    /* NumPy 2.5.5 uses a previous-key bound for generic text comparisons
+     * and the fixed-length pivot schedule for native numeric/time loops. */
+    int generic=dt->kind=='S'||dt->kind=='U';
+    ln_intp previous=0;
+    const char *last_key=ka->data;
+    for(ln_intp j=0;j<nkeys;++j){
         const char *key=ka->data+j*key_stride;
-        ln_intp lo=0,hi=n;
-        while (lo<hi) {
-            ln_intp mid=lo+((hi-lo)>>1);
-            ln_intp ai=mid;
-            if (sorter) {
-                ai=sorter[mid];
-                if (ai<0 || ai>=n) {
-                    ln_array_free(out);
-                    sort_error(err,"Sorter index out of range.");
-                    goto fail;
-                }
+        ln_intp lo=0;
+        if(generic){
+            ln_intp hi=n;
+            if(j>0){
+                if(before_key(last_key,key,dt,side_right))lo=previous;
+                else hi=previous<n?previous+1:n;
             }
-            const char *v=ha->data+ai*arr_stride;
-            int before = side_right ? item_less_equal_ascending(v,key,dt)
-                                    : item_less_ascending(v,key,dt);
-            if (before) lo=mid+1;
-            else hi=mid;
+            while(lo<hi){
+                ln_intp mid=lo+((hi-lo)>>1);
+                ln_intp index=sorter?sorter[mid]:mid;
+                if(index<0||index>=n)goto badsorter;
+                const char *value=ha->data+index*arr_stride;
+                if(before_key(value,key,dt,side_right))lo=mid+1;
+                else hi=mid;
+            }
+            previous=lo;
+            last_key=key;
+        }else if(n){
+            ln_intp length=n;
+            while(length>1){
+                ln_intp half=length>>1;
+                ln_intp mid=lo+half;
+                ln_intp index=sorter?sorter[mid]:mid;
+                if(index<0||index>=n)goto badsorter;
+                if(before_key(ha->data+index*arr_stride,key,dt,side_right))lo=mid;
+                length-=half;
+            }
+            ln_intp index=sorter?sorter[lo]:lo;
+            if(index<0||index>=n)goto badsorter;
+            lo+=before_key(ha->data+index*arr_stride,key,dt,side_right);
         }
         ln_intp public_pos=lo+1; /* Lua insertion positions: 1 .. n+1 */
         memcpy(out->data+j*(ln_intp)sizeof(ln_intp),&public_pos,sizeof(public_pos));
     }
     ln_array_free(owned_a); ln_array_free(owned_k);
     return out;
+badsorter:
+    ln_array_free(out);
+    sort_error(err,"Sorter index out of range.");
 fail:
     ln_array_free(owned_a); ln_array_free(owned_k);
     return NULL;

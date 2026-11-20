@@ -1,4 +1,6 @@
-# LuaRay
+<p align="center">
+  <img src="docs/public/brand/luaray-logo.svg" alt="LuaRay" width="560">
+</p>
 
 **NumPy-style numerical computing for Lua.**
 
@@ -57,7 +59,7 @@ options, copying, and memory ownership.
 
 ## Compatibility
 
-**Current release: [0.158.0-dev](https://github.com/48hoursnonstop/luaray/releases/tag/v0.158.0-dev).**
+**Current release: [0.161.0-dev](https://github.com/48hoursnonstop/luaray/releases/tag/v0.161.0-dev).**
 LuaRay is under development. NumPy 2.5.4 is the primary behavioral reference;
 compatibility varies by operation, dtype, and option.
 

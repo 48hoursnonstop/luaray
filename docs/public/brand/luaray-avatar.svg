@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title description">
+  <title id="title">LuaRay array</title>
+  <desc id="description">A bracketed two-by-three array with sage, blue and coral cells on a dark square.</desc>
+  <rect id="background" width="800" height="800" fill="#24262e"/>
+  <g transform="translate(153.5 218.75) scale(1.45)">
+    <g id="array-symbol">
+    <g class="array-brackets" fill="none" stroke="#ece6e2" stroke-width="14" stroke-linecap="butt" stroke-linejoin="miter">
+      <path id="left-bracket" d="M28 0H0V250H28"/>
+      <path id="right-bracket" d="M312 0H340V250H312"/>
+    </g>
+    <rect id="cell-1-1" x="62" y="48" width="62" height="62" fill="#71ad98"/>
+    <rect id="cell-1-2" x="140" y="48" width="62" height="62" fill="#64719c"/>
+    <rect id="cell-1-3" x="218" y="48" width="62" height="62" fill="#dc866e"/>
+    <rect id="cell-2-1" x="62" y="140" width="62" height="62" fill="#71ad98"/>
+    <rect id="cell-2-2" x="140" y="140" width="62" height="62" fill="#64719c"/>
+    <rect id="cell-2-3" x="218" y="140" width="62" height="62" fill="#dc866e"/>
+  </g>
+  </g>
+</svg>

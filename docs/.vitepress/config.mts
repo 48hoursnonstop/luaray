@@ -107,7 +107,7 @@ export default defineConfig({
   base: '/luaray/',
   cleanUrls: true,
   srcExclude: ['README.md'],
-  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/luaray/logo.svg' }]],
+  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/luaray/brand/luaray-avatar.svg' }]],
   sitemap: { hostname: 'https://48hoursnonstop.github.io/luaray/' },
   markdown: { lineNumbers: true },
   locales: {
@@ -142,7 +142,7 @@ export default defineConfig({
     },
   },
   themeConfig: {
-    logo: '/logo.svg',
+    logo: '/brand/luaray-avatar.svg',
     outline: { level: [2, 3] },
     socialLinks: [{ icon: 'github', link: repo }],
     editLink: { pattern: `${repo}/edit/main/docs/:path`, text: 'Edit this page on GitHub' },

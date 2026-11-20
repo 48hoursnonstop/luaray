@@ -11,6 +11,7 @@ extern "C" {
 int ln_sort_inplace(ln_array *a, int axis, int descending, ln_error *err);
 ln_array *ln_sort_copy(const ln_array *a, int axis, int descending, ln_error *err);
 ln_array *ln_argsort(const ln_array *a, int axis, int descending, ln_error *err);
+ln_array *ln_lexsort(const ln_array *const *keys,size_t count,int axis,ln_error *err);
 
 int ln_partition_inplace(ln_array *a, const ln_intp *kth, ln_intp nkth,
                          int axis, int descending, ln_error *err);
